@@ -1,7 +1,7 @@
 import {
   ApplicationConfig,
   inject,
-  provideBrowserGlobalErrorListeners,
+  provideBrowserGlobalErrorListeners, isDevMode,
 } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
@@ -11,6 +11,7 @@ import { provideFirestore, getFirestore, initializeFirestore } from '@angular/fi
 
 import { routes } from './app.routes';
 import { environment } from '../environments/environment';
+import { provideServiceWorker } from '@angular/service-worker';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -20,5 +21,9 @@ export const appConfig: ApplicationConfig = {
     provideFirebaseApp(() => initializeApp(environment.firebaseConfig)),
     provideAuth(() => getAuth()),
     provideFirestore(() => initializeFirestore(inject(Auth).app, { experimentalForceLongPolling: true })),
+    provideServiceWorker('ngsw-worker.js', {
+      enabled: !isDevMode(),
+      registrationStrategy: 'registerWhenStable:30000'
+    }),
   ],
 };
