@@ -1,0 +1,113 @@
+<div
+    class="relative min-h-screen max-w-md mx-auto grain-overlay bg-latte overflow-x-hidden border-x-4 border-espresso font-display text-espresso selection:bg-primary selection:text-white">
+    <!-- Header Section -->
+    <header class="p-6 pt-10">
+        <div class="flex justify-between items-start mb-8">
+            <div class="relative">
+                <div class="absolute -top-4 -left-2 w-12 h-12 bg-sage rounded-full -z-10 opacity-60"></div>
+                <p class="font-marker text-lg text-primary rotate-[-2deg]">{{ greeting }}</p>
+                <h1
+                    class="text-4xl font-black italic tracking-tighter leading-none uppercase text-espresso drop-shadow-sm">
+                    Hi {{ authService.currentUser()?.displayName?.split(' ')?.[0] || 'there' }},<br />Find a Spot
+                </h1>
+            </div>
+            <button
+                class="w-12 h-12 zine-border zine-shadow bg-off-white flex items-center justify-center rounded-lg hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all">
+                <span class="material-symbols-outlined text-espresso">notifications</span>
+            </button>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="relative group mt-6">
+            <div class="absolute inset-0 bg-espresso translate-x-1 translate-y-1 rounded-xl"></div>
+            <div class="relative flex items-center bg-off-white zine-border rounded-xl p-1">
+                <span class="material-symbols-outlined px-3 text-espresso">search</span>
+                <input
+                    class="w-full bg-transparent border-none focus:ring-0 font-zine font-bold text-sm uppercase placeholder:text-espresso/40 py-3"
+                    placeholder="CRUSHING ON A CAFE?" type="text" />
+            </div>
+        </div>
+    </header>
+
+    <!-- Filter Chips - Marker Style -->
+    <div class="flex gap-4 px-6 overflow-x-auto pb-6 no-scrollbar">
+        @for (chip of chips; track chip.tag) {
+        <button (click)="cafeService.toggleTag(chip.tag)"
+            class="shrink-0 px-4 py-1.5 zine-border rounded-full font-marker text-sm transition-all duration-300"
+            [class]="isTagActive(chip.tag) ? 'bg-primary text-espresso rotate-[-1deg] zine-shadow-sm' : 'bg-off-white text-espresso/70 rotate-[1deg] hover:rotate-0 hover:bg-white'">
+            {{ chip.label }}
+        </button>
+        }
+    </div>
+
+    <!-- Section Title -->
+    <div class="px-6 py-4">
+        <h2
+            class="inline-block bg-espresso text-off-white px-4 py-1 font-zine font-bold italic uppercase tracking-widest -rotate-1">
+            Top Malaysian Picks
+        </h2>
+    </div>
+
+    <!-- Listing Cards - Zine Style -->
+    <main class="px-6 space-y-12 pb-32">
+        @for (cafe of cafeService.filteredCafes(); track cafe.id; let i = $index) {
+        <div class="relative">
+            <!-- Alternating background blob colors and rotations -->
+            <div
+                [class]="'absolute inset-0 translate-x-3 translate-y-3 rounded-xl ' + 
+                 (i % 3 === 0 ? 'bg-sage/40 -rotate-1' : i % 3 === 1 ? 'bg-primary/30 rotate-2' : 'bg-espresso/10 -rotate-2')">
+            </div>
+
+            <a [routerLink]="['/cafe', cafe.id]"
+                class="relative block bg-off-white zine-border p-3 rounded-sm zine-shadow transition-transform hover:scale-[1.02] active:scale-[0.98] zine-click-active"
+                [class]="i % 2 === 0 ? 'rotate-1' : '-rotate-1'">
+
+                <div class="tape-effect overflow-hidden zine-border aspect-[4/3] bg-espresso relative">
+                    <img [src]="cafe.photos[0] || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=600&h=400&fit=crop'"
+                        [alt]="cafe.name"
+                        class="w-full h-full object-cover grayscale contrast-125 opacity-90 transition-all hover:grayscale-0 hover:opacity-100" />
+
+                    @if (cafe.tags && cafe.tags.length > 0) {
+                    <div
+                        class="absolute top-2 right-2 bg-primary text-espresso px-2 py-0.5 font-marker text-xs rotate-3 zine-border uppercase">
+                        {{ cafe.tags[0] }}
+                    </div>
+                    }
+                </div>
+
+                <div class="pt-4 pb-2">
+                    <div class="flex justify-between items-start">
+                        <h3 class="text-2xl font-black italic uppercase font-zine leading-none text-espresso">
+                            {{ cafe.name }}
+                        </h3>
+                        <div class="font-marker text-primary text-lg"
+                            [class]="i % 2 === 0 ? 'rotate-[-5deg]' : 'rotate-[5deg]'">
+                            {{ cafe.rating }}/5
+                        </div>
+                    </div>
+                    <p class="font-zine text-xs font-bold mt-2 uppercase text-espresso/70 tracking-tighter">
+                        {{ cafe.address }}
+                    </p>
+                </div>
+            </a>
+        </div>
+        }
+
+        @empty {
+        <div class="text-center py-16">
+            <span class="material-symbols-outlined text-6xl text-espresso/20 mb-3 rotate-12">search_off</span>
+            <p class="font-marker text-xl text-espresso/40">No spots found in the zine...</p>
+        </div>
+        }
+    </main>
+
+    <!-- Floating Action Button -->
+    <div class="fixed bottom-24 right-6 z-40 max-w-md">
+        <a routerLink="/session/create"
+            class="bg-primary text-espresso font-marker text-lg px-6 py-4 rounded-full zine-border zine-shadow hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex items-center gap-2">
+            <span class="material-symbols-outlined">coffee</span>
+            START A SESSION
+        </a>
+    </div>
+
+</div>

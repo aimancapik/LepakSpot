@@ -1,0 +1,103 @@
+<div
+    class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display min-h-screen flex flex-col max-w-md mx-auto relative overflow-hidden">
+    <!-- Confetti BG -->
+    <div class="fixed inset-0 pointer-events-none confetti-pattern z-0"></div>
+
+    <!-- Top Nav -->
+    <nav
+        class="flex items-center justify-between px-6 py-4 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md sticky top-0 z-10 border-b border-primary/10">
+        <a routerLink="/home"
+            class="w-10 h-10 flex items-center justify-center rounded-full bg-primary/10 text-primary">
+            <span class="material-symbols-outlined">arrow_back</span>
+        </a>
+        <h2 class="text-lg font-bold tracking-tight">Result Revealed</h2>
+        <button class="w-10 h-10 flex items-center justify-center rounded-full bg-primary/10 text-primary">
+            <span class="material-symbols-outlined">share</span>
+        </button>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col items-center px-6 pt-8 pb-28 relative z-10">
+        <!-- Celebratory Header -->
+        <div class="text-center mb-8">
+            <div
+                class="inline-flex items-center justify-center p-3 mb-4 rounded-full bg-primary/20 text-primary animate-bounce">
+                <span class="material-symbols-outlined text-4xl">celebration</span>
+            </div>
+            <p class="text-primary font-bold uppercase tracking-[0.2em] text-sm mb-2">The Winner!</p>
+            <h1 class="text-4xl font-extrabold mb-2">🎉 Congrats! 🎉</h1>
+            <p class="text-slate-600 dark:text-slate-400">Your group has chosen the perfect spot.</p>
+        </div>
+
+        <!-- Winner Cafe Card -->
+        @if (winnerCafe()) {
+        <div
+            class="w-full bg-white dark:bg-card-dark rounded-2xl overflow-hidden shadow-xl shadow-primary/10 border border-primary/10">
+            <div class="h-56 bg-center bg-no-repeat bg-cover relative"
+                [style.background-image]="'url(' + (winnerCafe()!.photos[0] || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=600&h=400&fit=crop') + ')'">
+                <div
+                    class="absolute top-4 right-4 bg-white/90 dark:bg-background-dark/90 backdrop-blur-md px-3 py-1 rounded-full flex items-center gap-1 shadow-sm">
+                    <span class="material-symbols-outlined text-primary text-sm fill-1">star</span>
+                    <span class="text-sm font-bold">{{ winnerCafe()!.rating }}</span>
+                </div>
+            </div>
+            <div class="p-6">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h3 class="text-2xl font-bold">{{ winnerCafe()!.name }}</h3>
+                        <p class="text-slate-500 dark:text-slate-400 flex items-center gap-1 mt-1 text-sm">
+                            <span class="material-symbols-outlined text-sm">location_on</span>
+                            {{ winnerCafe()!.address }}
+                        </p>
+                    </div>
+                    <div
+                        class="bg-green-500/10 text-green-600 dark:text-green-400 px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-tight">
+                        Open Now
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-3">
+                    <a [href]="'https://www.google.com/maps/search/?api=1&query=' + winnerCafe()!.lat + ',' + winnerCafe()!.lng"
+                        target="_blank"
+                        class="flex items-center justify-center gap-2 w-full py-4 bg-primary hover:bg-primary-dark text-white rounded-xl font-bold transition-all shadow-lg shadow-primary/20 active:scale-[0.98]">
+                        <span class="material-symbols-outlined">directions</span>
+                        Get Directions
+                    </a>
+                    <button (click)="checkin()" [disabled]="checkedIn()"
+                        class="flex items-center justify-center gap-2 w-full py-4 rounded-xl font-bold transition-all"
+                        [class]="checkedIn()
+                ? 'bg-green-500/10 text-green-600 dark:text-green-400'
+                : 'bg-primary/10 hover:bg-primary/20 text-primary-dark dark:text-primary'">
+                        <span class="material-symbols-outlined">{{ checkedIn() ? 'check_circle' : 'add_location_alt'
+                            }}</span>
+                        {{ checkedIn() ? 'Checked In! +25 pts' : 'Check In When Arrived' }}
+                    </button>
+                </div>
+
+                <!-- Amenities -->
+                <div
+                    class="mt-6 pt-6 border-t border-slate-100 dark:border-slate-700 flex justify-between text-slate-400">
+                    <div class="flex flex-col items-center gap-1">
+                        <span class="material-symbols-outlined">wifi</span>
+                        <span class="text-[10px] font-medium">Free WiFi</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-1">
+                        <span class="material-symbols-outlined">local_parking</span>
+                        <span class="text-[10px] font-medium">Parking</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-1 text-primary">
+                        <span class="material-symbols-outlined">ev_station</span>
+                        <span class="text-[10px] font-medium">Charging</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-1">
+                        <span class="material-symbols-outlined">pets</span>
+                        <span class="text-[10px] font-medium">Pet Friendly</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        }
+    </main>
+
+    <app-bottom-nav activeTab="sessions" />
+</div>

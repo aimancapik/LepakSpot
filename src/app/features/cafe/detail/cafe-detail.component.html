@@ -1,0 +1,132 @@
+<div
+    class="relative flex h-auto min-h-screen w-full flex-col grain-overlay bg-latte overflow-x-hidden border-x-4 border-espresso max-w-md mx-auto">
+    <!-- Header -->
+    <div
+        class="flex items-center p-4 justify-between sticky top-0 z-50 bg-off-white/80 backdrop-blur-sm border-b-2 border-espresso/10">
+        <button (click)="goBack()"
+            class="text-espresso flex size-10 shrink-0 items-center justify-center rounded-full border-2 border-espresso active:scale-95 transition-transform">
+            <span class="material-symbols-outlined">arrow_back</span>
+        </button>
+        <h2
+            class="text-espresso text-2xl font-black leading-tight tracking-tighter uppercase italic distorted-title translate-y-1">
+            {{ cafe()?.name || 'Loading...' }}
+        </h2>
+        <div class="flex w-10 items-center justify-end">
+            <button
+                class="flex size-10 items-center justify-center rounded-full bg-primary text-off-white active:scale-95 transition-transform shadow-sm">
+                <span class="material-symbols-outlined">share</span>
+            </button>
+        </div>
+    </div>
+
+    @if (cafe()) {
+    <!-- Hero: The Zine Concept -->
+    <div class="px-4 pt-6 pb-2">
+        <div class="relative group">
+            <div class="absolute -inset-1 bg-espresso rounded-lg rotate-1 scale-[1.02] opacity-20"></div>
+            <div class="bg-cover bg-center flex flex-col justify-end overflow-hidden rounded-xl min-h-[400px] relative border-4 border-espresso"
+                [style.background-image]="'url(' + (cafe()!.photos[0] || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800&fit=crop') + ')'">
+
+                <div
+                    class="absolute top-4 left-4 bg-primary text-espresso px-3 py-1 font-black text-xs uppercase tracking-widest rotate-[-12deg] zine-border">
+                    ISSUE #01: KL GEMS
+                </div>
+
+                <div class="p-6 bg-gradient-to-t from-espresso via-espresso/20 to-transparent">
+                    <p class="text-sage text-sm font-bold uppercase tracking-[0.2em] mb-1">Concept</p>
+                    <h1 class="text-off-white text-5xl font-black leading-none italic tracking-tighter uppercase">THE
+                        ZINE</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section: The Scene -->
+    <div class="mt-8 px-4">
+        <div class="flex justify-between items-end mb-4">
+            <h2 class="text-espresso text-3xl font-black italic uppercase tracking-tighter">THE SCENE</h2>
+            <span class="material-symbols-outlined text-primary mb-1">trending_flat</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <div class="flex flex-col gap-2">
+                <div class="bg-cover bg-center rounded-lg border-2 border-espresso aspect-square grayscale hover:grayscale-0 transition-all duration-500"
+                    [style.background-image]="'url(' + (cafe()!.photos[1] || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=400&fit=crop') + ')'">
+                </div>
+                <p
+                    class="font-marker text-[10px] font-bold uppercase tracking-widest leading-none bg-sage/30 p-1 self-start">
+                    COZY CORNER</p>
+            </div>
+            <div class="flex flex-col gap-2 pt-8">
+                <div class="bg-cover bg-center rounded-lg border-2 border-espresso aspect-[3/4] rotate-3"
+                    [style.background-image]="'url(' + (cafe()!.photos[2] || 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=400&fit=crop') + ')'">
+                </div>
+                <p
+                    class="font-marker text-[10px] font-bold uppercase tracking-widest leading-none bg-primary/30 p-1 self-start ml-4">
+                    ART VIBES</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section: The Brew (Signature) -->
+    <div class="mt-12 px-4 relative">
+        <div class="bg-sage p-6 rounded-xl border-4 border-espresso shadow-[8px_8px_0px_0px_#2C1810]">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-espresso font-black text-xs uppercase tracking-widest mb-1 underline">Signature Brew
+                    </p>
+                    <h3 class="text-espresso text-4xl font-black leading-none uppercase italic">DIRTY<br />CHAI OAT</h3>
+                </div>
+                <div class="bg-off-white p-2 rounded-full border-2 border-espresso -rotate-12">
+                    <span class="material-symbols-outlined text-espresso text-3xl">local_cafe</span>
+                </div>
+            </div>
+            <p class="mt-6 text-espresso text-sm font-medium leading-tight">
+                Spiced, bold espresso, organic oat milk, and a secret house-made syrup that tastes like nostalgia.
+            </p>
+        </div>
+    </div>
+
+    <!-- Section: Heard on the Street -->
+    <div class="mt-16 px-4 pb-32">
+        <h2 class="text-espresso text-3xl font-black italic uppercase tracking-tighter mb-6 relative">
+            HEARD ON THE STREET
+            <span
+                class="absolute -top-4 -right-2 text-primary rotate-12 material-symbols-outlined text-4xl">chat_bubble</span>
+        </h2>
+
+        <div class="space-y-6">
+            <!-- Review 1 -->
+            <div class="relative bg-off-white border-2 border-espresso p-4 zine-border">
+                <div class="flex items-center gap-3 mb-2">
+                    <div
+                        class="w-8 h-8 rounded-full bg-primary/20 border border-espresso flex items-center justify-center font-bold text-xs uppercase">
+                        KJ</div>
+                    <span class="text-xs font-black uppercase italic tracking-widest">@kai_jams</span>
+                </div>
+                <p class="font-zine text-sm font-bold italic leading-snug">"The vibe is literally unmatched. Best
+                    curation of house music and the beans are actually ethical. 10/10."</p>
+            </div>
+            <!-- Review 2 -->
+            <div class="relative bg-primary p-4 border-2 border-espresso -rotate-1">
+                <div class="flex items-center gap-3 mb-2">
+                    <div
+                        class="w-8 h-8 rounded-full bg-off-white border border-espresso flex items-center justify-center font-bold text-xs">
+                        MA</div>
+                    <span class="text-xs font-black uppercase italic tracking-widest text-off-white">@milo_arts</span>
+                </div>
+                <p class="font-zine text-sm font-bold italic leading-snug text-off-white">"A temple for the creative
+                    soul. I finished my entire zine layout here in one sitting. High energy!"</p>
+            </div>
+        </div>
+    </div>
+    } @else {
+    <div class="flex-1 flex items-center justify-center">
+        <div class="animate-pulse flex flex-col items-center gap-4">
+            <span class="material-symbols-outlined text-6xl text-espresso/20 animate-spin">cyclone</span>
+            <p class="font-marker text-xl text-espresso/40">Curating the zine...</p>
+        </div>
+    </div>
+    }
+
+</div>

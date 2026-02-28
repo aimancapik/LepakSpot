@@ -3,6 +3,8 @@
 # Env variables
 .env*
 !.env.example
+src/environments/environment*.ts
+!src/environments/environment.example.ts
 
 # Compiled output
 /dist

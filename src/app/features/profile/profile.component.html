@@ -1,0 +1,105 @@
+<div
+    class="font-display bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex flex-col max-w-md mx-auto">
+    <!-- Header -->
+    <header
+        class="flex items-center justify-between p-4 sticky top-0 z-50 bg-background-light/90 dark:bg-background-dark/90 backdrop-blur-xl">
+        <h2 class="text-xl font-bold tracking-tight">Profile</h2>
+        <button (click)="authService.signOutUser()"
+            class="flex items-center gap-1 text-sm text-slate-400 hover:text-red-500 transition-colors font-medium">
+            <span class="material-symbols-outlined text-sm">logout</span>
+            Sign Out
+        </button>
+    </header>
+
+    <main class="flex-1 px-4 pb-28">
+        <!-- User Info -->
+        <div class="flex flex-col items-center py-6">
+            <div class="relative mb-4">
+                @if (authService.currentUser()?.photoURL) {
+                <img [src]="authService.currentUser()!.photoURL"
+                    class="size-24 rounded-full border-4 border-primary/30 object-cover shadow-lg"
+                    alt="Profile photo" />
+                } @else {
+                <div
+                    class="size-24 rounded-full border-4 border-primary/30 bg-primary/10 flex items-center justify-center shadow-lg">
+                    <span class="material-symbols-outlined text-primary text-4xl">person</span>
+                </div>
+                }
+                <div class="flex absolute -bottom-1 -right-1 bg-primary text-white rounded-full p-1 shadow-md">
+                    <span class="material-symbols-outlined text-sm fill-1">verified</span>
+                </div>
+            </div>
+            <h2 class="text-2xl font-extrabold">{{ authService.currentUser()?.displayName || 'Coffee Lover' }}</h2>
+            <div class="flex items-center gap-2 mt-1">
+                <span class="text-primary font-bold">{{ authService.currentUser()?.points || 0 }} pts</span>
+                <span class="text-slate-300 dark:text-slate-600">•</span>
+                <span class="text-slate-500 dark:text-slate-400 font-medium">{{ userTitle() }}</span>
+            </div>
+        </div>
+
+        <!-- Stats Row -->
+        <div class="grid grid-cols-3 gap-3 mb-8">
+            <div class="bg-white dark:bg-card-dark rounded-xl p-4 text-center shadow-sm border border-primary/5">
+                <p class="text-2xl font-extrabold text-primary">{{ authService.currentUser()?.totalCheckins || 0 }}</p>
+                <p class="text-xs text-slate-400 font-medium mt-1">Cafés Visited</p>
+            </div>
+            <div class="bg-white dark:bg-card-dark rounded-xl p-4 text-center shadow-sm border border-primary/5">
+                <p class="text-2xl font-extrabold text-primary">{{ authService.currentUser()?.badges?.length || 0 }}</p>
+                <p class="text-xs text-slate-400 font-medium mt-1">Badges</p>
+            </div>
+            <div class="bg-white dark:bg-card-dark rounded-xl p-4 text-center shadow-sm border border-primary/5">
+                <p class="text-2xl font-extrabold text-primary">0</p>
+                <p class="text-xs text-slate-400 font-medium mt-1">Day Streak</p>
+            </div>
+        </div>
+
+        <!-- Badges Grid -->
+        <div class="mb-8">
+            <h3 class="text-lg font-bold mb-4">Badges</h3>
+            <div class="grid grid-cols-3 gap-3">
+                @for (badge of allBadges; track badge.name) {
+                <div class="bg-white dark:bg-card-dark rounded-xl p-4 flex flex-col items-center text-center shadow-sm border border-primary/5 transition-all duration-200"
+                    [class]="hasBadge(badge.name) ? 'opacity-100' : 'opacity-40 grayscale'">
+                    <div class="w-12 h-12 rounded-full flex items-center justify-center mb-2"
+                        [class]="hasBadge(badge.name) ? 'bg-primary/15 text-primary' : 'bg-slate-100 dark:bg-slate-700 text-slate-400'">
+                        <span class="material-symbols-outlined text-xl"
+                            [class]="hasBadge(badge.name) ? 'fill-1' : ''">{{ badge.icon }}</span>
+                    </div>
+                    <p class="text-[11px] font-bold leading-tight">{{ badge.name }}</p>
+                    <p class="text-[9px] text-slate-400 mt-0.5 leading-tight">{{ badge.requirement }}</p>
+                </div>
+                }
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div>
+            <h3 class="text-lg font-bold mb-4">Recent Activity</h3>
+            @if (recentCheckins().length === 0) {
+            <div class="bg-white dark:bg-card-dark rounded-xl p-8 text-center shadow-sm border border-primary/5">
+                <span class="material-symbols-outlined text-4xl text-slate-300 dark:text-slate-600 mb-2">history</span>
+                <p class="text-slate-400 font-medium">No check-ins yet</p>
+                <p class="text-xs text-slate-300 dark:text-slate-500 mt-1">Start exploring cafés to earn points!</p>
+            </div>
+            } @else {
+            <div class="flex flex-col gap-3">
+                @for (checkin of recentCheckins(); track checkin.id) {
+                <div
+                    class="flex items-center gap-4 bg-white dark:bg-card-dark rounded-xl p-4 shadow-sm border border-primary/5">
+                    <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-primary">local_cafe</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="font-bold text-sm truncate">{{ checkin.cafeName }}</p>
+                        <p class="text-xs text-slate-400">{{ (checkin.timestamp ? checkin.timestamp.toDate() : null) |
+                            date: 'MMM d, h:mm a' }}</p>
+                    </div>
+                    <span class="text-primary font-bold text-sm shrink-0">+{{ checkin.pointsEarned }}pts</span>
+                </div>
+                }
+            </div>
+            }
+        </div>
+    </main>
+
+</div>

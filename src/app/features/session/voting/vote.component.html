@@ -1,0 +1,120 @@
+<div class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
+    <div
+        class="relative flex min-h-screen w-full flex-col max-w-md mx-auto bg-white dark:bg-background-dark shadow-xl overflow-x-hidden">
+        <!-- Header -->
+        <div
+            class="flex items-center bg-white dark:bg-background-dark p-4 pb-2 justify-between border-b border-primary/10">
+            <a routerLink="/home"
+                class="text-primary flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                <span class="material-symbols-outlined">arrow_back</span>
+            </a>
+            <div class="flex flex-col items-center">
+                <h2 class="text-lg font-bold leading-tight tracking-tight">Coffee Time</h2>
+                <p class="text-primary text-xs font-medium">Group Vote</p>
+            </div>
+            <div class="flex w-10 items-center justify-end">
+                <button class="flex items-center justify-center text-primary">
+                    <span class="material-symbols-outlined">group</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Progress Section -->
+        <div class="flex flex-col gap-3 p-4 bg-primary/5">
+            <div class="flex gap-6 justify-between items-center">
+                <p class="text-slate-800 dark:text-slate-200 text-sm font-semibold uppercase tracking-wider">Voting
+                    Progress</p>
+                <div class="flex items-center gap-2">
+                    <span class="text-primary text-sm font-bold">{{ votedCount() }}/{{ totalMembers() }}</span>
+                    <span class="text-slate-500 dark:text-slate-400 text-sm italic">voted</span>
+                </div>
+            </div>
+            <div class="w-full bg-primary/20 rounded-full h-2">
+                <div class="bg-primary h-2 rounded-full transition-all duration-500" [style.width]="progressWidth()">
+                </div>
+            </div>
+        </div>
+
+        <!-- Voting Card -->
+        @if (currentCafe()) {
+        <div class="p-4 flex-1 flex flex-col justify-center">
+            <div
+                class="relative flex flex-col items-stretch justify-start rounded-xl shadow-lg bg-white dark:bg-card-dark overflow-hidden border border-primary/10">
+                <div class="w-full bg-center bg-no-repeat aspect-[4/3] bg-cover relative"
+                    [style.background-image]="'url(' + (currentCafe()!.photos[0] || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=600&h=400&fit=crop') + ')'">
+                    <div
+                        class="absolute top-4 right-4 bg-white/90 dark:bg-background-dark/90 backdrop-blur-sm px-3 py-1 rounded-full shadow-sm flex items-center gap-1">
+                        <span class="material-symbols-outlined text-primary text-sm fill-1">star</span>
+                        <span class="text-sm font-bold">{{ currentCafe()!.rating }}</span>
+                    </div>
+                    <div
+                        class="absolute bottom-4 left-4 bg-white/90 dark:bg-background-dark/90 backdrop-blur-sm px-3 py-1 rounded-full shadow-sm">
+                        <p class="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-xs">location_on</span>
+                            {{ currentCafe()!.address }}
+                        </p>
+                    </div>
+                </div>
+                <div class="flex w-full flex-col items-stretch justify-center gap-3 p-6">
+                    <div>
+                        <p class="text-xs text-slate-400 font-medium uppercase tracking-wider mb-1">
+                            {{ currentIndex() + 1 }} of {{ cafes().length }}
+                        </p>
+                        <h3 class="text-slate-900 dark:text-slate-100 text-2xl font-bold leading-tight">{{
+                            currentCafe()!.name }}</h3>
+                    </div>
+                    <div class="flex gap-2 flex-wrap">
+                        @for (tag of currentCafe()!.tags; track tag) {
+                        <div
+                            class="flex h-7 items-center justify-center gap-x-1 rounded-lg bg-primary/10 px-3 border border-primary/20">
+                            <p class="text-primary text-xs font-bold uppercase">{{ tag }}</p>
+                        </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+        } @else {
+        <div class="flex-1 flex items-center justify-center">
+            <div class="text-center">
+                <span class="material-symbols-outlined text-5xl text-primary/40 mb-2">check_circle</span>
+                <p class="text-slate-500 font-medium">You've voted on all cafés!</p>
+                <p class="text-sm text-slate-400 mt-1">Waiting for others...</p>
+            </div>
+        </div>
+        }
+
+        <!-- Voting Actions -->
+        @if (currentCafe()) {
+        <div class="px-8 pb-6 flex justify-center gap-10 items-center">
+            <button (click)="skip()"
+                class="size-16 rounded-full bg-white dark:bg-card-dark shadow-xl border-2 border-slate-100 dark:border-slate-700 flex items-center justify-center text-slate-400 hover:text-red-500 hover:border-red-200 transition-all duration-200 group active:scale-90">
+                <span
+                    class="material-symbols-outlined text-3xl group-hover:scale-110 transition-transform">thumb_down</span>
+            </button>
+            <button (click)="vote()"
+                class="size-20 rounded-full bg-primary shadow-xl shadow-primary/30 flex items-center justify-center text-white hover:scale-110 active:scale-90 transition-all duration-200">
+                <span class="material-symbols-outlined text-4xl">thumb_up</span>
+            </button>
+            <button (click)="favourite()"
+                class="size-16 rounded-full bg-white dark:bg-card-dark shadow-xl border-2 border-slate-100 dark:border-slate-700 flex items-center justify-center transition-all duration-200 group active:scale-90"
+                [class]="isFav() ? 'text-primary border-primary/30' : 'text-slate-400 hover:text-primary hover:border-primary/20'">
+                <span class="material-symbols-outlined text-3xl group-hover:rotate-12 transition-transform"
+                    [class]="isFav() ? 'fill-1' : ''">star</span>
+            </button>
+        </div>
+        }
+
+        <!-- Waiting Indicator -->
+        <div class="px-4 py-3 bg-slate-50 dark:bg-background-dark/50 border-t border-primary/5">
+            <div class="flex items-center justify-center gap-2 text-slate-400 dark:text-slate-500 text-sm font-medium">
+                <span>Waiting for others to vote</span>
+                <div class="flex gap-1 items-center h-4">
+                    <span class="w-1 h-1 bg-primary rounded-full animate-bounce"></span>
+                    <span class="w-1 h-1 bg-primary rounded-full animate-bounce [animation-delay:0.15s]"></span>
+                    <span class="w-1 h-1 bg-primary rounded-full animate-bounce [animation-delay:0.3s]"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,101 @@
+<div
+    class="font-display bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex flex-col max-w-md mx-auto">
+    <!-- Header -->
+    <header
+        class="flex items-center p-4 pb-2 justify-between sticky top-0 z-50 bg-background-light/90 dark:bg-background-dark/90 backdrop-blur-xl">
+        <a routerLink="/home"
+            class="flex size-10 items-center justify-center rounded-full bg-white dark:bg-card-dark shadow-sm text-primary">
+            <span class="material-symbols-outlined">arrow_back</span>
+        </a>
+        <h2 class="text-lg font-bold tracking-tight">Where to lepak?</h2>
+        <div class="w-10"></div>
+    </header>
+
+    <!-- Swipeable café cards -->
+    <div class="px-4 pt-4">
+        <p class="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">Suggested
+            spots</p>
+    </div>
+    <div class="flex gap-4 px-4 overflow-x-auto snap-x no-scrollbar pb-4">
+        @for (cafe of sessionCafes(); track cafe.id) {
+        <div
+            class="snap-center shrink-0 w-72 rounded-xl overflow-hidden bg-white dark:bg-card-dark shadow-lg border border-primary/5">
+            <div class="w-full h-40 bg-cover bg-center"
+                [style.background-image]="'url(' + (cafe.photos[0] || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=600&h=400&fit=crop') + ')'">
+            </div>
+            <div class="p-4">
+                <h3 class="font-bold text-base text-slate-900 dark:text-slate-100">{{ cafe.name }}</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1">
+                    <span class="material-symbols-outlined text-xs">location_on</span>
+                    {{ cafe.address }}
+                </p>
+                <div class="flex gap-1.5 mt-2 flex-wrap">
+                    @for (tag of cafe.tags; track tag) {
+                    <span class="px-2 py-0.5 rounded-lg bg-primary/10 text-primary text-[10px] font-bold uppercase">{{
+                        tag }}</span>
+                    }
+                </div>
+            </div>
+        </div>
+        }
+    </div>
+
+    <!-- Invite section -->
+    <div class="px-4 pt-6">
+        <p class="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">Invite friends
+        </p>
+        <div class="bg-white dark:bg-card-dark rounded-xl p-5 shadow-md border border-primary/5">
+            @if (sessionCode()) {
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <p class="text-xs text-slate-400 font-medium">Session Code</p>
+                    <p class="text-3xl font-extrabold text-primary tracking-[0.2em] mt-1">{{ sessionCode() }}</p>
+                </div>
+                <button (click)="shareSession()"
+                    class="flex items-center gap-2 bg-primary/10 hover:bg-primary/20 text-primary px-4 py-2.5 rounded-xl font-bold text-sm transition-colors">
+                    <span class="material-symbols-outlined text-sm">share</span>
+                    Share
+                </button>
+            </div>
+            } @else {
+            <div class="flex items-center justify-center py-4">
+                <div class="flex gap-1 items-center text-slate-400">
+                    <span class="w-1.5 h-1.5 bg-primary rounded-full animate-bounce"></span>
+                    <span class="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:0.15s]"></span>
+                    <span class="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:0.3s]"></span>
+                    <span class="text-sm font-medium ml-2">Creating session...</span>
+                </div>
+            </div>
+            }
+
+            <!-- Members -->
+            <div class="border-t border-primary/10 pt-4">
+                <p class="text-xs text-slate-400 font-medium mb-2">Members joined</p>
+                <div class="flex items-center gap-2">
+                    <div class="flex -space-x-2">
+                        @for (member of sessionMembers(); track member; let i = $index) {
+                        <div class="size-9 rounded-full border-2 border-white dark:border-card-dark flex items-center justify-center text-xs font-bold"
+                            [class]="i % 2 === 0 ? 'bg-primary text-white' : 'bg-primary/20 text-primary'">
+                            {{ member[0] }}
+                        </div>
+                        }
+                    </div>
+                    <span class="text-sm text-slate-500 dark:text-slate-400 font-medium">
+                        {{ sessionMembers().length }} {{ sessionMembers().length === 1 ? 'member' : 'members' }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Start Voting Button -->
+    <div class="px-4 pt-6 pb-28">
+        <button (click)="startVoting()" [disabled]="!sessionId()"
+            class="w-full py-4 bg-primary hover:bg-primary-dark disabled:opacity-50 text-white font-bold text-base rounded-2xl shadow-lg shadow-primary/25 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2">
+            <span class="material-symbols-outlined">how_to_vote</span>
+            Start Voting
+        </button>
+    </div>
+
+    <app-bottom-nav activeTab="sessions" />
+</div>

@@ -1,0 +1,30 @@
+<!-- Bottom Navigation -->
+<div class="fixed bottom-0 left-0 right-0 z-50 px-4 pb-4 max-w-md mx-auto pointer-events-none">
+    <div
+        class="flex items-center justify-around bg-espresso text-off-white py-3 rounded-full border-2 border-primary shadow-xl pointer-events-auto">
+        <a routerLink="/home" class="flex flex-col items-center justify-center transition-colors hover:text-primary"
+            [class.text-primary]="activeTab() === 'home'">
+            <span class="material-symbols-outlined">home</span>
+        </a>
+        <a routerLink="/session" class="flex flex-col items-center justify-center transition-colors hover:text-primary"
+            [class.text-primary]="activeTab() === 'sessions'">
+            <span class="material-symbols-outlined">groups</span>
+        </a>
+
+        <!-- Center Action Button -->
+        <a routerLink="/session/create"
+            class="flex flex-col items-center justify-center bg-primary text-espresso p-2 rounded-full -mt-10 border-4 border-off-white shadow-lg active:scale-95 transition-all">
+            <span class="material-symbols-outlined font-black">add</span>
+        </a>
+
+        <a routerLink="/favorites"
+            class="flex flex-col items-center justify-center transition-colors hover:text-primary"
+            [class.text-primary]="activeTab() === 'favorites'">
+            <span class="material-symbols-outlined">favorite</span>
+        </a>
+        <a routerLink="/profile" class="flex flex-col items-center justify-center transition-colors hover:text-primary"
+            [class.text-primary]="activeTab() === 'profile'">
+            <span class="material-symbols-outlined">person</span>
+        </a>
+    </div>
+</div>
