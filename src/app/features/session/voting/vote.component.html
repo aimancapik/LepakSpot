@@ -1,120 +1,177 @@
-<div class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
+<div class="font-sans min-h-screen bg-off-white text-espresso relative overflow-hidden flex flex-col max-w-md mx-auto">
+    <!-- Grain overlay -->
+    <div class="fixed inset-0 opacity-[0.03] pointer-events-none z-50 zine-texture mix-blend-multiply"></div>
+
+    <!-- Header -->
     <div
-        class="relative flex min-h-screen w-full flex-col max-w-md mx-auto bg-white dark:bg-background-dark shadow-xl overflow-x-hidden">
-        <!-- Header -->
-        <div
-            class="flex items-center bg-white dark:bg-background-dark p-4 pb-2 justify-between border-b border-primary/10">
-            <a routerLink="/home"
-                class="text-primary flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                <span class="material-symbols-outlined">arrow_back</span>
-            </a>
-            <div class="flex flex-col items-center">
-                <h2 class="text-lg font-bold leading-tight tracking-tight">Coffee Time</h2>
-                <p class="text-primary text-xs font-medium">Group Vote</p>
-            </div>
-            <div class="flex w-10 items-center justify-end">
-                <button class="flex items-center justify-center text-primary">
-                    <span class="material-symbols-outlined">group</span>
-                </button>
-            </div>
-        </div>
-
-        <!-- Progress Section -->
-        <div class="flex flex-col gap-3 p-4 bg-primary/5">
-            <div class="flex gap-6 justify-between items-center">
-                <p class="text-slate-800 dark:text-slate-200 text-sm font-semibold uppercase tracking-wider">Voting
-                    Progress</p>
-                <div class="flex items-center gap-2">
-                    <span class="text-primary text-sm font-bold">{{ votedCount() }}/{{ totalMembers() }}</span>
-                    <span class="text-slate-500 dark:text-slate-400 text-sm italic">voted</span>
-                </div>
-            </div>
-            <div class="w-full bg-primary/20 rounded-full h-2">
-                <div class="bg-primary h-2 rounded-full transition-all duration-500" [style.width]="progressWidth()">
-                </div>
-            </div>
-        </div>
-
-        <!-- Voting Card -->
-        @if (currentCafe()) {
-        <div class="p-4 flex-1 flex flex-col justify-center">
+        class="relative z-10 px-6 pt-12 pb-4 flex items-center justify-between border-b-2 border-espresso bg-white shadow-sm">
+        <a routerLink="/home"
+            class="flex size-10 items-center justify-center rounded-xl bg-latte border-2 border-espresso shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-[2px] active:shadow-none transition-all -rotate-2">
+            <span class="material-symbols-outlined text-espresso font-bold">arrow_back</span>
+        </a>
+        <div class="flex flex-col items-center relative rotate-1">
+            <h2 class="font-marker text-2xl tracking-wide text-espresso">Coffee Time</h2>
             <div
-                class="relative flex flex-col items-stretch justify-start rounded-xl shadow-lg bg-white dark:bg-card-dark overflow-hidden border border-primary/10">
-                <div class="w-full bg-center bg-no-repeat aspect-[4/3] bg-cover relative"
+                class="bg-primary border-2 border-espresso px-2 py-0.5 rounded shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] -mt-1 -rotate-2">
+                <p class="text-espresso text-[10px] font-bold uppercase tracking-wider">Group Vote</p>
+            </div>
+        </div>
+        <div
+            class="flex size-10 items-center justify-center rounded-xl bg-sage border-2 border-espresso shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] rotate-2">
+            <span class="material-symbols-outlined text-espresso">group</span>
+        </div>
+    </div>
+
+    <!-- Progress Section -->
+    <div class="px-6 py-4 bg-latte border-b-2 border-espresso relative z-10 w-full">
+        <div class="flex justify-between items-center mb-2">
+            <p class="font-marker text-base uppercase tracking-wider text-espresso rotate-1">Voting Progress</p>
+            <div
+                class="flex items-center gap-1 bg-white border-2 border-espresso px-2 py-0.5 rounded shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] -rotate-1">
+                <span class="text-espresso font-bold">{{ votedCount() }}/{{ totalMembers() }}</span>
+                <span class="text-espresso/70 text-xs font-bold uppercase tracking-wider">voted</span>
+            </div>
+        </div>
+        <!-- Zine Progress Bar -->
+        <div
+            class="w-full bg-white border-2 border-espresso rounded-md h-4 p-0.5 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.1)]">
+            <div class="bg-primary h-full border-r-2 border-espresso rounded-sm transition-all duration-500 relative overflow-hidden"
+                [style.width]="progressWidth()">
+                <!-- Hatching pattern overlay -->
+                <div
+                    class="absolute inset-0 opacity-20 bg-[repeating-linear-gradient(45deg,transparent,transparent_4px,#000_4px,#000_5px)]">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Voting Card -->
+    <main class="flex-1 p-6 flex flex-col justify-center relative z-10 w-full">
+        @if (currentCafe()) {
+        <div class="relative w-full -rotate-1 z-10 mb-8">
+            <!-- Tape detail -->
+            <div
+                class="absolute -top-4 left-1/2 -translate-x-1/2 w-20 h-8 bg-white/40 backdrop-blur-sm border border-white/60 rotate-2 z-20 shadow-sm mix-blend-overlay">
+            </div>
+
+            <div
+                class="bg-white rounded-xl border-2 border-espresso shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] overflow-hidden flex flex-col relative z-10">
+                <!-- Image Section -->
+                <div class="w-full bg-center bg-no-repeat aspect-[4/3] bg-cover relative border-b-2 border-espresso"
                     [style.background-image]="'url(' + (currentCafe()!.photos[0] || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=600&h=400&fit=crop') + ')'">
+
+                    <!-- Rating badge -->
                     <div
-                        class="absolute top-4 right-4 bg-white/90 dark:bg-background-dark/90 backdrop-blur-sm px-3 py-1 rounded-full shadow-sm flex items-center gap-1">
-                        <span class="material-symbols-outlined text-primary text-sm fill-1">star</span>
-                        <span class="text-sm font-bold">{{ currentCafe()!.rating }}</span>
+                        class="absolute top-4 right-4 bg-latte border-2 border-espresso px-3 py-1 rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex items-center gap-1 rotate-3">
+                        <span class="material-symbols-outlined text-espresso text-sm fill-1">star</span>
+                        <span class="font-marker font-bold text-sm">{{ currentCafe()!.rating }}</span>
                     </div>
+
+                    <!-- Address badge -->
                     <div
-                        class="absolute bottom-4 left-4 bg-white/90 dark:bg-background-dark/90 backdrop-blur-sm px-3 py-1 rounded-full shadow-sm">
-                        <p class="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
-                            <span class="material-symbols-outlined text-xs">location_on</span>
-                            {{ currentCafe()!.address }}
+                        class="absolute bottom-4 left-4 bg-white border-2 border-espresso px-3 py-1.5 rounded shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] -rotate-1 max-w-[85%]">
+                        <p class="text-xs font-bold text-espresso flex items-center gap-1 line-clamp-1">
+                            <span class="material-symbols-outlined text-sm shrink-0">location_on</span>
+                            <span class="truncate">{{ currentCafe()!.address }}</span>
                         </p>
                     </div>
                 </div>
-                <div class="flex w-full flex-col items-stretch justify-center gap-3 p-6">
-                    <div>
-                        <p class="text-xs text-slate-400 font-medium uppercase tracking-wider mb-1">
-                            {{ currentIndex() + 1 }} of {{ cafes().length }}
+
+                <!-- Info Section -->
+                <div class="flex w-full flex-col items-stretch justify-center gap-3 p-5 bg-off-white relative">
+                    <!-- Index Badge -->
+                    <div
+                        class="absolute -top-3 -left-2 bg-primary border-2 border-espresso px-2 py-0.5 rounded shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] -rotate-6 z-10">
+                        <p class="text-[10px] font-bold uppercase font-marker">
+                            #{{ currentIndex() + 1 }} of {{ cafes().length }}
                         </p>
-                        <h3 class="text-slate-900 dark:text-slate-100 text-2xl font-bold leading-tight">{{
-                            currentCafe()!.name }}</h3>
+                    </div>
+
+                    <div class="mt-2">
+                        <h3 class="font-marker text-3xl text-espresso leading-none">{{ currentCafe()!.name }}</h3>
                     </div>
                     <div class="flex gap-2 flex-wrap">
                         @for (tag of currentCafe()!.tags; track tag) {
                         <div
-                            class="flex h-7 items-center justify-center gap-x-1 rounded-lg bg-primary/10 px-3 border border-primary/20">
-                            <p class="text-primary text-xs font-bold uppercase">{{ tag }}</p>
+                            class="bg-sage border border-espresso px-2 py-0.5 rounded shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] rotate-1">
+                            <p class="text-espresso text-[10px] font-bold uppercase tracking-wider">{{ tag }}</p>
                         </div>
                         }
                     </div>
                 </div>
             </div>
         </div>
-        } @else {
-        <div class="flex-1 flex items-center justify-center">
-            <div class="text-center">
-                <span class="material-symbols-outlined text-5xl text-primary/40 mb-2">check_circle</span>
-                <p class="text-slate-500 font-medium">You've voted on all cafés!</p>
-                <p class="text-sm text-slate-400 mt-1">Waiting for others...</p>
-            </div>
-        </div>
-        }
 
         <!-- Voting Actions -->
-        @if (currentCafe()) {
-        <div class="px-8 pb-6 flex justify-center gap-10 items-center">
+        <div class="flex justify-center gap-8 items-center px-4 relative z-20">
+            <!-- Skip Button -->
             <button (click)="skip()"
-                class="size-16 rounded-full bg-white dark:bg-card-dark shadow-xl border-2 border-slate-100 dark:border-slate-700 flex items-center justify-center text-slate-400 hover:text-red-500 hover:border-red-200 transition-all duration-200 group active:scale-90">
+                class="relative size-16 flex items-center justify-center group active:scale-95 transition-transform rotate-3">
+                <div
+                    class="absolute inset-0 bg-white border-2 border-espresso rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] group-active:translate-y-[4px] group-active:translate-x-[4px] group-active:shadow-none transition-all">
+                </div>
                 <span
-                    class="material-symbols-outlined text-3xl group-hover:scale-110 transition-transform">thumb_down</span>
+                    class="material-symbols-outlined text-3xl text-espresso/80 group-hover:text-red-500 relative z-10 font-bold group-hover:-rotate-12 transition-transform">thumb_down</span>
             </button>
+
+            <!-- Vote Button -->
             <button (click)="vote()"
-                class="size-20 rounded-full bg-primary shadow-xl shadow-primary/30 flex items-center justify-center text-white hover:scale-110 active:scale-90 transition-all duration-200">
-                <span class="material-symbols-outlined text-4xl">thumb_up</span>
+                class="relative size-20 flex items-center justify-center group active:scale-95 transition-transform -rotate-2">
+                <div
+                    class="absolute inset-0 bg-primary border-2 border-espresso rounded-2xl shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] group-active:translate-y-[6px] group-active:translate-x-[6px] group-active:shadow-none transition-all">
+                </div>
+                <span
+                    class="material-symbols-outlined text-4xl text-espresso relative z-10 font-bold group-hover:scale-110 transition-transform">thumb_up</span>
             </button>
+
+            <!-- Favourite Button -->
             <button (click)="favourite()"
-                class="size-16 rounded-full bg-white dark:bg-card-dark shadow-xl border-2 border-slate-100 dark:border-slate-700 flex items-center justify-center transition-all duration-200 group active:scale-90"
-                [class]="isFav() ? 'text-primary border-primary/30' : 'text-slate-400 hover:text-primary hover:border-primary/20'">
-                <span class="material-symbols-outlined text-3xl group-hover:rotate-12 transition-transform"
-                    [class]="isFav() ? 'fill-1' : ''">star</span>
+                class="relative size-16 flex items-center justify-center group active:scale-95 transition-transform rotate-6"
+                [class.text-primary]="isFav()" [class.text-espresso]="!isFav()">
+                <div
+                    class="absolute inset-0 bg-white border-2 border-espresso rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] group-active:translate-y-[4px] group-active:translate-x-[4px] group-active:shadow-none transition-all">
+                </div>
+                <span
+                    class="material-symbols-outlined text-3xl relative z-10 group-hover:rotate-12 transition-transform"
+                    [class]="isFav() ? 'fill-1' : 'opacity-80 group-hover:text-primary'">star</span>
             </button>
         </div>
-        }
+        } @else {
+        <!-- Finished Voting State -->
+        <div class="relative w-full rotate-2">
+            <!-- Tape -->
+            <div
+                class="absolute -top-4 left-1/2 -translate-x-1/2 w-16 h-8 bg-white/40 backdrop-blur-sm border border-white/60 -rotate-3 z-20 shadow-sm mix-blend-overlay">
+            </div>
 
-        <!-- Waiting Indicator -->
-        <div class="px-4 py-3 bg-slate-50 dark:bg-background-dark/50 border-t border-primary/5">
-            <div class="flex items-center justify-center gap-2 text-slate-400 dark:text-slate-500 text-sm font-medium">
-                <span>Waiting for others to vote</span>
-                <div class="flex gap-1 items-center h-4">
-                    <span class="w-1 h-1 bg-primary rounded-full animate-bounce"></span>
-                    <span class="w-1 h-1 bg-primary rounded-full animate-bounce [animation-delay:0.15s]"></span>
-                    <span class="w-1 h-1 bg-primary rounded-full animate-bounce [animation-delay:0.3s]"></span>
+            <div
+                class="bg-white rounded-xl p-8 border-2 border-espresso shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-center relative z-10 flex flex-col items-center">
+                <div
+                    class="w-20 h-20 bg-sage border-2 border-espresso rounded-full flex items-center justify-center shadow-[inset_2px_2px_0px_rgba(0,0,0,0.1)] mb-4 -rotate-6">
+                    <span class="material-symbols-outlined text-5xl text-espresso font-bold">check_circle</span>
+                </div>
+                <h3 class="font-marker text-2xl text-espresso">You're All Set!</h3>
+                <p class="text-espresso/70 font-bold text-sm mt-2">Waiting for the rest of the crew to finish voting...
+                </p>
+
+                <div class="flex gap-2 items-center justify-center mt-6">
+                    <span class="w-3 h-3 bg-primary border-2 border-espresso rounded-sm animate-bounce"></span>
+                    <span
+                        class="w-3 h-3 bg-latte border-2 border-espresso rounded-sm animate-bounce [animation-delay:0.15s]"></span>
+                    <span
+                        class="w-3 h-3 bg-sage border-2 border-espresso rounded-sm animate-bounce [animation-delay:0.3s]"></span>
                 </div>
             </div>
         </div>
+        }
+    </main>
+
+    <!-- Waiting Bottom Bar Indicator (Only if waiting) -->
+    @if (!currentCafe()) {
+    <div
+        class="px-4 py-3 bg-espresso text-white relative z-20 flex justify-center items-center gap-3 border-t-2 border-white">
+        <span class="font-marker text-lg tracking-wider">Hang Tight</span>
+        <span class="material-symbols-outlined animate-spin text-primary">sync</span>
     </div>
+    }
 </div>

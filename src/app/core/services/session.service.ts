@@ -22,6 +22,8 @@ export class SessionService {
     private firestore = inject(Firestore);
     private authService = inject(AuthService);
 
+    private readonly sessionsRef = collection(this.firestore, 'sessions');
+
     activeSession = signal<Session | null>(null);
     private unsubscribe: Unsubscribe | null = null;
 
@@ -38,8 +40,7 @@ export class SessionService {
         const user = this.authService.currentUser();
         if (!user) throw new Error('Not authenticated');
 
-        const sessionsRef = collection(this.firestore, 'sessions');
-        const newDocRef = doc(sessionsRef);
+        const newDocRef = doc(this.sessionsRef);
         const code = this.generateCode();
 
         const session: Session = {
@@ -64,8 +65,7 @@ export class SessionService {
         const user = this.authService.currentUser();
         if (!user) throw new Error('Not authenticated');
 
-        const sessionsRef = collection(this.firestore, 'sessions');
-        const q = query(sessionsRef, where('code', '==', code.toUpperCase()));
+        const q = query(this.sessionsRef, where('code', '==', code.toUpperCase()));
         const snapshot = await getDocs(q);
 
         if (snapshot.empty) return null;
@@ -73,7 +73,7 @@ export class SessionService {
         const sessionDoc = snapshot.docs[0];
         const sessionId = sessionDoc.id;
 
-        await updateDoc(doc(this.firestore, `sessions/${sessionId}`), {
+        await updateDoc(doc(this.sessionsRef, sessionId), {
             members: arrayUnion(user.uid),
         });
 
@@ -84,7 +84,7 @@ export class SessionService {
     listenSession(id: string) {
         if (this.unsubscribe) this.unsubscribe();
 
-        const sessionRef = doc(this.firestore, `sessions/${id}`);
+        const sessionRef = doc(this.sessionsRef, id);
         this.unsubscribe = onSnapshot(sessionRef, (snap) => {
             if (snap.exists()) {
                 this.activeSession.set({ id: snap.id, ...snap.data() } as Session);
@@ -96,7 +96,7 @@ export class SessionService {
         const user = this.authService.currentUser();
         if (!user) return;
 
-        const sessionRef = doc(this.firestore, `sessions/${sessionId}`);
+        const sessionRef = doc(this.sessionsRef, sessionId);
         await updateDoc(sessionRef, {
             [`votes.${user.uid}`]: cafeId,
         });
@@ -127,7 +127,7 @@ export class SessionService {
     }
 
     async startVoting(sessionId: string) {
-        const sessionRef = doc(this.firestore, `sessions/${sessionId}`);
+        const sessionRef = doc(this.sessionsRef, sessionId);
         await updateDoc(sessionRef, { status: 'voting' });
     }
 

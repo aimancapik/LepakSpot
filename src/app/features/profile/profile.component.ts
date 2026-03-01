@@ -3,6 +3,8 @@ import { AuthService } from '../../core/services/auth.service';
 import { CheckInService } from '../../core/services/checkin.service';
 import { CheckIn } from '../../core/models/checkin.model';
 import { DatePipe } from '@angular/common';
+import { CafeListService } from '../../core/services/cafe-list.service';
+import { RouterModule } from '@angular/router';
 
 interface Badge {
   name: string;
@@ -24,13 +26,14 @@ const ALL_BADGES: Badge[] = [
   selector: 'app-profile',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DatePipe],
+  imports: [DatePipe, RouterModule],
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.scss',
 })
 export class ProfileComponent implements OnInit {
   authService = inject(AuthService);
   private checkinService = inject(CheckInService);
+  cafeListService = inject(CafeListService);
 
   recentCheckins = signal<CheckIn[]>([]);
   allBadges = ALL_BADGES;
@@ -50,6 +53,8 @@ export class ProfileComponent implements OnInit {
   async ngOnInit() {
     const user = this.authService.currentUser();
     if (user) {
+      this.cafeListService.loadMyLists();
+      this.cafeListService.loadSharedLists();
       try {
         const checkins = await this.checkinService.getUserCheckins(user.uid);
         this.recentCheckins.set(checkins);

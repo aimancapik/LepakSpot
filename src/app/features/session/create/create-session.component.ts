@@ -1,16 +1,16 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal, ViewEncapsulation } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CafeService } from '../../../core/services/cafe.service';
 import { SessionService } from '../../../core/services/session.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { BottomNavComponent } from '../../../shared/components/bottom-nav/bottom-nav.component';
+import { CafeListService } from '../../../core/services/cafe-list.service';
 import { Cafe } from '../../../core/models/cafe.model';
 
 @Component({
   selector: 'app-create-session',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, BottomNavComponent],
+  imports: [RouterLink],
   templateUrl: './create-session.component.html',
   styleUrl: './create-session.component.scss',
 })
@@ -18,7 +18,9 @@ export class CreateSessionComponent implements OnInit {
   private cafeService = inject(CafeService);
   private sessionService = inject(SessionService);
   private authService = inject(AuthService);
+  private cafeListService = inject(CafeListService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   sessionCafes = signal<Cafe[]>([]);
   sessionCode = signal('');
@@ -26,27 +28,45 @@ export class CreateSessionComponent implements OnInit {
   sessionMembers = signal<string[]>([]);
 
   async ngOnInit() {
-    await this.cafeService.getNearby();
-    const allCafes = this.cafeService.nearbyCafes();
+    this.route.queryParams.subscribe(async (params) => {
+      const listId = params['listId'];
+      let cafeIdsToUse: string[] = [];
 
-    // Pick up to 5 random cafés
-    const shuffled = [...allCafes].sort(() => Math.random() - 0.5);
-    const picked = shuffled.slice(0, 5);
-    this.sessionCafes.set(picked);
-
-    // Create session
-    try {
-      const cafeIds = picked.map((c) => c.id);
-      const id = await this.sessionService.createSession(cafeIds);
-      this.sessionId.set(id);
-      const session = this.sessionService.activeSession();
-      if (session) {
-        this.sessionCode.set(session.code);
-        this.sessionMembers.set([this.authService.currentUser()?.displayName || 'You']);
+      if (listId) {
+        const list = await this.cafeListService.getListById(listId);
+        if (list && list.cafeIds.length > 0) {
+          // Shuffle or just use them all if less than 10? Sessions can handle any.
+          // Let's use up to 10 cafes from the list for the session
+          const listCafes = await this.cafeService.getCafesByIds(list.cafeIds);
+          this.sessionCafes.set(listCafes.slice(0, 10));
+          cafeIdsToUse = this.sessionCafes().map(c => c.id!);
+        }
       }
-    } catch (err) {
-      console.error('Failed to create session:', err);
-    }
+
+      if (cafeIdsToUse.length === 0) {
+        await this.cafeService.getNearby();
+        const allCafes = this.cafeService.nearbyCafes();
+
+        // Pick up to 5 random cafés
+        const shuffled = [...allCafes].sort(() => Math.random() - 0.5);
+        const picked = shuffled.slice(0, 5);
+        this.sessionCafes.set(picked);
+        cafeIdsToUse = picked.map((c) => c.id!);
+      }
+
+      // Create session
+      try {
+        const id = await this.sessionService.createSession(cafeIdsToUse);
+        this.sessionId.set(id);
+        const session = this.sessionService.activeSession();
+        if (session) {
+          this.sessionCode.set(session.code);
+          this.sessionMembers.set([this.authService.currentUser()?.displayName || 'You']);
+        }
+      } catch (err) {
+        console.error('Failed to create session:', err);
+      }
+    });
   }
 
   async shareSession() {

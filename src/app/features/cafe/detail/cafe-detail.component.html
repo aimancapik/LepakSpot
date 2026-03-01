@@ -1,23 +1,22 @@
 <div
     class="relative flex h-auto min-h-screen w-full flex-col grain-overlay bg-latte overflow-x-hidden border-x-4 border-espresso max-w-md mx-auto">
     <!-- Header -->
-    <div
-        class="flex items-center p-4 justify-between sticky top-0 z-50 bg-off-white/80 backdrop-blur-sm border-b-2 border-espresso/10">
+    <header
+        class="flex items-center justify-between p-6 pt-10 sticky top-0 z-50 bg-latte/90 backdrop-blur-md border-b-4 border-espresso">
         <button (click)="goBack()"
-            class="text-espresso flex size-10 shrink-0 items-center justify-center rounded-full border-2 border-espresso active:scale-95 transition-transform">
-            <span class="material-symbols-outlined">arrow_back</span>
+            class="size-10 bg-off-white flex items-center justify-center border-2 border-espresso shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-sage active:translate-y-[2px] active:shadow-none transition-all">
+            <span class="material-symbols-outlined text-espresso">arrow_back</span>
         </button>
         <h2
-            class="text-espresso text-2xl font-black leading-tight tracking-tighter uppercase italic distorted-title translate-y-1">
-            {{ cafe()?.name || 'Loading...' }}
-        </h2>
-        <div class="flex w-10 items-center justify-end">
+            class="text-2xl font-black italic tracking-tighter uppercase font-zine text-espresso drop-shadow-sm -rotate-1 line-clamp-1 flex-1 text-center px-2">
+            {{ cafe()?.name || 'Loading...' }}</h2>
+        <div class="flex items-center justify-end shrink-0">
             <button
-                class="flex size-10 items-center justify-center rounded-full bg-primary text-off-white active:scale-95 transition-transform shadow-sm">
+                class="size-10 bg-primary text-espresso flex items-center justify-center border-2 border-espresso shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-sage active:translate-y-[2px] active:shadow-none transition-all">
                 <span class="material-symbols-outlined">share</span>
             </button>
         </div>
-    </div>
+    </header>
 
     @if (cafe()) {
     <!-- Hero: The Zine Concept -->
@@ -43,10 +42,14 @@
 
     <!-- Section: The Scene -->
     <div class="mt-8 px-4">
-        <div class="flex justify-between items-end mb-4">
-            <h2 class="text-espresso text-3xl font-black italic uppercase tracking-tighter">THE SCENE</h2>
-            <span class="material-symbols-outlined text-primary mb-1">trending_flat</span>
-        </div>
+        <a [routerLink]="['/cafe', cafe()!.id, 'scene']"
+            class="flex justify-between items-end mb-4 group cursor-pointer block">
+            <h2
+                class="text-espresso text-3xl font-black italic uppercase tracking-tighter group-hover:text-primary transition-colors">
+                THE SCENE</h2>
+            <span
+                class="material-symbols-outlined text-primary mb-1 group-hover:translate-x-2 transition-transform">trending_flat</span>
+        </a>
 
         <div class="grid grid-cols-2 gap-4">
             <div class="flex flex-col gap-2">

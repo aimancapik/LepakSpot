@@ -23,6 +23,13 @@ const MOCK_CAFES: Cafe[] = [
         photos: ['https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=600&h=400&fit=crop'],
         addedBy: 'system',
         createdAt: Timestamp.now(),
+        crowdLevel: 'Packed',
+        noiseLevel: 'Loud',
+        wifiSpeed: 'Average',
+        outletAvailability: 'Few',
+        isLateNight: false,
+        perks: ['Free Croissant on 3rd Check-in', '10% off beans'],
+        secretMenu: ['The Dirty Chai Volcano', 'Matcha Espresso Fusion'],
     },
     {
         id: 'mock-feeka',
@@ -35,6 +42,13 @@ const MOCK_CAFES: Cafe[] = [
         photos: ['https://images.unsplash.com/photo-1559305616-3f99cd43e353?w=600&h=400&fit=crop'],
         addedBy: 'system',
         createdAt: Timestamp.now(),
+        crowdLevel: 'Moderate',
+        noiseLevel: 'Chill Chatter',
+        wifiSpeed: 'Fast',
+        outletAvailability: 'Many',
+        isLateNight: false,
+        perks: ['Free Upsize on all Coffees'],
+        secretMenu: ['Feeka Cloud Latte'],
     },
     {
         id: 'mock-lokl',
@@ -47,6 +61,11 @@ const MOCK_CAFES: Cafe[] = [
         photos: ['https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=600&h=400&fit=crop'],
         addedBy: 'system',
         createdAt: Timestamp.now(),
+        crowdLevel: 'Empty',
+        noiseLevel: 'Library Quiet',
+        wifiSpeed: 'Average',
+        outletAvailability: 'Many',
+        isLateNight: false,
     },
     {
         id: 'mock-pulp',
@@ -59,6 +78,11 @@ const MOCK_CAFES: Cafe[] = [
         photos: ['https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=600&h=400&fit=crop'],
         addedBy: 'system',
         createdAt: Timestamp.now(),
+        crowdLevel: 'Packed',
+        noiseLevel: 'Chill Chatter',
+        wifiSpeed: 'Fast',
+        outletAvailability: 'Many',
+        isLateNight: false,
     },
     {
         id: 'mock-brew',
@@ -71,19 +95,32 @@ const MOCK_CAFES: Cafe[] = [
         photos: ['https://images.unsplash.com/photo-1493857671505-72967e2e2760?w=600&h=400&fit=crop'],
         addedBy: 'system',
         createdAt: Timestamp.now(),
+        crowdLevel: 'Moderate',
+        noiseLevel: 'Loud',
+        wifiSpeed: 'Average',
+        outletAvailability: 'None',
+        isLateNight: true,
     },
 ];
 
 @Injectable({ providedIn: 'root' })
 export class CafeService {
     private firestore = inject(Firestore);
+    private readonly cafesRef = collection(this.firestore, 'cafes');
 
     nearbyCafes = signal<Cafe[]>(MOCK_CAFES);
     selectedTags = signal<CafeTag[]>([]);
+    showLateNightOnly = signal(false);
 
     filteredCafes = computed(() => {
         const tags = this.selectedTags();
-        const cafes = this.nearbyCafes();
+        const lateNight = this.showLateNightOnly();
+        let cafes = this.nearbyCafes();
+
+        if (lateNight) {
+            cafes = cafes.filter(c => c.isLateNight);
+        }
+
         if (tags.length === 0) return cafes;
         return cafes.filter((c) => tags.some((t) => c.tags.includes(t)));
     });
@@ -94,10 +131,13 @@ export class CafeService {
         );
     }
 
+    toggleLateNight() {
+        this.showLateNightOnly.update(v => !v);
+    }
+
     async getNearby(_lat?: number, _lng?: number, _radiusKm = 5) {
         try {
-            const cafesRef = collection(this.firestore, 'cafes');
-            const snapshot = await getDocs(cafesRef);
+            const snapshot = await getDocs(this.cafesRef);
             if (snapshot.empty) {
                 this.nearbyCafes.set(MOCK_CAFES);
             } else {

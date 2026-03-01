@@ -1,0 +1,376 @@
+<div
+    class="relative flex h-auto min-h-screen w-full flex-col grain-overlay bg-latte overflow-x-hidden border-x-4 border-espresso max-w-md mx-auto pb-32">
+    <!-- Header -->
+    <header
+        class="flex items-center justify-between p-6 pt-10 sticky top-0 z-50 bg-latte/90 backdrop-blur-md border-b-4 border-espresso">
+        <button (click)="goBack()"
+            class="px-2 py-1 bg-off-white zine-border zine-shadow flex items-center justify-center hover:bg-sage hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all">
+            <span class="material-symbols-outlined text-espresso">arrow_back</span>
+        </button>
+        <h2
+            class="text-2xl font-black italic tracking-tighter uppercase font-zine text-espresso drop-shadow-sm -rotate-1 flex-1 text-center px-2">
+            THE SCENE
+        </h2>
+        <div class="flex items-center justify-end shrink-0 gap-2">
+            <button (click)="showSaveModal.set(true)"
+                class="px-2 py-1 bg-primary zine-border zine-shadow flex items-center justify-center hover:bg-sage hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all">
+                <span class="material-symbols-outlined text-espresso">bookmark_add</span>
+            </button>
+        </div>
+    </header>
+
+    @if (cafe()) {
+    <!-- Main Content -->
+    <main class="px-6 py-8 flex flex-col gap-10">
+        <div class="relative">
+
+            <!-- Header Text -->
+            <div class="relative rotate-1">
+                <div class="absolute -inset-1 bg-white border-2 border-espresso z-0 translate-x-1 translate-y-1"></div>
+                <div
+                    class="relative z-10 bg-sage border-2 border-espresso p-4 shadow-[4px_4px_0_var(--color-espresso)]">
+                    <p class="font-zine text-sm font-bold uppercase tracking-wider text-espresso">Vibe Check at</p>
+                    <h1 class="font-marker text-3xl font-black text-espresso leading-none mt-1">{{ cafe()!.name }}</h1>
+                </div>
+            </div>
+        </div>
+
+        <!-- Intel Section -->
+        <div class="flex gap-4 -mt-2">
+            <!-- Vibe -->
+            <div class="flex-1 bg-off-white zine-border p-3 shadow-[4px_4px_0_var(--color-primary)] rotate-1">
+                <h3
+                    class="font-zine font-bold text-xs uppercase tracking-widest text-espresso/70 mb-2 border-b border-espresso/20 pb-1">
+                    Vibe Check</h3>
+                <div class="space-y-2">
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-lg text-espresso">groups</span>
+                        <span class="font-marker text-sm">{{ cafe()!.crowdLevel || 'Unknown Crowd' }}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-lg text-espresso">volume_up</span>
+                        <span class="font-marker text-sm">{{ cafe()!.noiseLevel || 'Unknown Noise' }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Plug & Play -->
+            <div
+                class="flex-1 bg-sage zine-border p-3 shadow-[4px_4px_0_var(--color-espresso)] -rotate-1 flex flex-col justify-between">
+                <div>
+                    <h3
+                        class="font-zine font-bold text-xs uppercase tracking-widest text-espresso/70 mb-2 border-b border-espresso/20 pb-1">
+                        Plug & Play</h3>
+                    <div class="space-y-2">
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-lg text-espresso">wifi</span>
+                            <span class="font-marker text-sm">{{ cafe()!.wifiSpeed || 'Unknown WiFi' }}</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-lg text-espresso">power</span>
+                            <span class="font-marker text-sm outline-none">{{ cafe()!.outletAvailability || 'Unknown
+                                Outlets'
+                                }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex justify-center flex-wrap gap-4 -mt-4 z-10 transition-all font-marker text-sm px-2">
+            <!-- CHECK IN BUTTON -->
+            <button (click)="checkIn()" [disabled]="isCheckedIn() || checkingIn()"
+                [class.hidden]="isUpdatingVibe() || isBroadcasting()"
+                class="flex-1 min-w-[120px] bg-white text-espresso px-4 py-2 rounded-full zine-border shadow-[4px_4px_0_var(--color-primary)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex justify-center items-center gap-2 group disabled:opacity-50 disabled:shadow-none disabled:translate-y-1 disabled:translate-x-1">
+                <span
+                    class="material-symbols-outlined text-lg transition-transform group-hover:scale-125 group-disabled:scale-100"
+                    [class.text-primary]="isCheckedIn()">
+                    {{ isCheckedIn() ? 'how_to_reg' : 'location_on' }}
+                </span>
+                {{ checkingIn() ? 'CHECKING IN...' : (isCheckedIn() ? 'CHECKED IN' : 'CHECK IN') }}
+            </button>
+
+            <button (click)="toggleVibeForm()" [class.hidden]="isUpdatingVibe() || isBroadcasting()"
+                class="flex-1 min-w-[120px] bg-primary text-espresso px-4 py-2 rounded-full zine-border shadow-[4px_4px_0_var(--color-espresso)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex justify-center items-center gap-2">
+                <span class="material-symbols-outlined text-lg">edit_note</span>
+                SPILL TEA
+            </button>
+
+            <button (click)="toggleBroadcastForm()" [class.hidden]="isUpdatingVibe() || isBroadcasting()"
+                class="flex-1 min-w-[120px] bg-sage text-espresso px-4 py-2 rounded-full zine-border shadow-[4px_4px_0_var(--color-espresso)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex justify-center items-center gap-2">
+                <span class="material-symbols-outlined text-lg">campaign</span>
+                LEPAK?
+            </button>
+        </div>
+
+        <!-- VIP Perks & Secret Menu -->
+        @if (cafe()!.perks?.length || cafe()!.secretMenu?.length) {
+        <div class="mt-8 relative z-10">
+            <!-- Tape decoration -->
+            <div
+                class="absolute -top-3 left-1/2 -translate-x-1/2 w-24 h-6 bg-white/60 backdrop-blur-sm border border-espresso -rotate-2 z-20">
+            </div>
+
+            <div
+                class="bg-espresso text-off-white p-5 rounded-sm border-2 border-dashed border-off-white shadow-[6px_6px_0_var(--color-primary)] rotate-1 relative overflow-hidden">
+
+                <div class="flex items-center gap-2 mb-4 border-b-2 border-off-white/30 pb-2">
+                    <span class="material-symbols-outlined text-primary text-3xl animate-bounce">star</span>
+                    <h3 class="font-marker text-2xl tracking-widest uppercase">VIP Perks</h3>
+                </div>
+
+                @if (!isCheckedIn()) {
+                <div class="flex flex-col items-center justify-center py-6 text-center space-y-3">
+                    <span class="material-symbols-outlined text-6xl text-off-white/40">lock</span>
+                    <p class="font-zine font-bold text-sm uppercase tracking-wider text-off-white/80">Check in to unlock
+                        the
+                        secret menu and exclusive perks!</p>
+                </div>
+                } @else {
+                <div class="space-y-6 animate-[fadeIn_0.5s_ease-out]">
+                    @if (cafe()!.perks?.length) {
+                    <div>
+                        <h4 class="font-zine text-xs font-bold text-sage uppercase tracking-widest mb-2">Unlocked Perks
+                        </h4>
+                        <ul class="space-y-2">
+                            @for (perk of cafe()!.perks; track perk) {
+                            <li class="flex items-start gap-2 font-marker">
+                                <span class="material-symbols-outlined text-primary text-sm mt-1">check_circle</span>
+                                <span>{{ perk }}</span>
+                            </li>
+                            }
+                        </ul>
+                    </div>
+                    }
+
+                    @if (cafe()!.secretMenu?.length) {
+                    <div>
+                        <h4 class="font-zine text-xs font-bold text-primary uppercase tracking-widest mb-2">Secret Menu
+                        </h4>
+                        <ul class="space-y-2">
+                            @for (item of cafe()!.secretMenu; track item) {
+                            <li class="flex items-start gap-2 font-marker">
+                                <span class="material-symbols-outlined text-sage text-sm mt-1">local_cafe</span>
+                                <span>{{ item }}</span>
+                            </li>
+                            }
+                        </ul>
+                    </div>
+                    }
+                </div>
+                }
+            </div>
+        </div>
+        }
+
+        <!-- ── Leave a Review ── -->
+        @if (!hasReviewed() && !reviewSubmitted()) {
+        <div class="relative mt-2">
+            <!-- tape decoration -->
+            <div
+                class="absolute -top-3 left-8 w-20 h-5 bg-white/60 backdrop-blur-sm border border-espresso rotate-2 z-20">
+            </div>
+            <div
+                class="bg-off-white zine-border p-5 shadow-[4px_4px_0_var(--color-espresso)] -rotate-1 relative overflow-hidden">
+                <div class="flex items-center gap-2 mb-4 border-b-2 border-espresso/20 pb-2">
+                    <span class="material-symbols-outlined text-espresso text-2xl">rate_review</span>
+                    <h3 class="font-marker text-xl tracking-widest uppercase text-espresso">Leave a Review</h3>
+                </div>
+
+                @if (!showReviewForm()) {
+                <button (click)="showReviewForm.set(true)"
+                    class="w-full font-marker text-sm uppercase tracking-wide py-2 px-4 bg-primary zine-border shadow-[3px_3px_0_var(--color-espresso)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all text-espresso">
+                    + Write a Review
+                </button>
+                } @else {
+                <div class="space-y-4">
+                    <!-- Star Rating -->
+                    <div>
+                        <p class="font-zine text-xs uppercase tracking-widest text-espresso/60 mb-2">Your Rating</p>
+                        <div class="flex gap-1">
+                            @for (star of [1,2,3,4,5]; track star) {
+                            <button (click)="setRating(star)" (mouseenter)="setHover(star)" (mouseleave)="clearHover()"
+                                class="text-3xl transition-transform hover:scale-125 focus:outline-none"
+                                [attr.aria-label]="star + ' star'">
+                                <span class="material-symbols-outlined" [class.text-primary]="starFilled(star)"
+                                    [class.text-espresso/20]="!starFilled(star)"
+                                    style="font-variation-settings: 'FILL' 1">
+                                    star
+                                </span>
+                            </button>
+                            }
+                        </div>
+                    </div>
+                    <!-- Review Text -->
+                    <div>
+                        <p class="font-zine text-xs uppercase tracking-widest text-espresso/60 mb-1">Your Thoughts</p>
+                        <textarea [ngModel]="reviewText()" (ngModelChange)="reviewText.set($event)" rows="3"
+                            placeholder="Spill the tea... what's the vibe like?"
+                            class="w-full bg-white border-2 border-espresso/40 focus:border-espresso p-3 text-sm font-marker text-espresso resize-none outline-none transition-colors rounded-none">
+                        </textarea>
+                    </div>
+                    <!-- Actions -->
+                    <div class="flex gap-3">
+                        <button (click)="showReviewForm.set(false)"
+                            class="flex-1 font-marker text-sm uppercase py-2 border-2 border-espresso/30 text-espresso/60 hover:border-espresso hover:text-espresso transition-all">
+                            Cancel
+                        </button>
+                        <button (click)="submitReview()" [disabled]="pendingRating() === 0 || submittingReview()"
+                            class="flex-1 font-marker text-sm uppercase py-2 bg-espresso text-off-white zine-border shadow-[3px_3px_0_var(--color-primary)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all disabled:opacity-40 disabled:translate-y-0.5 disabled:translate-x-0.5 disabled:shadow-none">
+                            {{ submittingReview() ? 'Posting...' : 'Post Review' }}
+                        </button>
+                    </div>
+                </div>
+                }
+            </div>
+        </div>
+        } @else if (reviewSubmitted()) {
+        <div class="bg-sage zine-border p-4 shadow-[4px_4px_0_var(--color-espresso)] rotate-1 flex items-center gap-3">
+            <span class="material-symbols-outlined text-3xl text-espresso">favorite</span>
+            <div>
+                <p class="font-marker text-sm text-espresso uppercase tracking-wide">Review Posted!</p>
+                <p class="font-zine text-xs text-espresso/70">Thanks for keeping the zine alive 🌿</p>
+            </div>
+        </div>
+        }
+
+        <!-- ── What Locals Say ── -->
+        @if (reviews().length > 0) {
+        <div class="relative mt-2">
+            <!-- tape decoration -->
+            <div class="absolute -top-3 right-8 w-20 h-5 bg-primary/60 border border-espresso -rotate-3 z-20">
+            </div>
+            <div
+                class="bg-latte zine-border p-5 shadow-[4px_4px_0_var(--color-espresso)] rotate-1 relative overflow-hidden">
+                <div class="flex items-center gap-2 mb-4 border-b-2 border-espresso/20 pb-2">
+                    <span class="material-symbols-outlined text-espresso text-2xl">forum</span>
+                    <h3 class="font-marker text-xl tracking-widest uppercase text-espresso">What Locals Say</h3>
+                </div>
+                <div class="space-y-4">
+                    @for (review of reviews().slice(0,5); track review.id) {
+                    <div class="bg-off-white border-2 border-espresso/20 p-3 space-y-2">
+                        <!-- Reviewer header -->
+                        <div class="flex items-center gap-2">
+                            @if (review.photoURL) {
+                            <img [src]="review.photoURL" [alt]="review.displayName"
+                                class="w-8 h-8 rounded-full border-2 border-espresso object-cover" />
+                            } @else {
+                            <div
+                                class="w-8 h-8 rounded-full border-2 border-espresso bg-sage flex items-center justify-center">
+                                <span class="font-marker text-sm text-espresso uppercase">{{ review.displayName[0]
+                                    }}</span>
+                            </div>
+                            }
+                            <div class="flex-1 min-w-0">
+                                <p class="font-marker text-sm text-espresso truncate">{{ review.displayName }}</p>
+                                <p class="font-zine text-[10px] text-espresso/50 uppercase tracking-wider">{{
+                                    formatDate(review.createdAt) }}</p>
+                            </div>
+                            <!-- Stars -->
+                            <div class="flex gap-0.5 shrink-0">
+                                @for (s of [1,2,3,4,5]; track s) {
+                                <span class="material-symbols-outlined text-sm"
+                                    [class.text-primary]="s <= review.rating"
+                                    [class.text-espresso/20]="s > review.rating"
+                                    style="font-variation-settings: 'FILL' 1">star</span>
+                                }
+                            </div>
+                        </div>
+                        <!-- Review text -->
+                        @if (review.text) {
+                        <p class="font-marker text-sm text-espresso/80 leading-relaxed">"{{ review.text }}"</p>
+                        }
+                    </div>
+                    }
+                </div>
+            </div>
+        </div>
+        }
+
+
+        <div class="grid grid-cols-1 gap-12 mt-2 relative">
+
+            <!-- Scene 1 -->
+            <div class="relative w-full -rotate-2">
+                <!-- Background tape -->
+                <div
+                    class="absolute -top-4 -left-3 w-16 h-6 bg-white/70 backdrop-blur-sm border-2 border-espresso rotate-[15deg] z-20 shadow-sm mix-blend-overlay">
+                </div>
+
+                <div class="relative zine-border p-2 bg-off-white zine-shadow rounded-sm aspect-square">
+                    <div class="w-full h-full overflow-hidden border-2 border-espresso bg-espresso">
+                        <img [src]="cafe()!.photos[1] || 'https://images.unsplash.com/photo-1497935586351-b67a49e012bf?w=800&fit=crop'"
+                            class="w-full h-full object-cover grayscale contrast-125 hover:grayscale-0 transition-all duration-500"
+                            alt="Cozy Corner" />
+                    </div>
+                </div>
+                <!-- Label -->
+                <div
+                    class="absolute -bottom-4 right-4 bg-primary border-2 border-espresso px-4 py-1.5 rotate-3 z-10 shadow-[2px_2px_0px_0px_rgba(69,50,39,1)]">
+                    <span class="font-marker font-bold text-espresso text-sm uppercase tracking-wider">Cozy
+                        Corner</span>
+                </div>
+            </div>
+
+            <!-- Decorative doodle -->
+            <div class="flex justify-center -my-4 relative z-10">
+                <span class="font-marker text-4xl text-espresso/40 rotate-12">~*~</span>
+            </div>
+
+            <!-- Scene 2 -->
+            <div class="relative w-full rotate-2">
+                <!-- Background tape -->
+                <div
+                    class="absolute -top-3 right-6 w-14 h-5 bg-white/50 backdrop-blur-sm border border-white -rotate-[8deg] z-20 shadow-sm">
+                </div>
+
+                <div
+                    class="relative zine-border p-3 bg-espresso z-10 shadow-[8px_8px_0_var(--color-primary)] rounded-sm aspect-[4/5] overflow-hidden">
+                    <img [src]="cafe()!.photos[2] || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800&fit=crop'"
+                        class="w-full h-full object-cover sepia-[.4] contrast-125" alt="Art Vibes" />
+                </div>
+                <!-- Label -->
+                <div
+                    class="absolute -bottom-5 left-2 bg-latte border-2 border-espresso px-4 py-1.5 -rotate-2 z-20 shadow-[2px_2px_0px_0px_rgba(69,50,39,1)]">
+                    <span class="font-marker font-bold text-espresso text-sm uppercase tracking-wider">Art Vibes</span>
+                </div>
+            </div>
+
+            <!-- Decorative doodle -->
+            <div class="flex justify-center -my-2 relative z-10">
+                <span class="font-marker text-4xl text-sage rotate-[-15deg] font-bold">+++</span>
+            </div>
+
+            <!-- Scene 3 -->
+            <div class="relative w-full -rotate-1">
+                <div class="relative zine-border p-2 bg-off-white zine-shadow rounded-sm aspect-[5/4]">
+                    <div class="w-full h-full overflow-hidden border-2 border-espresso bg-espresso">
+                        <img [src]="cafe()!.photos[3] || 'https://images.unsplash.com/photo-1525610553991-2bede1a236e2?w=800&fit=crop'"
+                            class="w-full h-full object-cover grayscale contrast-125 hover:grayscale-0 transition-all duration-500"
+                            alt="Late Night" />
+                    </div>
+                </div>
+                <!-- Label -->
+                <div
+                    class="absolute top-2 -right-3 bg-sage border-2 border-espresso px-3 py-1 rotate-[6deg] z-10 shadow-[2px_2px_0px_0px_rgba(69,50,39,1)]">
+                    <span class="font-marker font-bold text-espresso text-xs uppercase tracking-wider">Late Night</span>
+                </div>
+            </div>
+
+        </div>
+    </main>
+    } @else {
+    <div class="flex-1 flex items-center justify-center">
+        <div class="animate-pulse flex flex-col items-center gap-4">
+            <span class="material-symbols-outlined text-6xl text-espresso/20 animate-spin">cyclone</span>
+            <p class="font-marker text-xl text-espresso/40">Developing film...</p>
+        </div>
+    </div>
+    }
+
+    @if (showSaveModal() && cafe()) {
+    <app-save-to-list-modal [cafeId]="cafe()!.id!" (close)="showSaveModal.set(false)" />
+    }
+
+</div>

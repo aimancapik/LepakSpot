@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, OnInit, ViewEncapsulation }
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { CafeService } from '../../core/services/cafe.service';
+import { BroadcastService } from '../../core/services/broadcast.service';
 import { CafeTag } from '../../core/models/cafe.model';
 
 @Component({
@@ -15,6 +16,7 @@ import { CafeTag } from '../../core/models/cafe.model';
 export class HomeComponent implements OnInit {
   authService = inject(AuthService);
   cafeService = inject(CafeService);
+  broadcastService = inject(BroadcastService);
 
   chips: { tag: CafeTag; label: string; icon: string }[] = [
     { tag: 'wifi', label: 'WiFi', icon: 'wifi' },

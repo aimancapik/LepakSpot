@@ -1,38 +1,54 @@
 <div
-    class="font-display bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex flex-col max-w-md mx-auto">
+    class="relative min-h-screen max-w-md mx-auto grain-overlay bg-latte overflow-x-hidden border-x-4 border-espresso font-display text-espresso selection:bg-primary selection:text-white pb-32">
     <!-- Header -->
     <header
-        class="flex items-center p-4 pb-2 justify-between sticky top-0 z-50 bg-background-light/90 dark:bg-background-dark/90 backdrop-blur-xl">
+        class="flex items-center justify-between p-6 pt-10 sticky top-0 z-50 bg-latte/90 backdrop-blur-md border-b-4 border-espresso">
         <a routerLink="/home"
-            class="flex size-10 items-center justify-center rounded-full bg-white dark:bg-card-dark shadow-sm text-primary">
-            <span class="material-symbols-outlined">arrow_back</span>
+            class="size-10 bg-off-white flex items-center justify-center border-2 border-espresso shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-sage active:translate-y-[2px] active:shadow-none transition-all">
+            <span class="material-symbols-outlined text-espresso">arrow_back</span>
         </a>
-        <h2 class="text-lg font-bold tracking-tight">Where to lepak?</h2>
+        <h2
+            class="text-2xl font-black italic tracking-tighter uppercase font-zine text-espresso drop-shadow-sm -rotate-1">
+            Where to lepak?</h2>
         <div class="w-10"></div>
     </header>
 
     <!-- Swipeable café cards -->
-    <div class="px-4 pt-4">
-        <p class="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">Suggested
-            spots</p>
+    <div class="px-6 pt-6">
+        <h3
+            class="inline-block bg-espresso text-off-white px-4 py-1 font-zine font-bold italic uppercase tracking-widest -rotate-2 mb-4">
+            Suggested Spots
+        </h3>
     </div>
-    <div class="flex gap-4 px-4 overflow-x-auto snap-x no-scrollbar pb-4">
-        @for (cafe of sessionCafes(); track cafe.id) {
-        <div
-            class="snap-center shrink-0 w-72 rounded-xl overflow-hidden bg-white dark:bg-card-dark shadow-lg border border-primary/5">
-            <div class="w-full h-40 bg-cover bg-center"
-                [style.background-image]="'url(' + (cafe.photos[0] || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=600&h=400&fit=crop') + ')'">
-            </div>
-            <div class="p-4">
-                <h3 class="font-bold text-base text-slate-900 dark:text-slate-100">{{ cafe.name }}</h3>
-                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1">
-                    <span class="material-symbols-outlined text-xs">location_on</span>
+
+    <div class="flex gap-6 px-6 overflow-x-auto snap-x no-scrollbar pb-8 relative">
+        @for (cafe of sessionCafes(); track cafe.id; let i = $index) {
+        <div class="snap-center shrink-0 w-64 relative group">
+            <!-- Background Blob -->
+            <div class="absolute inset-0 translate-x-3 translate-y-3 border-2 border-espresso z-0"
+                [class]="i % 2 === 0 ? 'bg-sage rotate-2' : 'bg-primary -rotate-2'"></div>
+
+            <div class="relative z-10 bg-off-white zine-border p-3 zine-shadow transition-transform hover:scale-[1.02] active:scale-[0.98]"
+                [class]="i % 2 === 0 ? '-rotate-1' : 'rotate-1'">
+
+                <div class="tape-effect overflow-hidden zine-border aspect-[4/3] bg-espresso relative mb-3">
+                    <img [src]="cafe.photos[0] || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=600&h=400&fit=crop'"
+                        class="w-full h-full object-cover grayscale contrast-125 opacity-90 transition-all hover:grayscale-0 hover:opacity-100" />
+                </div>
+
+                <h3 class="font-zine text-xl font-black italic uppercase text-espresso leading-tight">{{ cafe.name }}
+                </h3>
+                <p class="font-marker text-[10px] text-espresso/70 mt-1 uppercase flex items-start gap-1">
+                    <span class="material-symbols-outlined text-[12px]">location_on</span>
                     {{ cafe.address }}
                 </p>
-                <div class="flex gap-1.5 mt-2 flex-wrap">
+                <div class="flex gap-2 mt-3 flex-wrap">
                     @for (tag of cafe.tags; track tag) {
-                    <span class="px-2 py-0.5 rounded-lg bg-primary/10 text-primary text-[10px] font-bold uppercase">{{
-                        tag }}</span>
+                    <span
+                        class="px-2 py-0.5 zine-border bg-off-white text-espresso font-marker text-[10px] uppercase shadow-[2px_2px_0_var(--color-espresso)]"
+                        [class]="i % 2 === 0 ? 'rotate-1' : '-rotate-1'">
+                        {{ tag }}
+                    </span>
                     }
                 </div>
             </div>
@@ -41,46 +57,52 @@
     </div>
 
     <!-- Invite section -->
-    <div class="px-4 pt-6">
-        <p class="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">Invite friends
-        </p>
-        <div class="bg-white dark:bg-card-dark rounded-xl p-5 shadow-md border border-primary/5">
+    <div class="px-6 pt-4">
+        <h3
+            class="inline-block bg-espresso text-off-white px-4 py-1 font-zine font-bold italic uppercase tracking-widest rotate-1 mb-4">
+            The Crew
+        </h3>
+
+        <div class="relative bg-off-white zine-border p-6 zine-shadow rotate-[-1deg]">
+            <!-- Tape -->
+            <div class="absolute -top-3 right-6 w-12 h-5 bg-white/70 shadow-sm rotate-[6deg] z-10"></div>
+
             @if (sessionCode()) {
-            <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center justify-between mb-6 border-b-2 border-espresso border-dashed pb-6">
                 <div>
-                    <p class="text-xs text-slate-400 font-medium">Session Code</p>
-                    <p class="text-3xl font-extrabold text-primary tracking-[0.2em] mt-1">{{ sessionCode() }}</p>
+                    <p class="font-marker text-xs text-espresso/60 uppercase">Session Code</p>
+                    <p
+                        class="text-4xl font-black font-zine italic text-primary tracking-[0.1em] mt-1 drop-shadow-[2px_2px_0_var(--color-espresso)]">
+                        {{ sessionCode() }}</p>
                 </div>
                 <button (click)="shareSession()"
-                    class="flex items-center gap-2 bg-primary/10 hover:bg-primary/20 text-primary px-4 py-2.5 rounded-xl font-bold text-sm transition-colors">
+                    class="flex items-center gap-1 bg-sage text-espresso px-4 py-2 zine-border zine-shadow-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all rotate-2 font-marker uppercase text-sm">
                     <span class="material-symbols-outlined text-sm">share</span>
                     Share
                 </button>
             </div>
             } @else {
-            <div class="flex items-center justify-center py-4">
-                <div class="flex gap-1 items-center text-slate-400">
-                    <span class="w-1.5 h-1.5 bg-primary rounded-full animate-bounce"></span>
-                    <span class="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:0.15s]"></span>
-                    <span class="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:0.3s]"></span>
-                    <span class="text-sm font-medium ml-2">Creating session...</span>
+            <div class="flex items-center justify-center py-6 border-b-2 border-espresso border-dashed mb-6">
+                <div class="flex gap-2 items-center text-espresso">
+                    <span class="material-symbols-outlined animate-spin text-2xl">cyclone</span>
+                    <span class="font-marker font-bold text-sm uppercase">Curating session...</span>
                 </div>
             </div>
             }
 
             <!-- Members -->
-            <div class="border-t border-primary/10 pt-4">
-                <p class="text-xs text-slate-400 font-medium mb-2">Members joined</p>
-                <div class="flex items-center gap-2">
-                    <div class="flex -space-x-2">
+            <div>
+                <p class="font-marker text-xs text-espresso/60 uppercase mb-3">Members Joined</p>
+                <div class="flex items-center gap-4">
+                    <div class="flex -space-x-3">
                         @for (member of sessionMembers(); track member; let i = $index) {
-                        <div class="size-9 rounded-full border-2 border-white dark:border-card-dark flex items-center justify-center text-xs font-bold"
-                            [class]="i % 2 === 0 ? 'bg-primary text-white' : 'bg-primary/20 text-primary'">
+                        <div class="size-10 rounded-full border-2 border-espresso flex items-center justify-center font-marker text-sm text-espresso zine-shadow-sm hover:-translate-y-1 transition-transform relative z-10 bg-off-white"
+                            [class]="i % 2 === 0 ? 'bg-sage scale-105' : 'bg-primary scale-95'">
                             {{ member[0] }}
                         </div>
                         }
                     </div>
-                    <span class="text-sm text-slate-500 dark:text-slate-400 font-medium">
+                    <span class="font-zine text-sm font-bold uppercase text-espresso">
                         {{ sessionMembers().length }} {{ sessionMembers().length === 1 ? 'member' : 'members' }}
                     </span>
                 </div>
@@ -89,13 +111,12 @@
     </div>
 
     <!-- Start Voting Button -->
-    <div class="px-4 pt-6 pb-28">
+    <div class="px-6 pt-10 pb-28">
         <button (click)="startVoting()" [disabled]="!sessionId()"
-            class="w-full py-4 bg-primary hover:bg-primary-dark disabled:opacity-50 text-white font-bold text-base rounded-2xl shadow-lg shadow-primary/25 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2">
-            <span class="material-symbols-outlined">how_to_vote</span>
-            Start Voting
+            class="w-full py-4 bg-primary text-espresso font-black font-zine text-2xl italic uppercase zine-border zine-shadow hover:translate-x-1 hover:translate-y-1 hover:shadow-none active:translate-x-2 active:translate-y-2 active:shadow-none transition-all duration-200 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed">
+            <span class="material-symbols-outlined text-2xl">how_to_vote</span>
+            START VOTING
         </button>
     </div>
 
-    <app-bottom-nav activeTab="sessions" />
 </div>

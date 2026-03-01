@@ -10,5 +10,5 @@ import { RouterLink } from '@angular/router';
   styleUrl: './bottom-nav.component.scss',
 })
 export class BottomNavComponent {
-  activeTab = input<'home' | 'sessions' | 'profile' | 'favorites'>('home');
+  activeTab = input<'home' | 'sessions' | 'map' | 'profile' | 'favorites'>('home');
 }

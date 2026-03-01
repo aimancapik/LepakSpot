@@ -3,14 +3,13 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { SessionService } from '../../../core/services/session.service';
 import { CafeService } from '../../../core/services/cafe.service';
 import { CheckInService } from '../../../core/services/checkin.service';
-import { BottomNavComponent } from '../../../shared/components/bottom-nav/bottom-nav.component';
 import { Cafe } from '../../../core/models/cafe.model';
 
 @Component({
   selector: 'app-result',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, BottomNavComponent],
+  imports: [RouterLink],
   templateUrl: './result.component.html',
   styleUrl: './result.component.scss',
 })
@@ -23,15 +22,17 @@ export class ResultComponent implements OnInit {
 
   winnerCafe = signal<Cafe | null>(null);
   checkedIn = signal(false);
+  sessionId = signal<string | null>(null);
 
   async ngOnInit() {
-    const sessionId = this.route.snapshot.paramMap.get('id');
-    if (!sessionId) {
+    const sId = this.route.snapshot.paramMap.get('id');
+    if (!sId) {
       this.router.navigate(['/home']);
       return;
     }
+    this.sessionId.set(sId);
 
-    this.sessionService.listenSession(sessionId);
+    this.sessionService.listenSession(sId);
 
     // Wait for session data
     await new Promise<void>((resolve) => {
@@ -62,6 +63,13 @@ export class ResultComponent implements OnInit {
       this.checkedIn.set(true);
     } catch (err) {
       console.error('Check-in failed:', err);
+    }
+  }
+
+  navigateToBillSplit() {
+    const sId = this.sessionId();
+    if (sId) {
+      this.router.navigate(['/session', sId, 'bill-split']);
     }
   }
 }

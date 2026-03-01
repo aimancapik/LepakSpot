@@ -10,6 +10,7 @@ import {
 } from '@angular/fire/auth';
 import {
     Firestore,
+    collection,
     doc,
     getDoc,
     setDoc,
@@ -23,6 +24,8 @@ export class AuthService {
     private firestore = inject(Firestore);
     private router = inject(Router);
     private injector = inject(EnvironmentInjector);
+
+    private readonly usersRef = collection(this.firestore, 'users');
 
     // Signal to store the current user's profile data
     currentUser = signal<User | null>(null);
@@ -74,17 +77,30 @@ export class AuthService {
             return current;
         }
 
-        const userRef = doc(this.firestore, `users/${firebaseUser.uid}`);
+        const userRef = doc(this.usersRef, firebaseUser.uid);
         console.log('AuthService: Fetching user document...');
         let userSnap;
         try {
-            userSnap = await getDoc(userRef);
+            const timeout = new Promise<never>((_, reject) =>
+                setTimeout(() => reject(new Error('timed out')), 10000)
+            );
+            userSnap = await Promise.race([getDoc(userRef), timeout]);
         } catch (error: any) {
             console.error('AuthService: Firestore fetch error:', error);
-            if (error.code === 'unavailable' || error.message?.includes('offline') || error.message?.includes('BLOCKED_BY_CLIENT')) {
-                const blockedMsg = 'FireStore connection blocked or offline. Please disable any AdBlockers or VPNs for this site and refresh.';
-                alert(blockedMsg);
-                throw new Error(blockedMsg);
+            if (error.code === 'unavailable' || error.message?.includes('offline') || error.message?.includes('BLOCKED_BY_CLIENT') || error.message?.includes('timed out')) {
+                console.warn('AuthService: Firestore unreachable, using Firebase Auth data as fallback');
+                const fallback: User = {
+                    uid: firebaseUser.uid,
+                    displayName: firebaseUser.displayName || 'User',
+                    email: firebaseUser.email || '',
+                    photoURL: firebaseUser.photoURL || '',
+                    points: 0,
+                    badges: [],
+                    totalCheckins: 0,
+                    createdAt: Timestamp.now(),
+                };
+                this.currentUser.set(fallback);
+                return fallback;
             }
             throw error;
         }

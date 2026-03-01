@@ -1,0 +1,275 @@
+<div class="font-sans min-h-screen bg-off-white text-espresso relative flex flex-col max-w-md mx-auto overflow-hidden">
+    <!-- Grain overlay -->
+    <div class="fixed inset-0 opacity-[0.03] pointer-events-none z-50 zine-texture mix-blend-multiply"></div>
+
+    <!-- Top Nav -->
+    <nav
+        class="flex items-center justify-between px-6 pt-12 pb-4 bg-off-white/90 backdrop-blur-md sticky top-0 z-20 border-b-2 border-espresso shadow-sm">
+        <button [routerLink]="['/session', sessionId(), 'result']"
+            class="flex size-10 items-center justify-center rounded-xl bg-white border-2 border-espresso shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-[2px] active:shadow-none transition-all rotate-2">
+            <span class="material-symbols-outlined text-espresso font-bold">arrow_back</span>
+        </button>
+        <div class="relative -rotate-1">
+            <h2
+                class="font-marker text-2xl tracking-wide text-espresso bg-sage px-2 py-0.5 border-2 border-espresso shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                Bill Splitter
+            </h2>
+        </div>
+        <div class="size-10"></div> <!-- Spacer -->
+    </nav>
+
+    <main class="flex-1 flex flex-col p-6 relative z-10 w-full overflow-y-auto pb-32">
+
+        <!-- =================== state: INITIAL =================== -->
+        @if (viewState() === 'INITIAL') {
+        <div class="flex-1 flex flex-col items-center justify-center text-center">
+            <div
+                class="bg-latte p-6 rounded-2xl border-2 border-espresso shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] -rotate-2 w-full max-w-xs mb-8">
+                <span class="material-symbols-outlined text-6xl mb-2 text-espresso">receipt_long</span>
+                <h3 class="font-marker text-2xl mb-2">Snap the Receipt!</h3>
+                <p class="text-espresso/80 text-sm font-bold">We'll magically read the items using AI so you don't have
+                    to type.</p>
+            </div>
+
+            <label
+                class="group relative flex items-center justify-center w-full max-w-xs cursor-pointer active:scale-95 transition-transform rotate-1">
+                <input type="file" accept="image/*" capture="environment" class="hidden"
+                    (change)="onFileSelected($event)">
+                <div
+                    class="absolute inset-0 bg-primary border-2 border-espresso rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] group-active:translate-y-[4px] group-active:shadow-none transition-all">
+                </div>
+                <div class="relative z-10 py-4 flex items-center gap-2 font-marker text-xl text-white tracking-wider"
+                    style="text-shadow: 1px 1px 0 #453227;">
+                    <span class="material-symbols-outlined font-bold">photo_camera</span>
+                    TAKE PHOTO
+                </div>
+            </label>
+
+            <p class="mt-6 text-sm font-bold opacity-60">or enter manually (coming soon)</p>
+        </div>
+        }
+
+        <!-- =================== state: SCANNING =================== -->
+        @if (viewState() === 'SCANNING') {
+        <div class="flex-1 flex flex-col items-center justify-center text-center">
+            <div class="relative border-4 border-espresso border-dashed p-8 rounded-xl bg-white w-full max-w-xs">
+                <!-- Scanning line effect -->
+                <div
+                    class="absolute inset-x-0 h-1 bg-primary blur-[2px] shadow-[0_0_10px_#ff4500] animate-[scan_2s_ease-in-out_infinite]">
+                </div>
+
+                <span
+                    class="material-symbols-outlined text-6xl mb-4 animate-pulse text-espresso">document_scanner</span>
+                <h3 class="font-marker text-2xl mb-2 animate-pulse">{{ ocrService.statusText() }}</h3>
+                <div class="w-full bg-latte h-3 rounded-full border-2 border-espresso overflow-hidden">
+                    <div class="bg-primary h-full transition-all duration-300"
+                        [style.width.%]="ocrService.progress() * 100"></div>
+                </div>
+            </div>
+        </div>
+        }
+
+        <!-- =================== state: CONFIRM_ITEMS =================== -->
+        @if (viewState() === 'CONFIRM_ITEMS') {
+        <div class="flex flex-col gap-4">
+            <h3 class="font-marker text-2xl mb-2">Verify Items</h3>
+            <p
+                class="text-sm font-bold bg-white border border-espresso p-2 rounded -rotate-1 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] mb-4">
+                Here's what we found. Add taxes and service charges below.
+            </p>
+
+            <div class="bg-white border-2 border-espresso rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-4">
+                @for (item of parsedItems(); track item.id; let i = $index) {
+                <div class="flex justify-between items-center py-2 border-b border-espresso/20 last:border-0">
+                    <input type="text" [(ngModel)]="parsedItems()[i].name"
+                        class="font-bold bg-transparent outline-none w-2/3">
+                    <div class="font-marker flex items-center gap-1">
+                        <span class="text-sm">RM</span>
+                        <input type="number" [(ngModel)]="parsedItems()[i].price"
+                            class="w-16 bg-transparent outline-none text-right appearance-none">
+                    </div>
+                </div>
+                }
+            </div>
+
+            <div
+                class="bg-latte border-2 border-espresso rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-4 mt-2 -rotate-1">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="font-bold">Subtotal:</span>
+                    <span class="font-marker">RM {{ rawSubtotal() | number:'1.2-2' }}</span>
+                </div>
+                <div class="flex justify-between items-center mb-2">
+                    <span class="font-bold">Tax:</span>
+                    <div class="flex items-center gap-1 font-marker">
+                        <span class="text-sm">RM</span>
+                        <input type="number" [(ngModel)]="rawTax"
+                            class="w-16 bg-white border border-espresso rounded px-1 text-right outline-none">
+                    </div>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="font-bold">Service Charge:</span>
+                    <div class="flex items-center gap-1 font-marker">
+                        <span class="text-sm">RM</span>
+                        <input type="number" [(ngModel)]="rawServiceCharge"
+                            class="w-16 bg-white border border-espresso rounded px-1 text-right outline-none">
+                    </div>
+                </div>
+            </div>
+
+            <button (click)="createBill()"
+                class="mt-6 w-full py-4 bg-primary border-2 border-espresso rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] font-marker text-xl text-white tracking-widest rotate-1 active:translate-y-[4px] active:shadow-none transition-all"
+                style="text-shadow: 1px 1px 0 #453227;">
+                LOOKS GOOD!
+            </button>
+        </div>
+        }
+
+        <!-- =================== state: ASSIGNING =================== -->
+        @if (viewState() === 'ASSIGNING' && activeBill() && session()) {
+        <div class="flex flex-col h-full">
+            <h3
+                class="font-marker text-2xl mb-4 bg-latte inline-block px-2 py-1 border-2 border-espresso shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] -rotate-1 w-fit">
+                Assign Items
+            </h3>
+
+            <p class="text-sm font-bold mb-4">Tap an item, then tap who ate it. Multiple people = split equally.</p>
+
+            <!-- Members Bar -->
+            <div
+                class="sticky top-0 bg-off-white/95 backdrop-blur z-10 py-2 border-y-2 border-espresso border-dashed mb-4 overflow-x-auto">
+                <div class="flex gap-4 px-2 min-w-max">
+                    @for (memberId of session()!.members; track memberId) {
+                    <button (click)="toggleAssignment(memberId)" [disabled]="!selectedItemId()"
+                        class="flex flex-col items-center group transition-transform"
+                        [class.opacity-50]="!selectedItemId()">
+                        <div
+                            class="w-12 h-12 rounded-full border-2 border-espresso overflow-hidden shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] group-active:translate-y-[2px] group-active:shadow-none bg-latte relative">
+                            <span class="absolute inset-0 flex items-center justify-center font-marker text-xl">{{
+                                memberId.charAt(0).toUpperCase() }}</span>
+                            <!-- Highlight if selected item is assigned to this member -->
+                            @if (selectedItemId()) {
+                            @for (item of activeBill()!.items; track item.id) {
+                            @if (item.id === selectedItemId() && item.assignedTo.includes(memberId)) {
+                            <div class="absolute inset-0 bg-primary/40 mix-blend-multiply"></div>
+                            <span
+                                class="absolute right-0 bottom-0 material-symbols-outlined text-sm bg-white rounded-full border border-espresso font-bold z-10 text-primary">check_circle</span>
+                            }
+                            }
+                            }
+                        </div>
+                        <span class="text-xs font-bold mt-1 max-w-[50px] truncate">{{ memberId.substring(0, 5) }}</span>
+                    </button>
+                    }
+                </div>
+            </div>
+
+            <!-- Items List -->
+            <div class="flex-1 overflow-y-auto space-y-3 pb-24">
+                @for (item of activeBill()!.items; track item.id) {
+                <button (click)="selectItem(item.id)"
+                    class="w-full text-left bg-white border-2 border-espresso rounded-xl p-3 transition-all relative block"
+                    [ngClass]="selectedItemId() === item.id ? 'shadow-[0px_0px_0px_2px_#ff4500] scale-[1.02] z-10' : 'shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1'">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="font-bold text-[15px] leading-tight flex-1 pr-2">{{ item.name }}</span>
+                        <span class="font-marker shrink-0">RM {{ item.price | number:'1.2-2' }}</span>
+                    </div>
+
+                    <!-- Assigned Avatars -->
+                    <div class="flex flex-wrap gap-1 min-h-[24px]">
+                        @if (item.assignedTo.length === 0) {
+                        <span class="text-xs font-bold text-primary italic">Not assigned</span>
+                        } @else {
+                        @for (assigneeId of item.assignedTo; track assigneeId) {
+                        <div
+                            class="w-6 h-6 rounded-full border border-espresso bg-sage text-[10px] font-marker flex items-center justify-center">
+                            {{ assigneeId.charAt(0).toUpperCase() }}
+                        </div>
+                        }
+                        }
+                    </div>
+                </button>
+                }
+            </div>
+
+            <!-- Bottom Floating Button to Summary -->
+            <div class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-3rem)] max-w-sm z-30">
+                <button (click)="goToSummary()"
+                    class="w-full py-4 bg-espresso text-white border-2 border-black rounded-xl shadow-[4px_4px_0px_0px_rgba(255,69,0,1)] font-marker text-xl tracking-widest -rotate-1 active:translate-y-[4px] active:shadow-none transition-all flex items-center justify-center gap-2">
+                    SEE SUMMARY <span class="material-symbols-outlined">payments</span>
+                </button>
+            </div>
+        </div>
+        }
+
+        <!-- =================== state: SUMMARY =================== -->
+        @if (viewState() === 'SUMMARY' && activeBill() && session()) {
+        <div class="flex flex-col">
+            <h3 class="font-marker text-3xl mb-6 text-center">Final Damage 💸</h3>
+
+            <div
+                class="bg-white border-4 border-espresso rounded-2xl shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] p-5 relative">
+                <!-- Receipt top edge scallop effect -->
+                <div
+                    class="absolute -top-3 inset-x-0 h-4 bg-[length:16px_16px] bg-[radial-gradient(circle_at_8px_-4px,transparent_8px,#fff_9px)] overflow-hidden">
+                </div>
+                <div
+                    class="absolute -top-3 inset-x-0 h-4 bg-[length:16px_16px] bg-[radial-gradient(circle_at_8px_-4px,transparent_8px,#453227_9px)] -z-10 mt-[2px]">
+                </div>
+
+                <div class="space-y-4 pt-2">
+                    @for (memberId of session()!.members; track memberId) {
+                    <div
+                        class="flex justify-between items-center border-b border-espresso/20 pb-2 last:border-0 last:pb-0">
+                        <div class="flex items-center gap-2">
+                            <div
+                                class="w-8 h-8 rounded-full border border-espresso bg-latte flex items-center justify-center font-marker">
+                                {{ memberId.charAt(0).toUpperCase() }}
+                            </div>
+                            <span class="font-bold">{{ memberId.substring(0, 5) }}</span>
+                        </div>
+                        <div class="text-right">
+                            <div class="font-marker text-lg">RM {{ getMemberTotal(memberId) | number:'1.2-2' }}</div>
+                            <div class="text-[10px] font-bold opacity-60">Sub: {{ getMemberSubtotal(memberId) |
+                                number:'1.2-2' }}</div>
+                        </div>
+                    </div>
+                    }
+                </div>
+
+                <div class="mt-6 pt-4 border-t-2 border-espresso border-dashed flex justify-between items-end">
+                    <div>
+                        <div class="text-xs font-bold">Tax: {{ activeBill()!.tax | number:'1.2-2' }}</div>
+                        <div class="text-xs font-bold">S.C.: {{ activeBill()!.serviceCharge | number:'1.2-2' }}</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="font-bold text-sm uppercase tracking-wide">Grand Total</div>
+                        <div class="font-marker text-3xl text-primary" style="text-shadow: 1px 1px 0 #453227;">RM {{
+                            activeBill()!.total | number:'1.2-2' }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <button (click)="backToAssignment()"
+                class="mt-8 mx-auto w-fit px-6 py-2 bg-transparent border-2 border-espresso rounded-lg font-bold flex items-center gap-2 hover:bg-black/5 transition-colors">
+                <span class="material-symbols-outlined">edit</span> Modify Assignments
+            </button>
+        </div>
+        }
+    </main>
+
+    <style>
+        @keyframes scan {
+            0% {
+                top: 0;
+            }
+
+            50% {
+                top: 100%;
+            }
+
+            100% {
+                top: 0;
+            }
+        }
+    </style>
+</div>

@@ -53,6 +53,15 @@ export const routes: Routes = [
     data: { showBottomNavbar: false }
   },
   {
+    path: 'session/:id/bill-split',
+    loadComponent: () =>
+      import('./features/session/bill-split/bill-split.component').then(
+        (m) => m.BillSplitComponent
+      ),
+    canActivate: [authGuard],
+    data: { showBottomNavbar: false }
+  },
+  {
     path: 'profile',
     loadComponent: () =>
       import('./features/profile/profile.component').then(
@@ -69,6 +78,31 @@ export const routes: Routes = [
       ),
     canActivate: [authGuard],
     data: { showBottomNavbar: false, activeTab: 'home' }
+  },
+  {
+    path: 'cafe/:id/scene',
+    loadComponent: () =>
+      import('./features/cafe/scene/scene.component').then(
+        (m) => m.SceneComponent
+      ),
+    canActivate: [authGuard],
+    data: { showBottomNavbar: false, activeTab: 'home' }
+  },
+  {
+    path: 'list/:id',
+    loadComponent: () =>
+      import('./features/list-detail/list-detail.component').then(
+        (m) => m.ListDetailComponent
+      ),
+    canActivate: [authGuard],
+    data: { showBottomNavbar: false, activeTab: 'profile' }
+  },
+  {
+    path: 'map',
+    loadComponent: () =>
+      import('./features/map/map.component').then((m) => m.MapComponent),
+    canActivate: [authGuard],
+    data: { showBottomNavbar: true, activeTab: 'map' }
   },
   { path: '**', redirectTo: 'home' },
 ];

@@ -1,72 +1,127 @@
-<div class="login-page">
-    <!-- Top Section: White area with sign-in content -->
-    <div class="login-top">
-        <!-- Logo & Branding -->
-        <div class="login-brand">
-            <div class="login-logo-icon">
-                <span class="material-symbols-outlined">coffee</span>
+<div
+    class="relative flex flex-col min-h-screen min-h-[100dvh] bg-latte grain-overlay overflow-x-hidden max-w-md mx-auto border-x-4 border-espresso justify-center px-4 py-10 gap-6">
+
+    <!-- Decorative top-right stamp -->
+    <div
+        class="absolute top-6 right-6 w-16 h-16 border-4 border-espresso rotate-12 z-10 flex items-center justify-center bg-primary">
+        <span class="material-symbols-outlined text-espresso text-3xl">coffee</span>
+    </div>
+
+    <!-- Decorative torn-paper / tape strips -->
+    <div class="absolute top-32 left-0 w-10 h-20 bg-sage border-r-4 border-espresso z-10 -rotate-2"></div>
+    <div class="absolute top-48 left-3 h-6 w-5 bg-primary/60 border border-espresso z-10 rotate-3"></div>
+
+    <!-- ─── Hero Section ─────────────────────────────── -->
+    <div class="flex flex-col items-center w-full relative z-10">
+
+        <!-- Zine masthead block -->
+        <div class="relative mb-8 w-full">
+            <div class="absolute inset-0 bg-white border-4 border-espresso translate-x-2 translate-y-2 z-0"></div>
+            <div class="relative z-10 bg-espresso border-4 border-espresso px-6 py-5 text-center">
+                <p class="font-zine text-xs font-bold uppercase tracking-[0.25em] text-off-white/60 mb-1">Est. 2025 ·
+                    Kuala Lumpur</p>
+                <h1 class="font-marker text-5xl font-black text-off-white leading-none tracking-tight">LepakSpot</h1>
+                <p class="font-zine text-xs uppercase tracking-widest text-primary mt-1">The Unofficial Cafe Zine</p>
             </div>
-            <h1 class="login-app-name">LepakSpot</h1>
         </div>
 
-        <div class="login-heading">
-            <h2 class="login-title">Sign In</h2>
-            <p class="login-subtitle">
-                Find your next spot to lepak with friends. Discover cafés, vote together, and chill.
+        <!-- Tagline -->
+        <div class="relative rotate-[-1deg] w-full mb-6">
+            <p class="font-marker text-center text-espresso text-lg leading-snug">
+                Your next great <span class="underline decoration-primary decoration-4">kopi session</span> starts here.
+                Find your spot. Lepak together.
             </p>
+        </div>
+
+        <!-- Decorative doodle row -->
+        <div class="flex items-center gap-4 opacity-40 mb-6">
+            <div class="flex-1 h-0.5 bg-espresso"></div>
+            <span class="font-marker text-espresso text-xl">~*~</span>
+            <div class="flex-1 h-0.5 bg-espresso"></div>
+        </div>
+
+        <!-- Feature pills -->
+        <div class="flex flex-wrap gap-2 justify-center">
+            @for (tag of ['Discover Cafés', 'Vote Together', 'Split Bills', 'Secret Menus']; track tag) {
+            <span
+                class="font-zine text-[10px] uppercase tracking-widest px-3 py-1 border-2 border-espresso bg-off-white text-espresso font-bold">
+                {{ tag }}
+            </span>
+            }
         </div>
     </div>
 
-    <!-- Bottom Section: Bottom sheet style card -->
-    <div class="login-bottom">
-        <div class="login-card-content">
-            <p class="login-welcome-label">Welcome</p>
-            <p class="login-welcome-text">
-                Your next great kopi session starts here. Sign in with your Google account to get started.
-            </p>
+    <!-- ─── Sign-In Card ──────────────────────────────── -->
+    <div class="relative z-20 w-full">
+        <!-- Drop shadow card -->
+        <div class="absolute inset-0 bg-espresso translate-x-2 translate-y-2 z-0"></div>
+        <div class="relative z-10 bg-off-white border-4 border-espresso p-6 space-y-4">
 
-            <!-- Google Sign In Button -->
-            <button (click)="authService.signIn()" [disabled]="authService.isSigningIn()" class="login-google-btn">
-                @if (authService.isSigningIn()) {
-                <div class="login-signing-in">
-                    <span class="login-spinner"></span>
-                    <span>Signing in...</span>
+            <!-- Card header -->
+            <div class="border-b-4 border-espresso pb-3 mb-4 flex items-center gap-2">
+                <span class="material-symbols-outlined text-espresso">login</span>
+                <h2 class="font-marker text-2xl uppercase tracking-widest text-espresso">Sign In</h2>
+            </div>
+
+            <!-- Google Button -->
+            <button (click)="authService.signIn()" [disabled]="authService.isSigningIn()"
+                class="relative w-full group disabled:opacity-60">
+                <div
+                    class="absolute inset-0 bg-espresso translate-x-1 translate-y-1 z-0 group-hover:translate-x-0.5 group-hover:translate-y-0.5 transition-transform">
                 </div>
-                } @else {
-                <div class="login-google-left">
-                    <div class="login-google-icon-wrap">
-                        <svg class="login-google-icon" viewBox="0 0 24 24">
-                            <path
-                                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"
-                                fill="#4285F4" />
-                            <path
-                                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                                fill="#34A853" />
-                            <path
-                                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                                fill="#FBBC05" />
-                            <path
-                                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                                fill="#EA4335" />
-                        </svg>
+                <div
+                    class="relative z-10 flex items-center justify-between bg-primary border-2 border-espresso px-4 py-3 transition-transform group-hover:translate-x-0.5 group-hover:translate-y-0.5">
+                    @if (authService.isSigningIn()) {
+                    <div class="flex items-center justify-center gap-3 w-full">
+                        <div class="w-5 h-5 border-2 border-espresso border-t-transparent rounded-full animate-spin">
+                        </div>
+                        <span class="font-marker text-espresso uppercase tracking-wide">Signing in...</span>
                     </div>
-                    <span class="login-google-text">Continue with Google</span>
+                    } @else {
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="w-8 h-8 bg-white border-2 border-espresso flex items-center justify-center shrink-0">
+                            <svg class="w-5 h-5" viewBox="0 0 24 24">
+                                <path
+                                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"
+                                    fill="#4285F4" />
+                                <path
+                                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                                    fill="#34A853" />
+                                <path
+                                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                                    fill="#FBBC05" />
+                                <path
+                                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                                    fill="#EA4335" />
+                            </svg>
+                        </div>
+                        <span class="font-marker text-espresso text-base uppercase tracking-wide">Continue with
+                            Google</span>
+                    </div>
+                    <span class="material-symbols-outlined text-espresso">arrow_forward</span>
+                    }
                 </div>
-                <span class="material-symbols-outlined login-google-arrow">arrow_forward</span>
-                }
             </button>
 
-            <!-- Developer Bypass Button -->
-            <button (click)="authService.bypassLogin()" class="login-bypass-btn">
-                <span>Developer Bypass</span>
+            <!-- Developer Bypass -->
+            <button (click)="authService.bypassLogin()"
+                class="w-full font-zine text-xs uppercase tracking-widest border-2 border-dashed border-espresso/40 py-2 text-espresso/50 hover:border-espresso/70 hover:text-espresso/70 transition-colors">
+                ⚙ Developer Bypass
             </button>
 
             <!-- Terms -->
-            <p class="login-terms">
-                By continuing, you agree to LepakSpot's<br />
-                <span class="login-terms-link">Terms of Service</span> and
-                <span class="login-terms-link">Privacy Policy</span>
+            <p class="font-zine text-[10px] uppercase tracking-wider text-espresso/40 text-center leading-relaxed">
+                By continuing you agree to our
+                <span class="text-espresso/70 underline cursor-pointer">Terms</span> &amp;
+                <span class="text-espresso/70 underline cursor-pointer">Privacy Policy</span>
             </p>
         </div>
     </div>
+
+    <!-- Bottom doodle -->
+    <div class="flex justify-center pb-4 opacity-30 z-10">
+        <span class="font-marker text-espresso text-sm tracking-widest">~ find your spot. stay a while. ~</span>
+    </div>
+
 </div>

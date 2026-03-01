@@ -1,60 +1,112 @@
-<div
-    class="font-display bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex flex-col items-center justify-center max-w-md mx-auto px-6">
+<div class="font-sans min-h-screen bg-off-white text-espresso relative overflow-hidden flex flex-col">
+    <!-- Grain overlay -->
+    <div class="fixed inset-0 opacity-[0.03] pointer-events-none z-50 zine-texture mix-blend-multiply"></div>
+
     <!-- Header -->
-    <div class="w-full flex items-center justify-between mb-8">
+    <div class="relative z-10 px-6 pt-12 pb-6 flex items-center justify-between">
         <a routerLink="/home"
-            class="flex size-10 items-center justify-center rounded-full bg-white dark:bg-card-dark shadow-sm text-primary">
-            <span class="material-symbols-outlined">arrow_back</span>
+            class="flex size-10 items-center justify-center rounded-xl bg-white border-2 border-espresso shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-[2px] active:shadow-none transition-all -rotate-2">
+            <span class="material-symbols-outlined text-espresso font-bold">arrow_back</span>
         </a>
-        <h2 class="text-lg font-bold tracking-tight">Join Session</h2>
+        <div class="relative inline-block rotate-2">
+            <div class="absolute -inset-1 bg-latte transform rotate-2 rounded-sm border-2 border-espresso -z-10"></div>
+            <h2 class="font-marker text-2xl tracking-wide text-espresso relative z-10 px-2 py-1">Join Session</h2>
+        </div>
         <div class="w-10"></div>
     </div>
 
-    <!-- Join by code -->
-    <div class="w-full bg-white dark:bg-card-dark rounded-2xl p-6 shadow-lg border border-primary/5">
-        <div class="flex flex-col items-center gap-4">
-            <div class="w-16 h-16 rounded-2xl bg-primary/15 flex items-center justify-center">
-                <span class="material-symbols-outlined text-primary text-3xl">group_add</span>
-            </div>
-            <h3 class="text-xl font-bold">Enter Session Code</h3>
-            <p class="text-sm text-slate-400 text-center">Ask the host for the 6-character code</p>
+    <main
+        class="flex-1 px-6 pb-24 flex flex-col items-center justify-center relative z-10 max-w-md mx-auto w-full gap-8">
 
-            <!-- OTP-style input -->
-            <div class="flex gap-2 mt-4">
-                @for (i of codeSlots; track i) {
-                <input class="otp-input" maxlength="1" [value]="codeChars()[i]" (input)="onCodeInput($event, i)"
-                    (keydown)="onCodeKeydown($event, i)" />
-                }
+        <!-- Join by code -->
+        <div class="relative w-full rotate-1">
+            <!-- Tape detail -->
+            <div
+                class="absolute -top-3 left-1/2 -translate-x-1/2 w-16 h-6 bg-white/40 backdrop-blur-sm border border-white/60 -rotate-3 z-20 shadow-sm mix-blend-overlay">
             </div>
 
-            @if (error()) {
-            <p class="text-red-500 text-sm font-medium mt-2">{{ error() }}</p>
-            }
+            <div
+                class="bg-white rounded-xl p-6 border-2 border-espresso shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] relative z-10 overflow-hidden">
+                <!-- Decoration -->
+                <div class="absolute -bottom-4 -right-4 text-primary/10 -rotate-12 pointer-events-none">
+                    <span class="material-symbols-outlined text-8xl">local_cafe</span>
+                </div>
 
-            <button (click)="joinSession()" [disabled]="joining() || codeChars().join('').length < 6"
-                class="w-full mt-4 py-3.5 bg-primary hover:bg-primary-dark disabled:opacity-50 text-white font-bold rounded-2xl shadow-lg shadow-primary/25 transition-all duration-200 flex items-center justify-center gap-2">
-                @if (joining()) {
-                <span class="material-symbols-outlined animate-spin">progress_activity</span>
-                Joining...
-                } @else {
-                <span class="material-symbols-outlined">login</span>
-                Join Session
-                }
-            </button>
-        </div>
-    </div>
+                <div class="flex flex-col items-center gap-4 relative z-10">
+                    <div
+                        class="w-16 h-16 rounded-xl bg-latte border-2 border-espresso shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center -rotate-3">
+                        <span class="material-symbols-outlined text-espresso text-3xl font-bold">group_add</span>
+                    </div>
 
-    <!-- Waiting state (after joining) -->
-    @if (joined()) {
-    <div class="w-full mt-8 bg-white dark:bg-card-dark rounded-2xl p-6 shadow-lg border border-primary/5 text-center">
-        <span class="material-symbols-outlined text-primary text-4xl mb-3">hourglass_top</span>
-        <h3 class="text-lg font-bold mb-1">You're in!</h3>
-        <p class="text-sm text-slate-400">Waiting for the host to start voting...</p>
-        <div class="flex gap-1 items-center justify-center mt-4">
-            <span class="w-1.5 h-1.5 bg-primary rounded-full animate-bounce"></span>
-            <span class="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:0.15s]"></span>
-            <span class="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:0.3s]"></span>
+                    <div class="text-center mt-2 mb-2">
+                        <h3 class="font-marker text-2xl text-espresso">Enter Session Code</h3>
+                        <p class="text-sm text-espresso/70 mt-1 font-medium">Ask the host for the 6-character code</p>
+                    </div>
+
+                    <!-- OTP-style input -->
+                    <div class="flex gap-2 mt-2 w-full justify-center">
+                        @for (i of codeSlots; track i) {
+                        <input
+                            class="w-10 h-12 text-center text-xl font-marker font-bold bg-off-white border-2 border-espresso rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:outline-none focus:bg-latte transition-colors"
+                            [class.rotate-1]="i % 2 === 0" [class.-rotate-1]="i % 2 !== 0" maxlength="1"
+                            [value]="codeChars()[i]" (input)="onCodeInput($event, i)"
+                            (keydown)="onCodeKeydown($event, i)" />
+                        }
+                    </div>
+
+                    @if (error()) {
+                    <div
+                        class="bg-red-100 border-2 border-red-500 text-red-700 px-3 py-1 rounded-lg text-sm font-bold rotate-1 shadow-[2px_2px_0px_0px_rgba(239,68,68,1)] mt-2 w-full text-center">
+                        {{ error() }}
+                    </div>
+                    }
+
+                    <button (click)="joinSession()" [disabled]="joining() || codeChars().join('').length < 6"
+                        class="w-full mt-4 py-3 bg-primary text-espresso font-bold rounded-xl border-2 border-espresso shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-[4px] active:shadow-none transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 hover:bg-primary/90 text-lg uppercase tracking-wider font-marker">
+                        @if (joining()) {
+                        <span class="material-symbols-outlined animate-spin hidden">progress_activity</span>
+                        <span class="animate-pulse">Joining...</span>
+                        } @else {
+                        <span class="material-symbols-outlined font-bold">login</span>
+                        Join Crew
+                        }
+                    </button>
+                </div>
+            </div>
         </div>
-    </div>
-    }
+
+        <!-- Waiting state (after joining) -->
+        @if (joined()) {
+        <div class="relative w-full -rotate-1 mt-4">
+            <div
+                class="absolute -top-3 right-6 w-12 h-6 bg-white/40 backdrop-blur-sm border border-white/60 rotate-6 z-20 shadow-sm mix-blend-overlay">
+            </div>
+
+            <div
+                class="w-full bg-sage rounded-xl p-6 border-2 border-espresso shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-center relative z-10 overflow-hidden">
+                <div class="absolute -left-6 -bottom-6 text-white/20 rotate-45 pointer-events-none">
+                    <span class="material-symbols-outlined text-8xl">hourglass_empty</span>
+                </div>
+
+                <div class="relative z-10 flex flex-col items-center">
+                    <div class="inline-block p-2 bg-white rounded-full border-2 border-espresso shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] mb-3 animate-spin"
+                        style="animation-duration: 3s;">
+                        <span class="material-symbols-outlined text-espresso block">hourglass_top</span>
+                    </div>
+
+                    <h3 class="font-marker text-2xl text-espresso mb-1">You're in!</h3>
+                    <p class="text-sm font-bold text-espresso/80">Waiting for the host to start voting...</p>
+
+                    <div class="flex gap-2 items-center justify-center mt-4">
+                        <span class="w-2.5 h-2.5 bg-espresso border border-espresso rounded-full animate-bounce"></span>
+                        <span
+                            class="w-2.5 h-2.5 bg-espresso border border-espresso rounded-full animate-bounce [animation-delay:0.15s]"></span>
+                        <span
+                            class="w-2.5 h-2.5 bg-espresso border border-espresso rounded-full animate-bounce [animation-delay:0.3s]"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        }
+    </main>
 </div>

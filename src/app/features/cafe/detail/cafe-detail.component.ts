@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CafeService } from '../../../core/services/cafe.service';
 import { Cafe } from '../../../core/models/cafe.model';
 import { Location } from '@angular/common';
@@ -8,7 +8,7 @@ import { Location } from '@angular/common';
     selector: 'app-cafe-detail',
     standalone: true,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [],
+    imports: [RouterLink],
     templateUrl: './cafe-detail.component.html',
     styleUrl: './cafe-detail.component.scss',
 })

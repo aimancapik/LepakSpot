@@ -1,72 +1,94 @@
 <div
-    class="font-display bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex flex-col max-w-md mx-auto">
+    class="relative min-h-screen max-w-md mx-auto grain-overlay bg-latte overflow-x-hidden border-x-4 border-espresso font-display text-espresso selection:bg-primary selection:text-white pb-32">
     <!-- Header -->
     <header
-        class="flex items-center justify-between p-4 sticky top-0 z-50 bg-background-light/90 dark:bg-background-dark/90 backdrop-blur-xl">
-        <h2 class="text-xl font-bold tracking-tight">Profile</h2>
+        class="flex items-center justify-between p-6 pt-10 sticky top-0 z-50 bg-latte/90 backdrop-blur-md border-b-4 border-espresso">
+        <h2 class="text-3xl font-black italic tracking-tighter uppercase font-zine text-espresso drop-shadow-sm">Profile
+        </h2>
         <button (click)="authService.signOutUser()"
-            class="flex items-center gap-1 text-sm text-slate-400 hover:text-red-500 transition-colors font-medium">
+            class="px-3 py-1 bg-off-white zine-border zine-shadow font-marker text-sm flex items-center gap-1 hover:bg-sage hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all">
             <span class="material-symbols-outlined text-sm">logout</span>
-            Sign Out
+            BAIL
         </button>
     </header>
 
-    <main class="flex-1 px-4 pb-28">
-        <!-- User Info -->
-        <div class="flex flex-col items-center py-6">
-            <div class="relative mb-4">
-                @if (authService.currentUser()?.photoURL) {
-                <img [src]="authService.currentUser()!.photoURL"
-                    class="size-24 rounded-full border-4 border-primary/30 object-cover shadow-lg"
-                    alt="Profile photo" />
-                } @else {
-                <div
-                    class="size-24 rounded-full border-4 border-primary/30 bg-primary/10 flex items-center justify-center shadow-lg">
-                    <span class="material-symbols-outlined text-primary text-4xl">person</span>
-                </div>
-                }
-                <div class="flex absolute -bottom-1 -right-1 bg-primary text-white rounded-full p-1 shadow-md">
-                    <span class="material-symbols-outlined text-sm fill-1">verified</span>
-                </div>
+    <main class="px-6 py-8 space-y-12">
+        <!-- User Info - Zine ID Card Style -->
+        <div class="relative bg-off-white zine-border p-6 zine-shadow rotate-1">
+            <!-- Tape -->
+            <div class="absolute -top-3 left-1/2 -translate-x-1/2 w-16 h-6 bg-white/70 shadow-sm rotate-[-4deg] z-10">
             </div>
-            <h2 class="text-2xl font-extrabold">{{ authService.currentUser()?.displayName || 'Coffee Lover' }}</h2>
-            <div class="flex items-center gap-2 mt-1">
-                <span class="text-primary font-bold">{{ authService.currentUser()?.points || 0 }} pts</span>
-                <span class="text-slate-300 dark:text-slate-600">•</span>
-                <span class="text-slate-500 dark:text-slate-400 font-medium">{{ userTitle() }}</span>
+
+            <div class="flex flex-col items-center">
+                <div class="relative mb-4">
+                    <div
+                        class="absolute inset-0 bg-primary translate-x-2 translate-y-2 rounded-full -z-10 border-2 border-espresso">
+                    </div>
+                    @if (authService.currentUser()?.photoURL) {
+                    <img [src]="authService.currentUser()!.photoURL"
+                        class="size-28 rounded-full border-4 border-espresso object-cover bg-white"
+                        alt="Profile photo" />
+                    } @else {
+                    <div class="size-28 rounded-full border-4 border-espresso bg-sage flex items-center justify-center">
+                        <span class="material-symbols-outlined text-espresso text-5xl">person</span>
+                    </div>
+                    }
+                    <div
+                        class="absolute -bottom-2 -right-2 bg-sage text-espresso border-2 border-espresso rounded-full p-2 zine-shadow-sm rotate-12">
+                        <span class="material-symbols-outlined text-lg">verified</span>
+                    </div>
+                </div>
+                <h2 class="text-3xl font-black italic uppercase font-zine mt-2 text-center leading-none">{{
+                    authService.currentUser()?.displayName || 'Coffee Lover' }}</h2>
+
+                <div class="inline-block bg-espresso text-off-white px-3 py-1 font-marker text-sm mt-3 -rotate-2">
+                    {{ userTitle() }}
+                </div>
+
+                <div class="font-marker text-primary text-xl mt-3 rotate-1">
+                    {{ authService.currentUser()?.points || 0 }} PTS
+                </div>
             </div>
         </div>
 
         <!-- Stats Row -->
-        <div class="grid grid-cols-3 gap-3 mb-8">
-            <div class="bg-white dark:bg-card-dark rounded-xl p-4 text-center shadow-sm border border-primary/5">
-                <p class="text-2xl font-extrabold text-primary">{{ authService.currentUser()?.totalCheckins || 0 }}</p>
-                <p class="text-xs text-slate-400 font-medium mt-1">Cafés Visited</p>
+        <div class="grid grid-cols-3 gap-4">
+            <div class="bg-sage zine-border p-3 flex flex-col items-center justify-center -rotate-2 zine-shadow">
+                <p class="text-3xl font-black font-zine italic">{{ authService.currentUser()?.totalCheckins || 0 }}</p>
+                <p class="font-marker text-[10px] uppercase text-center mt-1">Spots Hit</p>
             </div>
-            <div class="bg-white dark:bg-card-dark rounded-xl p-4 text-center shadow-sm border border-primary/5">
-                <p class="text-2xl font-extrabold text-primary">{{ authService.currentUser()?.badges?.length || 0 }}</p>
-                <p class="text-xs text-slate-400 font-medium mt-1">Badges</p>
+            <div class="bg-primary zine-border p-3 flex flex-col items-center justify-center rotate-1 zine-shadow">
+                <p class="text-3xl font-black font-zine italic text-off-white">{{
+                    authService.currentUser()?.badges?.length || 0 }}</p>
+                <p class="font-marker text-[10px] uppercase text-center mt-1 text-off-white">Badges</p>
             </div>
-            <div class="bg-white dark:bg-card-dark rounded-xl p-4 text-center shadow-sm border border-primary/5">
-                <p class="text-2xl font-extrabold text-primary">0</p>
-                <p class="text-xs text-slate-400 font-medium mt-1">Day Streak</p>
+            <div class="bg-off-white zine-border p-3 flex flex-col items-center justify-center -rotate-1 zine-shadow">
+                <p class="text-3xl font-black font-zine italic">0</p>
+                <p class="font-marker text-[10px] uppercase text-center mt-1">Streak</p>
             </div>
         </div>
 
         <!-- Badges Grid -->
-        <div class="mb-8">
-            <h3 class="text-lg font-bold mb-4">Badges</h3>
-            <div class="grid grid-cols-3 gap-3">
+        <div>
+            <h3
+                class="inline-block bg-espresso text-off-white px-4 py-1 font-zine font-bold italic uppercase tracking-widest -rotate-2 mb-6">
+                Trophy Case
+            </h3>
+            <div class="grid grid-cols-3 gap-4">
                 @for (badge of allBadges; track badge.name) {
-                <div class="bg-white dark:bg-card-dark rounded-xl p-4 flex flex-col items-center text-center shadow-sm border border-primary/5 transition-all duration-200"
-                    [class]="hasBadge(badge.name) ? 'opacity-100' : 'opacity-40 grayscale'">
-                    <div class="w-12 h-12 rounded-full flex items-center justify-center mb-2"
-                        [class]="hasBadge(badge.name) ? 'bg-primary/15 text-primary' : 'bg-slate-100 dark:bg-slate-700 text-slate-400'">
-                        <span class="material-symbols-outlined text-xl"
-                            [class]="hasBadge(badge.name) ? 'fill-1' : ''">{{ badge.icon }}</span>
+                <div class="bg-off-white zine-border p-3 flex flex-col items-center text-center transition-all duration-200 aspect-square justify-center relative group"
+                    [class]="hasBadge(badge.name) ? 'zine-shadow rotate-1' : 'opacity-60 grayscale -rotate-1 border-dashed'">
+
+                    @if(hasBadge(badge.name)) {
+                    <div class="absolute inset-0 bg-primary/10 translate-x-1 translate-y-1 -z-10"></div>
+                    }
+
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center border-2 border-espresso mb-2 z-10"
+                        [class]="hasBadge(badge.name) ? 'bg-primary' : 'bg-transparent text-espresso/40'">
+                        <span class="material-symbols-outlined"
+                            [class]="hasBadge(badge.name) ? 'text-off-white' : ''">{{ badge.icon }}</span>
                     </div>
-                    <p class="text-[11px] font-bold leading-tight">{{ badge.name }}</p>
-                    <p class="text-[9px] text-slate-400 mt-0.5 leading-tight">{{ badge.requirement }}</p>
+                    <p class="font-marker text-[10px] uppercase leading-tight text-espresso z-10">{{ badge.name }}</p>
                 </div>
                 }
             </div>
@@ -74,32 +96,103 @@
 
         <!-- Recent Activity -->
         <div>
-            <h3 class="text-lg font-bold mb-4">Recent Activity</h3>
+            <h3
+                class="inline-block bg-espresso text-off-white px-4 py-1 font-zine font-bold italic uppercase tracking-widest rotate-1 mb-6">
+                Recent Moves
+            </h3>
+
             @if (recentCheckins().length === 0) {
-            <div class="bg-white dark:bg-card-dark rounded-xl p-8 text-center shadow-sm border border-primary/5">
-                <span class="material-symbols-outlined text-4xl text-slate-300 dark:text-slate-600 mb-2">history</span>
-                <p class="text-slate-400 font-medium">No check-ins yet</p>
-                <p class="text-xs text-slate-300 dark:text-slate-500 mt-1">Start exploring cafés to earn points!</p>
+            <div class="bg-off-white zine-border p-8 text-center rotate-[-1deg] zine-shadow">
+                <span class="material-symbols-outlined text-5xl text-espresso mb-2">history</span>
+                <p class="font-marker text-lg">No moves yet...</p>
+                <p class="font-zine text-sm font-bold uppercase text-espresso/60 mt-2 tracking-tighter">Get out there
+                    and explore!</p>
             </div>
             } @else {
-            <div class="flex flex-col gap-3">
+            <div class="space-y-4 relative">
+                <!-- Vertical timeline line -->
+                <div class="absolute left-[22px] top-4 bottom-4 w-1 bg-espresso z-0"></div>
+
                 @for (checkin of recentCheckins(); track checkin.id) {
-                <div
-                    class="flex items-center gap-4 bg-white dark:bg-card-dark rounded-xl p-4 shadow-sm border border-primary/5">
-                    <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                        <span class="material-symbols-outlined text-primary">local_cafe</span>
+                <div class="relative z-10 flex items-center gap-4 bg-off-white zine-border p-3 zine-shadow hover:translate-x-1 hover:-translate-y-1 transition-transform ml-1"
+                    [class]="($even) ? 'rotate-1' : '-rotate-1'">
+                    <div
+                        class="w-10 h-10 bg-primary border-2 border-espresso flex items-center justify-center shrink-0 -ml-1">
+                        <span class="material-symbols-outlined text-espresso">location_on</span>
                     </div>
                     <div class="flex-1 min-w-0">
-                        <p class="font-bold text-sm truncate">{{ checkin.cafeName }}</p>
-                        <p class="text-xs text-slate-400">{{ (checkin.timestamp ? checkin.timestamp.toDate() : null) |
-                            date: 'MMM d, h:mm a' }}</p>
+                        <p class="font-zine font-bold italic uppercase text-lg truncate leading-none">{{
+                            checkin.cafeName }}</p>
+                        <p class="font-marker text-[10px] text-espresso/60 mt-1 uppercase">{{ (checkin.timestamp ?
+                            checkin.timestamp.toDate() : null) | date: 'd MMM, h:mm a' }}</p>
                     </div>
-                    <span class="text-primary font-bold text-sm shrink-0">+{{ checkin.pointsEarned }}pts</span>
+                    <div class="shrink-0 bg-sage border-2 border-espresso px-2 py-1 rotate-3">
+                        <span class="font-marker text-sm">+{{ checkin.pointsEarned }}</span>
+                    </div>
                 </div>
                 }
             </div>
             }
         </div>
-    </main>
 
+        <!-- My Lists -->
+        <div>
+            <div class="flex items-center justify-between mb-6">
+                <h3
+                    class="inline-block bg-primary text-off-white px-4 py-1 font-zine font-bold italic uppercase tracking-widest -rotate-1 shadow-md border-2 border-espresso">
+                    My Curations
+                </h3>
+            </div>
+
+            @if (cafeListService.myLists().length === 0 && cafeListService.sharedLists().length === 0) {
+            <div class="bg-off-white zine-border p-6 text-center rotate-[1deg] zine-shadow">
+                <span class="material-symbols-outlined text-4xl text-espresso/40 mb-2">format_list_bulleted_add</span>
+                <p class="font-marker text-lg">No lists yet.</p>
+                <p class="font-zine text-sm font-bold uppercase text-espresso/60 mt-1">Save cafes to start building!</p>
+            </div>
+            } @else {
+            <div class="grid gap-4">
+                @for (list of cafeListService.myLists(); track list.id) {
+                <a [routerLink]="['/list', list.id]"
+                    class="block bg-off-white zine-border p-4 zine-shadow hover:translate-x-1 hover:-translate-y-1 hover:shadow-none transition-all group overflow-hidden relative">
+                    <div
+                        class="absolute -right-4 -top-4 w-16 h-16 bg-sage rounded-full mix-blend-multiply opacity-50 group-hover:scale-150 transition-transform duration-500">
+                    </div>
+                    <div class="relative z-10 flex justify-between items-start">
+                        <div>
+                            <h4
+                                class="font-zine text-xl font-bold italic uppercase tracking-tight text-espresso line-clamp-1 break-all">
+                                {{ list.title }}</h4>
+                            <p class="text-[10px] sm:text-xs text-espresso/60 font-bold uppercase mt-1 tracking-wider">
+                                {{ list.cafeIds.length }} spots • {{ list.isPublic ? 'Public' : 'Private' }}</p>
+                        </div>
+                        <span
+                            class="material-symbols-outlined text-espresso/30 group-hover:text-primary transition-colors">arrow_forward</span>
+                    </div>
+                </a>
+                }
+
+                @if (cafeListService.sharedLists().length > 0) {
+                <h4 class="font-marker text-sm text-espresso/60 uppercase mt-4 mb-2">Shared With Me</h4>
+                @for (list of cafeListService.sharedLists(); track list.id) {
+                <a [routerLink]="['/list', list.id]"
+                    class="block bg-sage/30 border-2 border-espresso/20 p-4 shadow-sm hover:translate-x-1 hover:-translate-y-1 hover:border-espresso transition-all group rounded-lg">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h4
+                                class="font-zine text-lg font-bold italic uppercase tracking-tight text-espresso flex items-center gap-2">
+                                <span class="material-symbols-outlined text-sm">group</span> {{ list.title }}</h4>
+                            <p class="text-xs text-espresso/60 font-bold uppercase mt-1 tracking-wider">{{
+                                list.cafeIds.length }} spots</p>
+                        </div>
+                        <span
+                            class="material-symbols-outlined text-espresso/30 group-hover:text-primary transition-colors">arrow_forward</span>
+                    </div>
+                </a>
+                }
+                }
+            </div>
+            }
+        </div>
+    </main>
 </div>

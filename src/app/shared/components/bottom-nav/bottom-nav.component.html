@@ -1,7 +1,7 @@
 <!-- Bottom Navigation -->
 <div class="fixed bottom-0 left-0 right-0 z-50 px-4 pb-4 max-w-md mx-auto pointer-events-none">
     <div
-        class="flex items-center justify-around bg-espresso text-off-white py-3 rounded-full border-2 border-primary shadow-xl pointer-events-auto">
+        class="flex items-center justify-around bg-espresso/80 backdrop-blur-md text-off-white py-3 rounded-full border border-primary/50 shadow-xl pointer-events-auto">
         <a routerLink="/home" class="flex flex-col items-center justify-center transition-colors hover:text-primary"
             [class.text-primary]="activeTab() === 'home'">
             <span class="material-symbols-outlined">home</span>
@@ -17,10 +17,9 @@
             <span class="material-symbols-outlined font-black">add</span>
         </a>
 
-        <a routerLink="/favorites"
-            class="flex flex-col items-center justify-center transition-colors hover:text-primary"
-            [class.text-primary]="activeTab() === 'favorites'">
-            <span class="material-symbols-outlined">favorite</span>
+        <a routerLink="/map" class="flex flex-col items-center justify-center transition-colors hover:text-primary"
+            [class.text-primary]="activeTab() === 'map'">
+            <span class="material-symbols-outlined">location_on</span>
         </a>
         <a routerLink="/profile" class="flex flex-col items-center justify-center transition-colors hover:text-primary"
             [class.text-primary]="activeTab() === 'profile'">

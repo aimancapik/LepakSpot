@@ -1,0 +1,132 @@
+<div
+    class="map-screen relative w-full h-[100dvh] max-w-md mx-auto grain-overlay bg-latte overflow-hidden border-x-4 border-espresso font-display text-espresso selection:bg-primary selection:text-white">
+    <!-- Leaflet map container -->
+    <div #mapContainer class="leaflet-map"></div>
+
+    <!-- Top Header -->
+    <div class="map-header">
+        <div class="map-logo">
+            <span class="material-symbols-outlined">location_on</span>
+            <span>LepakSpot</span>
+        </div>
+        <div class="map-legend">
+            <span class="legend-dot chill"></span><span class="legend-label">Chill</span>
+            <span class="legend-dot moderate"></span><span class="legend-label">Moderate</span>
+            <span class="legend-dot busy"></span><span class="legend-label">Busy</span>
+        </div>
+    </div>
+
+    <!-- Live Badge -->
+    <div class="live-badge">
+        <span class="live-dot"></span>
+        <span>LIVE</span>
+    </div>
+
+    <!-- Location Detail Drawer -->
+    <div class="drawer-backdrop" [class.open]="isDrawerOpen()" (click)="closeDrawer()"></div>
+    <div class="drawer" [class.open]="isDrawerOpen()">
+        @if (selectedCafe(); as cafe) {
+        <div class="drawer-handle" (click)="closeDrawer()"></div>
+
+        <!-- Cafe Header -->
+        <div class="cafe-header">
+            <div class="cafe-photo" [style.background-image]="'url(' + (cafe.photos[0] || '') + ')'">
+                <div class="cafe-photo-overlay"></div>
+            </div>
+            <div class="cafe-info">
+                <h2 class="cafe-name">{{ cafe.name }}</h2>
+                <p class="cafe-address">
+                    <span class="material-symbols-outlined small">location_on</span>
+                    {{ cafe.address }}
+                </p>
+                <div class="cafe-rating">
+                    <span class="material-symbols-outlined small star">star</span>
+                    {{ cafe.rating.toFixed(1) }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Tags -->
+        <div class="tags-row">
+            @for (tag of cafe.tags; track tag) {
+            <span class="tag">{{ tag }}</span>
+            }
+        </div>
+
+        <!-- Density Card -->
+        <div class="density-card" [style.background]="densityConfig().bg"
+            [style.border-color]="densityConfig().color + '40'">
+            <div class="density-left">
+                <div class="density-ring">
+                    <svg viewBox="0 0 36 36">
+                        <circle class="ring-bg" cx="18" cy="18" r="15.9"></circle>
+                        <circle class="ring-fill" cx="18" cy="18" r="15.9" [style.stroke]="densityConfig().color"
+                            [style.stroke-dasharray]="getDensityFill(selectedCafeDensity().level) + ' 100'">
+                        </circle>
+                    </svg>
+                    <div class="density-count">{{ selectedCafeDensity().count }}</div>
+                </div>
+            </div>
+            <div class="density-right">
+                <div class="density-label" [style.color]="densityConfig().color">{{ densityConfig().label }}</div>
+                <div class="density-sublabel">{{ selectedCafeDensity().count }} people here now</div>
+                <div class="density-bar">
+                    <div class="density-bar-fill" [style.width]="getDensityFill(selectedCafeDensity().level) + '%'"
+                        [style.background]="densityConfig().color">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Who's Here -->
+        @if (activePeople().length > 0) {
+        <div class="whos-here">
+            <h3 class="section-title">
+                <span class="material-symbols-outlined small">groups</span>
+                Who's around
+            </h3>
+            <div class="avatar-row">
+                @for (person of activePeople().slice(0, 5); track person.userId) {
+                <div class="avatar-wrap" [title]="person.displayName">
+                    @if (person.photoURL) {
+                    <img class="avatar-img" [src]="person.photoURL" [alt]="person.displayName" />
+                    } @else {
+                    <div class="avatar-initials">{{ getAvatarInitials(person.displayName) }}</div>
+                    }
+                </div>
+                }
+                @if (activePeople().length > 5) {
+                <div class="avatar-more">+{{ activePeople().length - 5 }}</div>
+                }
+            </div>
+        </div>
+        }
+
+        <!-- Check-in Button -->
+        <div class="checkin-section">
+            @if (checkInSuccess()) {
+            <div class="checkin-success">
+                <span class="material-symbols-outlined">task_alt</span>
+                <span>You're checked in! +25 pts</span>
+            </div>
+            } @else if (isAlreadyCheckedIn()) {
+            <div class="checkin-already">
+                <span class="material-symbols-outlined">where_to_vote</span>
+                <span>You're here</span>
+            </div>
+            } @else {
+            <button class="checkin-btn" [class.loading]="isCheckingIn()" (click)="handleCheckIn()"
+                [disabled]="isCheckingIn()">
+                @if (isCheckingIn()) {
+                <div class="spinner"></div>
+                <span>Checking in...</span>
+                } @else {
+                <span class="material-symbols-outlined">where_to_vote</span>
+                <span>Check In Here</span>
+                }
+            </button>
+            }
+        </div>
+        }
+    </div>
+</div>
