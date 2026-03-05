@@ -4,15 +4,18 @@
     <!-- Header -->
     <header
         class="flex items-center justify-between p-6 pt-10 sticky top-0 z-50 bg-latte/90 backdrop-blur-md border-b-4 border-espresso">
-        <button (click)="goBack()"
-            class="px-2 py-1 bg-off-white zine-border zine-shadow flex items-center justify-center hover:bg-sage hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all">
-            <span class="material-symbols-outlined text-espresso">arrow_back</span>
+        <button (click)="isPreview() ? isPreview.set(false) : goBack()"
+            class="px-2 py-1 bg-off-white zine-border zine-shadow flex items-center justify-center hover:bg-sage transition-all">
+            <span class="material-symbols-outlined text-espresso">{{ isPreview() ? 'close' : 'arrow_back' }}</span>
         </button>
         <h2
             class="text-2xl font-black italic tracking-tighter uppercase font-zine text-espresso drop-shadow-sm -rotate-1 flex-1 text-center px-2">
-            Suggest a Spot
+            {{ isPreview() ? 'Preview' : 'Suggest a Spot' }}
         </h2>
-        <div class="size-10"></div>
+        <button (click)="isPreview.set(!isPreview())"
+            class="px-3 py-1 bg-primary text-espresso font-marker text-xs zine-border zine-shadow hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all">
+            {{ isPreview() ? 'EDIT' : 'PREVIEW' }}
+        </button>
     </header>
 
     @if (submitted()) {
@@ -40,6 +43,80 @@
             Back to Home
         </button>
     </div>
+
+    } @else if (isPreview()) {
+    <!-- ── PREVIEW MODE ── -->
+    <main class="px-6 py-12 pb-32 space-y-8">
+        <div class="relative">
+            <div class="absolute inset-0 bg-primary/20 rotate-1 rounded-xl translate-x-3 translate-y-3"></div>
+            <div class="relative bg-off-white zine-border p-4 rotate-[-1deg] zine-shadow">
+                <div class="aspect-video bg-espresso zine-border overflow-hidden mb-6 relative">
+                    @if (photoPreviews()[0]) {
+                    <img [src]="photoPreviews()[0]" class="w-full h-full object-cover grayscale contrast-125"
+                        alt="Cafe Preview">
+                    } @else {
+                    <div class="w-full h-full flex items-center justify-center text-off-white/20">
+                        <span class="material-symbols-outlined text-6xl">image</span>
+                    </div>
+                    }
+                    <div
+                        class="absolute top-4 right-4 bg-primary text-espresso px-4 py-1 font-marker text-sm rotate-6 zine-border">
+                        PREVIEW
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="flex justify-between items-start">
+                        <h3
+                            class="text-3xl font-black italic uppercase font-zine leading-none text-espresso drop-shadow-sm">
+                            {{ name() || 'Unnamed Spot' }}
+                        </h3>
+                        <div class="font-marker text-primary text-2xl -rotate-6">5/5</div>
+                    </div>
+
+                    <p
+                        class="font-zine text-sm font-bold uppercase text-espresso/60 tracking-tighter border-y-2 border-espresso/10 py-2">
+                        {{ address() || 'No address provided' }}
+                    </p>
+
+                    <div class="flex flex-wrap gap-2">
+                        @for (tag of selectedTags(); track tag) {
+                        <div class="bg-sage text-espresso px-3 py-1 font-marker text-xs zine-border rotate-2">
+                            {{ tag | uppercase }}
+                        </div>
+                        }
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 mt-6">
+                        <div class="zine-border border-2 p-3 rotate-1 bg-white">
+                            <p class="font-zine text-[8px] font-bold uppercase text-espresso/40">WiFi</p>
+                            <p class="font-marker text-sm">{{ wifiSpeed() || 'Unknown' }}</p>
+                        </div>
+                        <div class="zine-border border-2 p-3 -rotate-1 bg-white">
+                            <p class="font-zine text-[8px] font-bold uppercase text-espresso/40">Vibe</p>
+                            <p class="font-marker text-sm">{{ noiseLevel() || 'Unknown' }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button (click)="submit()" [disabled]="submitting()"
+            class="w-full bg-espresso text-off-white font-marker text-lg px-6 py-4 zine-border shadow-[6px_6px_0_var(--color-primary)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex items-center justify-center gap-2">
+            @if (submitting()) {
+            <span class="material-symbols-outlined animate-spin">autorenew</span>
+            Submitting...
+            } @else {
+            <span class="material-symbols-outlined">rocket_launch</span>
+            Looks Good, Go Live!
+            }
+        </button>
+
+        <button (click)="isPreview.set(false)"
+            class="w-full bg-off-white text-espresso font-marker text-lg px-6 py-4 zine-border hover:bg-white transition-all">
+            Back to Editing
+        </button>
+    </main>
 
     } @else {
     <!-- ── FORM ── -->
@@ -231,17 +308,30 @@
         </div>
 
         <!-- ─── GOOGLE MAPS LINK ────────────────────────────────── -->
-        <div class="space-y-2">
-            <label class="font-zine font-bold text-xs uppercase tracking-widest text-espresso/70">
-                Google Maps Link
-                <span class="text-[10px] normal-case">(coordinates auto-extracted)</span>
-            </label>
+        <div class="space-y-4">
+            <div class="flex justify-between items-end">
+                <label class="font-zine font-bold text-xs uppercase tracking-widest text-espresso/70">
+                    Google Maps Link
+                    <span class="text-[10px] normal-case">(coordinates auto-extracted)</span>
+                </label>
+                <button (click)="openGoogleMaps()" class="font-marker text-[10px] text-primary underline">OPEN
+                    MAPS</button>
+            </div>
+
             <div class="relative">
                 <div class="absolute inset-0 bg-espresso translate-x-1 translate-y-1"></div>
-                <input [value]="googleMapsUrl()" (input)="onMapsUrlInput($any($event.target).value)"
-                    placeholder="https://maps.google.com/..."
-                    class="relative w-full bg-off-white border-2 border-espresso p-3 font-marker text-sm text-espresso placeholder:text-espresso/30 focus:outline-none focus:ring-2 focus:ring-primary" />
+                <div class="relative flex">
+                    <input [value]="googleMapsUrl()" (input)="onMapsUrlInput($any($event.target).value)"
+                        placeholder="https://maps.google.com/..."
+                        class="w-full bg-off-white border-2 border-espresso p-3 font-marker text-sm text-espresso placeholder:text-espresso/30 focus:outline-none focus:ring-2 focus:ring-primary" />
+                    <button (click)="useCurrentLocation()"
+                        class="bg-sage px-4 border-y-2 border-r-2 border-espresso flex items-center justify-center hover:bg-white transition-all"
+                        title="Use Current Location">
+                        <span class="material-symbols-outlined text-espresso">my_location</span>
+                    </button>
+                </div>
             </div>
+
             @if (googleMapsUrl() && extractCoords(googleMapsUrl()); as coords) {
             <p class="text-espresso/60 text-xs font-zine font-bold uppercase flex items-center gap-1">
                 <span class="material-symbols-outlined text-sm text-sage">check_circle</span>
@@ -274,4 +364,5 @@
         </p>
     </main>
     }
+</div>
 </div>

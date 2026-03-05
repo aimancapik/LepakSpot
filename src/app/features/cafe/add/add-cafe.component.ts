@@ -51,6 +51,7 @@ export class AddCafeComponent {
     submitting = signal(false);
     submitted = signal(false);
     pointsEarned = signal(0);
+    isPreview = signal(false);
 
     // ─── Validation ─────────────────────────────────────────────────────
     touched = signal(false);
@@ -136,6 +137,29 @@ export class AddCafeComponent {
 
     onMapsUrlInput(value: string) {
         this.googleMapsUrl.set(value);
+    }
+
+    useCurrentLocation() {
+        if (!navigator.geolocation) {
+            this.toastService.show('Geolocation is not supported by your browser', 'error');
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                const { latitude, longitude } = pos.coords;
+                this.googleMapsUrl.set(`https://maps.google.com/?q=${latitude},${longitude}`);
+                this.toastService.show('Location detected!', 'success');
+            },
+            (err) => {
+                this.toastService.show('Failed to get location', 'error');
+                console.error(err);
+            }
+        );
+    }
+
+    openGoogleMaps() {
+        window.open('https://www.google.com/maps', '_blank');
     }
 
     // ─── Validation ─────────────────────────────────────────────────────

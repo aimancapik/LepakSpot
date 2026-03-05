@@ -18,6 +18,8 @@ import {
 } from '@angular/fire/firestore';
 import { User } from '../models/user.model';
 
+const USER_CACHE_KEY = 'lepakspot_user_cache';
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
     private auth = inject(Auth);
@@ -33,52 +35,88 @@ export class AuthService {
     // Computed signal that returns true if a user is logged in
     isLoggedIn = computed(() => !!this.currentUser());
 
-    // Signal to track the initial auth state check (usually on app load)
+    // Signal to track the initial auth state check
+    // Starts as false if we have a cached user, so the app renders instantly
     loading = signal(true);
 
-    // Signal to track the active sign-in process for UI feedback (e.g., loading spinners)
+    // Signal to track the active sign-in process for UI feedback
     isSigningIn = signal(false);
 
     constructor() {
-        console.log('AuthService: Initializing...');
+        // ── Step 1: Restore from cache instantly (synchronous) ──
+        const cached = this.loadFromCache();
+        if (cached) {
+            this.currentUser.set(cached);
+            this.loading.set(false); // don't block the UI — we already have data
+        }
 
-        // Listen for authentication state changes (login, logout, or session restoration)
+        // ── Step 2: Once Firebase Auth resolves, sync with Firestore in background ──
         onAuthStateChanged(this.auth, async (firebaseUser) => {
-            console.log('AuthService: Auth state changed, user:', firebaseUser?.email);
-
             if (firebaseUser) {
                 try {
-                    console.log('AuthService: Starting loadOrCreateUser for:', firebaseUser.uid);
-                    // If a user is signed in with Firebase, sync their data with our Firestore database
                     await this.loadOrCreateUser(firebaseUser);
-                    console.log('AuthService: User loaded/created successfully');
                 } catch (error) {
                     console.error('AuthService: Error in loadOrCreateUser:', error);
                 }
             } else {
-                // If no Firebase user, clear the local user signal
+                // Logged out — clear cache and user
+                this.clearCache();
                 this.currentUser.set(null);
             }
-
-            // Once the initial check is done, set loading to false to allow the app to render
+            // Only set loading false here if we didn't already do it from cache
             this.loading.set(false);
         });
     }
 
-    /**
-     * Synchronizes the Firebase Auth user with our 'users' collection in Firestore.
-     * If numerical data or profile info exists, it loads it.
-     * If it's a first-time user, it initializes their document.
-     */
+    // ── Cache helpers ────────────────────────────────────────────────────────
+    private saveToCache(user: User): void {
+        try {
+            // Timestamps aren't JSON-serializable directly; convert to millis
+            const serializable = {
+                ...user,
+                createdAt: (user.createdAt as Timestamp)?.toMillis?.() ?? Date.now(),
+            };
+            localStorage.setItem(USER_CACHE_KEY, JSON.stringify(serializable));
+        } catch (e) {
+            // localStorage unavailable (e.g. private browsing with restrictions) — ignore
+        }
+    }
+
+    private loadFromCache(): User | null {
+        try {
+            const raw = localStorage.getItem(USER_CACHE_KEY);
+            if (!raw) return null;
+            const parsed = JSON.parse(raw);
+            // Re-hydrate Timestamp from millis
+            return {
+                ...parsed,
+                createdAt: Timestamp.fromMillis(parsed.createdAt ?? 0),
+            } as User;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    private clearCache(): void {
+        try {
+            localStorage.removeItem(USER_CACHE_KEY);
+        } catch (e) { }
+    }
+
+    // ── Firestore sync ───────────────────────────────────────────────────────
     private async loadOrCreateUser(firebaseUser: UserInfo): Promise<User> {
-        // Prevent redundant loads if the user is already set
         const current = this.currentUser();
         if (current?.uid === firebaseUser.uid) {
+            // Already have the right user from cache — do a background refresh but don't block
+            this.refreshFromFirestore(firebaseUser).catch(() => { });
             return current;
         }
 
+        return this.refreshFromFirestore(firebaseUser);
+    }
+
+    private async refreshFromFirestore(firebaseUser: UserInfo): Promise<User> {
         const userRef = doc(this.usersRef, firebaseUser.uid);
-        console.log('AuthService: Fetching user document...');
         let userSnap;
         try {
             const timeout = new Promise<never>((_, reject) =>
@@ -86,9 +124,11 @@ export class AuthService {
             );
             userSnap = await Promise.race([getDoc(userRef), timeout]);
         } catch (error: any) {
-            console.error('AuthService: Firestore fetch error:', error);
-            if (error.code === 'unavailable' || error.message?.includes('offline') || error.message?.includes('BLOCKED_BY_CLIENT') || error.message?.includes('timed out')) {
-                console.warn('AuthService: Firestore unreachable, using Firebase Auth data as fallback');
+            if (error.code === 'unavailable' || error.message?.includes('offline') || error.message?.includes('timed out')) {
+                // Offline — keep using the cached user, don't overwrite
+                const cached = this.loadFromCache();
+                if (cached?.uid === firebaseUser.uid) return cached;
+                // Fallback minimal user from Firebase Auth data
                 const fallback: User = {
                     uid: firebaseUser.uid,
                     displayName: firebaseUser.displayName || 'User',
@@ -107,12 +147,8 @@ export class AuthService {
 
         let userData: User;
         if (userSnap && userSnap.exists()) {
-            // User already exists in our database, update the local state with their data
-            console.log('AuthService: User found in Firestore');
             userData = { uid: firebaseUser.uid, ...userSnap.data() } as User;
         } else {
-            // New user detected! Create a default profile in Firestore
-            console.log('AuthService: New user, creating Firestore document...');
             userData = {
                 uid: firebaseUser.uid,
                 displayName: firebaseUser.displayName || 'Coffee Lover',
@@ -123,58 +159,50 @@ export class AuthService {
                 totalCheckins: 0,
                 createdAt: Timestamp.now(),
             };
-
-            // Save the new user document to Firestore
             await setDoc(userRef, userData);
-            console.log('AuthService: Firestore document created');
         }
 
-        // Update local state
         this.currentUser.set(userData);
+        this.saveToCache(userData); // ← persist fresh data for next startup
         return userData;
+    }
+
+    /**
+     * Re-fetches user profile from Firestore and updates the signal + cache.
+     * Call this after operations that change points/streak etc.
+     */
+    async refreshCurrentUser(): Promise<void> {
+        const user = this.currentUser();
+        if (!user) return;
+        try {
+            const userRef = doc(this.usersRef, user.uid);
+            const snap = await getDoc(userRef);
+            if (snap.exists()) {
+                const updated = { uid: user.uid, ...snap.data() } as User;
+                this.currentUser.set(updated);
+                this.saveToCache(updated);
+            }
+        } catch (e) {
+            console.error('refreshCurrentUser failed:', e);
+        }
     }
 
     /**
      * Triggers the Google Sign-In popup flow.
      */
     async signIn() {
-        console.log('AuthService: Sign-in requested');
-
-        // Prevent multiple simultaneous sign-in attempts
-        if (this.isSigningIn()) {
-            console.warn('AuthService: Sign-in already in progress');
-            return;
-        }
-
+        if (this.isSigningIn()) return;
         this.isSigningIn.set(true);
         try {
             const provider = new GoogleAuthProvider();
-            console.log('AuthService: Opening Google popup...');
-
-            // This opens the standard Google login window
-            // Wrapping in runInInjectionContext to fix AngularFire context warnings
             const result = await runInInjectionContext(this.injector, () =>
                 signInWithPopup(this.auth, provider)
             );
-            console.log('AuthService: Popup success, user:', result.user.email);
-
-            // CRITICAL: We must wait for the Firestore profile to be synced BEFORE navigating.
-            // This prevents the AuthGuard from blocking the navigation to /home.
-            console.log('AuthService: Syncing Firestore profile...');
             await runInInjectionContext(this.injector, () => this.loadOrCreateUser(result.user));
-            console.log('AuthService: Profile sync completed');
-
-            // Reset signing in state before navigation so components can update UI
             this.isSigningIn.set(false);
-
-            // Once the profile is loaded, navigate the user to the home page
-            console.log('AuthService: Navigating to /home...');
             await this.router.navigate(['/home']);
-            console.log('AuthService: Navigation completed');
         } catch (error) {
-            // Handle errors like user closing the popup or network issues
             console.error('AuthService: Sign-in error:', error);
-            // Reset state on error
             this.isSigningIn.set(false);
             alert('Sign-in failed. Please check your browser console for details.');
         }
@@ -183,6 +211,7 @@ export class AuthService {
     async signOutUser() {
         try {
             await signOut(this.auth);
+            this.clearCache();
             this.currentUser.set(null);
             this.router.navigate(['/login']);
         } catch (error) {
@@ -191,7 +220,7 @@ export class AuthService {
     }
 
     /**
-     * DEVELOPMENT ONLY: Bypasses the login flow and routes to home with a mock user.
+     * DEVELOPMENT ONLY: Bypasses the login flow with a mock user.
      */
     async bypassLogin() {
         this.loading.set(true);
@@ -206,9 +235,8 @@ export class AuthService {
                 totalCheckins: 0,
                 createdAt: Timestamp.now()
             };
-
             this.currentUser.set(mockUser);
-            console.log('AuthService: Login bypassed with mock user');
+            this.saveToCache(mockUser);
             await this.router.navigate(['/home']);
         } catch (error) {
             console.error('Bypass error:', error);

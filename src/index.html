@@ -24,7 +24,177 @@
 </head>
 
 <body>
-  <app-root></app-root>
+  <app-root>
+    <!-- Native splash screen — shown immediately before Angular loads, auto-replaced on bootstrap -->
+    <style>
+      .splash {
+        position: fixed;
+        inset: 0;
+        background: #E8E4D9;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 24px;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        text-align: center;
+        z-index: 9999;
+        overflow: hidden;
+      }
+
+      .splash-deco-top {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 14px;
+        background: repeating-linear-gradient(90deg, transparent, transparent 18px, #2D2926 18px, #2D2926 36px);
+        opacity: 0.12;
+      }
+
+      .splash-deco-bottom {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 14px;
+        background: repeating-linear-gradient(90deg, transparent, transparent 18px, #2D2926 18px, #2D2926 36px);
+        opacity: 0.12;
+      }
+
+      .splash-blob-1 {
+        position: absolute;
+        top: 60px;
+        left: 30px;
+        width: 100px;
+        height: 100px;
+        background: rgba(212, 140, 58, 0.18);
+        border: 2px solid #2D292633;
+        transform: rotate(12deg);
+        animation: pulse 3s ease-in-out infinite;
+      }
+
+      .splash-blob-2 {
+        position: absolute;
+        bottom: 100px;
+        right: 20px;
+        width: 130px;
+        height: 50px;
+        background: rgba(160, 185, 155, 0.24);
+        border: 2px solid #2D292633;
+        transform: rotate(-6deg);
+      }
+
+      .splash-card {
+        position: relative;
+        width: 100px;
+        height: 100px;
+        background: #fff;
+        border: 3px solid #2D2926;
+        box-shadow: 5px 5px 0 #2D2926;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transform: rotate(-3deg);
+        font-size: 48px;
+      }
+
+      .splash-badge {
+        position: absolute;
+        bottom: -10px;
+        right: -28px;
+        background: #D48C3A;
+        color: #2D2926;
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 4px 12px;
+        border: 2px solid #2D2926;
+        box-shadow: 2px 2px 0 #2D2926;
+        transform: rotate(10deg);
+        white-space: nowrap;
+      }
+
+      .splash-title {
+        font-size: 38px;
+        font-weight: 900;
+        font-style: italic;
+        text-transform: uppercase;
+        letter-spacing: -1px;
+        color: #2D2926;
+        transform: rotate(-1deg);
+        line-height: 1;
+      }
+
+      .splash-sub {
+        font-family: 'Permanent Marker', cursive;
+        color: #2D292699;
+        font-size: 16px;
+        margin-top: -8px;
+      }
+
+      .splash-bar-track {
+        width: 180px;
+        height: 8px;
+        background: rgba(45, 41, 38, 0.10);
+        border: 2px solid #2D292633;
+        overflow: hidden;
+      }
+
+      .splash-bar-fill {
+        height: 100%;
+        background: #D48C3A;
+        animation: progress 1.8s ease-in-out infinite;
+        transform-origin: left;
+      }
+
+      @keyframes progress {
+        0% {
+          width: 0%;
+          transform: translateX(0);
+        }
+
+        50% {
+          width: 70%;
+        }
+
+        100% {
+          width: 100%;
+          transform: translateX(0);
+        }
+      }
+
+      @keyframes pulse {
+
+        0%,
+        100% {
+          opacity: 1;
+        }
+
+        50% {
+          opacity: 0.5;
+        }
+      }
+    </style>
+    <div class="splash">
+      <div class="splash-deco-top"></div>
+      <div class="splash-deco-bottom"></div>
+      <div class="splash-blob-1"></div>
+      <div class="splash-blob-2"></div>
+      <div class="splash-card">
+        ☕
+        <div class="splash-badge">Loading...</div>
+      </div>
+      <div>
+        <div class="splash-title">LepakSpot</div>
+        <div class="splash-sub">Waking up the vibes...</div>
+      </div>
+      <div class="splash-bar-track">
+        <div class="splash-bar-fill"></div>
+      </div>
+    </div>
+  </app-root>
   <noscript>Please enable JavaScript to continue using this application.</noscript>
 </body>
 

@@ -1,10 +1,12 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
 import { RouterOutlet, Router, ActivatedRoute, NavigationEnd } from '@angular/router';
 import { BottomNavComponent } from './shared/components/bottom-nav/bottom-nav.component';
 import { ToastComponent } from './shared/components/toast/toast.component';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { filter, map, mergeMap } from 'rxjs/operators';
 import { AuthService } from './core/services/auth.service';
+import { SwUpdate } from '@angular/service-worker';
+import { ToastService } from './shared/components/toast/toast.service';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -77,10 +79,12 @@ import { AuthService } from './core/services/auth.service';
     }
   `]
 })
-export class App {
+export class App implements OnInit {
   protected authService = inject(AuthService);
   private router = inject(Router);
   private activatedRoute = inject(ActivatedRoute);
+  private swUpdate = inject(SwUpdate);
+  private toastService = inject(ToastService);
 
   private routeData$ = this.router.events.pipe(
     filter(event => event instanceof NavigationEnd),
@@ -93,6 +97,20 @@ export class App {
   );
 
   private routeData = toSignal(this.routeData$);
+
+  ngOnInit() {
+    if (this.swUpdate.isEnabled) {
+      this.swUpdate.versionUpdates.pipe(
+        filter((evt) => evt.type === 'VERSION_READY')
+      ).subscribe(() => {
+        this.toastService.show(
+          'New version available! Reload to update.',
+          'info'
+        );
+        // Optionally, we could automatically reload, but a toast is cleaner for UX
+      });
+    }
+  }
 
   showNav = () => this.routeData()?.['showBottomNavbar'] !== false;
   activeTab = () => this.routeData()?.['activeTab'] ?? 'home';
