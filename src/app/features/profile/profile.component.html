@@ -63,8 +63,8 @@
                 <p class="font-marker text-[10px] uppercase text-center mt-1 text-off-white">Badges</p>
             </div>
             <div class="bg-off-white zine-border p-3 flex flex-col items-center justify-center -rotate-1 zine-shadow">
-                <p class="text-3xl font-black font-zine italic">0</p>
-                <p class="font-marker text-[10px] uppercase text-center mt-1">Streak</p>
+                <p class="text-3xl font-black font-zine italic">{{ authService.currentUser()?.streak || 0 }}</p>
+                <p class="font-marker text-[10px] uppercase text-center mt-1">🔥 Streak</p>
             </div>
         </div>
 
@@ -181,7 +181,8 @@
                         <div>
                             <h4
                                 class="font-zine text-lg font-bold italic uppercase tracking-tight text-espresso flex items-center gap-2">
-                                <span class="material-symbols-outlined text-sm">group</span> {{ list.title }}</h4>
+                                <span class="material-symbols-outlined text-sm">group</span> {{ list.title }}
+                            </h4>
                             <p class="text-xs text-espresso/60 font-bold uppercase mt-1 tracking-wider">{{
                                 list.cafeIds.length }} spots</p>
                         </div>

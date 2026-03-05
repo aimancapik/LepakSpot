@@ -11,7 +11,7 @@
             class="text-2xl font-black italic tracking-tighter uppercase font-zine text-espresso drop-shadow-sm -rotate-1 line-clamp-1 flex-1 text-center px-2">
             {{ cafe()?.name || 'Loading...' }}</h2>
         <div class="flex items-center justify-end shrink-0">
-            <button
+            <button (click)="shareThisCafe()"
                 class="size-10 bg-primary text-espresso flex items-center justify-center border-2 border-espresso shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-sage active:translate-y-[2px] active:shadow-none transition-all">
                 <span class="material-symbols-outlined">share</span>
             </button>
@@ -98,30 +98,46 @@
                 class="absolute -top-4 -right-2 text-primary rotate-12 material-symbols-outlined text-4xl">chat_bubble</span>
         </h2>
 
-        <div class="space-y-6">
-            <!-- Review 1 -->
-            <div class="relative bg-off-white border-2 border-espresso p-4 zine-border">
-                <div class="flex items-center gap-3 mb-2">
-                    <div
-                        class="w-8 h-8 rounded-full bg-primary/20 border border-espresso flex items-center justify-center font-bold text-xs uppercase">
-                        KJ</div>
-                    <span class="text-xs font-black uppercase italic tracking-widest">@kai_jams</span>
-                </div>
-                <p class="font-zine text-sm font-bold italic leading-snug">"The vibe is literally unmatched. Best
-                    curation of house music and the beans are actually ethical. 10/10."</p>
-            </div>
-            <!-- Review 2 -->
-            <div class="relative bg-primary p-4 border-2 border-espresso -rotate-1">
-                <div class="flex items-center gap-3 mb-2">
-                    <div
-                        class="w-8 h-8 rounded-full bg-off-white border border-espresso flex items-center justify-center font-bold text-xs">
-                        MA</div>
-                    <span class="text-xs font-black uppercase italic tracking-widest text-off-white">@milo_arts</span>
-                </div>
-                <p class="font-zine text-sm font-bold italic leading-snug text-off-white">"A temple for the creative
-                    soul. I finished my entire zine layout here in one sitting. High energy!"</p>
-            </div>
+        @if (reviews().length === 0) {
+        <div class="bg-off-white zine-border p-6 text-center rotate-[-1deg] zine-shadow">
+            <span class="material-symbols-outlined text-4xl text-espresso/30 mb-2">forum</span>
+            <p class="font-marker text-lg">No reviews yet...</p>
+            <p class="font-zine text-sm font-bold uppercase text-espresso/60 mt-1">Be the first to spill the tea on the
+                Scene page!</p>
         </div>
+        } @else {
+        <div class="space-y-6">
+            @for (review of reviews().slice(0, 3); track review.id; let i = $index) {
+            <div class="relative bg-off-white border-2 border-espresso p-4 zine-border"
+                [class]="i % 2 === 0 ? '' : 'bg-primary -rotate-1'">
+                <div class="flex items-center gap-3 mb-2">
+                    @if (review.photoURL) {
+                    <img [src]="review.photoURL" [alt]="review.displayName"
+                        class="w-8 h-8 rounded-full border-2 border-espresso object-cover" />
+                    } @else {
+                    <div
+                        class="w-8 h-8 rounded-full bg-sage border-2 border-espresso flex items-center justify-center font-bold text-xs uppercase">
+                        {{ review.displayName[0] }}</div>
+                    }
+                    <span class="text-xs font-black uppercase italic tracking-widest"
+                        [class]="i % 2 === 0 ? '' : 'text-off-white'">&#64;{{ review.displayName }}</span>
+                    <!-- Stars -->
+                    <div class="flex gap-0.5 ml-auto shrink-0">
+                        @for (s of [1,2,3,4,5]; track s) {
+                        <span class="material-symbols-outlined text-sm"
+                            [class]="s <= review.rating ? 'text-primary' : 'text-espresso/20'"
+                            style="font-variation-settings: 'FILL' 1">star</span>
+                        }
+                    </div>
+                </div>
+                @if (review.text) {
+                <p class="font-zine text-sm font-bold italic leading-snug"
+                    [class]="i % 2 === 0 ? '' : 'text-off-white'">"{{ review.text }}"</p>
+                }
+            </div>
+            }
+        </div>
+        }
     </div>
     } @else {
     <div class="flex-1 flex items-center justify-center">

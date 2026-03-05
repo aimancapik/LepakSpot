@@ -8,5 +8,7 @@ export interface User {
   points: number;
   badges: string[];
   totalCheckins: number;
+  streak?: number;
+  lastCheckinDate?: string;
   createdAt: Timestamp;
 }

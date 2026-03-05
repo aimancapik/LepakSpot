@@ -1,0 +1,277 @@
+<div
+    class="relative min-h-screen max-w-md mx-auto grain-overlay bg-latte overflow-x-hidden border-x-4 border-espresso font-display text-espresso selection:bg-primary selection:text-white">
+
+    <!-- Header -->
+    <header
+        class="flex items-center justify-between p-6 pt-10 sticky top-0 z-50 bg-latte/90 backdrop-blur-md border-b-4 border-espresso">
+        <button (click)="goBack()"
+            class="px-2 py-1 bg-off-white zine-border zine-shadow flex items-center justify-center hover:bg-sage hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all">
+            <span class="material-symbols-outlined text-espresso">arrow_back</span>
+        </button>
+        <h2
+            class="text-2xl font-black italic tracking-tighter uppercase font-zine text-espresso drop-shadow-sm -rotate-1 flex-1 text-center px-2">
+            Suggest a Spot
+        </h2>
+        <div class="size-10"></div>
+    </header>
+
+    @if (submitted()) {
+    <!-- ── SUCCESS SCREEN ── -->
+    <div class="flex flex-col items-center justify-center min-h-[80vh] px-6 text-center gap-6">
+        <div class="relative">
+            <div class="absolute -inset-4 bg-primary/30 rounded-full blur-xl animate-pulse"></div>
+            <div class="relative w-32 h-32 bg-sage zine-border flex items-center justify-center rotate-3 zine-shadow">
+                <span class="material-symbols-outlined text-6xl text-espresso">add_location_alt</span>
+            </div>
+        </div>
+        <div class="space-y-2">
+            <h2 class="text-4xl font-black italic uppercase font-zine text-espresso -rotate-1">Spot Added!</h2>
+            <p class="font-marker text-lg text-espresso/70">You just made the zine richer ☀️</p>
+        </div>
+        <div
+            class="bg-espresso text-off-white px-8 py-4 zine-border shadow-[6px_6px_0_var(--color-primary)] rotate-2 space-y-1">
+            <p class="font-zine font-bold text-xs uppercase tracking-widest text-primary">Points Earned</p>
+            <p class="font-marker text-5xl">+{{ pointsEarned() }}</p>
+            <p class="font-zine text-xs uppercase text-off-white/70">Thanks for contributing!</p>
+        </div>
+        <button (click)="goHome()"
+            class="mt-4 bg-primary text-espresso font-marker text-lg px-8 py-4 rounded-full zine-border zine-shadow hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex items-center gap-2">
+            <span class="material-symbols-outlined">home</span>
+            Back to Home
+        </button>
+    </div>
+
+    } @else {
+    <!-- ── FORM ── -->
+    <main class="px-6 py-8 pb-32 space-y-8">
+
+        <!-- Intro card -->
+        <div class="bg-sage zine-border p-4 shadow-[4px_4px_0_var(--color-espresso)] rotate-1 relative overflow-hidden">
+            <div class="absolute -top-3 left-8 w-20 h-5 bg-white/60 border border-espresso rotate-2 z-10"></div>
+            <p class="font-marker text-sm text-espresso">Know a hidden gem? Add it here and earn
+                <strong>+100 points!</strong> 🌟
+            </p>
+        </div>
+
+        <!-- ─── PHOTOS ─────────────────────────────────────────── -->
+        <div class="space-y-3">
+            <label class="font-zine font-bold text-xs uppercase tracking-widest text-espresso/70">
+                Photos <span class="text-[10px] normal-case">(up to 4)</span>
+            </label>
+
+            <!-- Preview grid -->
+            @if (photoPreviews().length > 0) {
+            <div class="grid grid-cols-2 gap-2">
+                @for (url of photoPreviews(); track url; let i = $index) {
+                <div class="relative aspect-video zine-border overflow-hidden">
+                    <img [src]="url" alt="Preview" class="w-full h-full object-cover" />
+                    <button (click)="removePhoto(i)"
+                        class="absolute top-1 right-1 w-6 h-6 bg-espresso text-off-white text-xs flex items-center justify-center border border-off-white">
+                        <span class="material-symbols-outlined text-sm" style="font-size:14px">close</span>
+                    </button>
+                </div>
+                }
+            </div>
+            }
+
+            <!-- Upload button -->
+            @if (photoPreviews().length < 4) { <label
+                class="relative w-full flex flex-col items-center justify-center py-6 bg-off-white zine-border cursor-pointer hover:bg-white hover:shadow-[3px_3px_0_var(--color-espresso)] transition-all gap-2 border-dashed">
+                <span class="material-symbols-outlined text-3xl text-espresso/50">add_photo_alternate</span>
+                <span class="font-marker text-sm text-espresso/60">Tap to add photos</span>
+                <input type="file" accept="image/*" multiple class="sr-only" (change)="onFileSelected($event)" />
+                </label>
+                }
+        </div>
+
+        <!-- ─── CAFE NAME ───────────────────────────────────────── -->
+        <div class="space-y-2">
+            <label class="font-zine font-bold text-xs uppercase tracking-widest text-espresso/70">Cafe Name *</label>
+            <div class="relative">
+                <div class="absolute inset-0 bg-espresso translate-x-1 translate-y-1"></div>
+                <input [value]="name()" (input)="name.set($any($event.target).value)"
+                    placeholder="e.g. Uncle Bob's Brew"
+                    class="relative w-full bg-off-white border-2 border-espresso p-3 font-marker text-espresso placeholder:text-espresso/30 focus:outline-none focus:ring-2 focus:ring-primary"
+                    [class.border-red-500]="nameErr" />
+            </div>
+            @if (nameErr) {
+            <p class="text-red-600 text-xs font-zine font-bold uppercase">⚠ {{ nameErr }}</p>
+            }
+        </div>
+
+        <!-- ─── ADDRESS ────────────────────────────────────────── -->
+        <div class="space-y-2">
+            <label class="font-zine font-bold text-xs uppercase tracking-widest text-espresso/70">Address *</label>
+            <div class="relative">
+                <div class="absolute inset-0 bg-espresso translate-x-1 translate-y-1"></div>
+                <textarea [value]="address()" (input)="address.set($any($event.target).value)" rows="2"
+                    placeholder="e.g. Jalan Mesui, Bukit Bintang, KL"
+                    class="relative w-full bg-off-white border-2 border-espresso p-3 font-marker text-espresso placeholder:text-espresso/30 focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+                    [class.border-red-500]="addressErr"></textarea>
+            </div>
+            @if (addressErr) {
+            <p class="text-red-600 text-xs font-zine font-bold uppercase">⚠ {{ addressErr }}</p>
+            }
+        </div>
+
+        <!-- ─── OPENING HOURS ──────────────────────────────────── -->
+        <div class="space-y-2">
+            <label class="font-zine font-bold text-xs uppercase tracking-widest text-espresso/70">Opening Hours</label>
+            <div class="relative">
+                <div class="absolute inset-0 bg-espresso translate-x-1 translate-y-1"></div>
+                <input [value]="openingHours()" (input)="openingHours.set($any($event.target).value)"
+                    placeholder="e.g. 8am – 10pm, Daily"
+                    class="relative w-full bg-off-white border-2 border-espresso p-3 font-marker text-espresso placeholder:text-espresso/30 focus:outline-none focus:ring-2 focus:ring-primary" />
+            </div>
+        </div>
+
+        <!-- ─── VIBES / TAGS ───────────────────────────────────── -->
+        <div class="space-y-3">
+            <label class="font-zine font-bold text-xs uppercase tracking-widest text-espresso/70">Vibes</label>
+            <div class="flex flex-wrap gap-3">
+                @for (chip of allTags; track chip.tag) {
+                <button type="button" (click)="toggleTag(chip.tag)"
+                    class="px-4 py-2 zine-border font-marker text-sm transition-all duration-200 flex items-center gap-1"
+                    [class]="isTagSelected(chip.tag) ? 'bg-primary text-espresso shadow-[3px_3px_0_var(--color-espresso)]' : 'bg-off-white text-espresso/70 hover:shadow-[2px_2px_0_var(--color-espresso)]'">
+                    <span class="material-symbols-outlined text-sm">{{ chip.icon }}</span>
+                    {{ chip.label }}
+                </button>
+                }
+            </div>
+        </div>
+
+        <!-- ─── WIFI SPEED ─────────────────────────────────────── -->
+        <div class="space-y-2">
+            <label class="font-zine font-bold text-xs uppercase tracking-widest text-espresso/70">WiFi Speed</label>
+            <div class="flex gap-2 flex-wrap">
+                @for (opt of wifiOptions; track opt) {
+                <button type="button" (click)="wifiSpeed.set(opt)"
+                    class="px-3 py-1.5 zine-border font-marker text-sm transition-all"
+                    [class]="wifiSpeed() === opt ? 'bg-sage text-espresso shadow-[2px_2px_0_var(--color-espresso)]' : 'bg-off-white text-espresso/60 hover:bg-white'">
+                    {{ opt }}
+                </button>
+                }
+            </div>
+        </div>
+
+        <!-- ─── CROWD LEVEL ────────────────────────────────────── -->
+        <div class="space-y-2">
+            <label class="font-zine font-bold text-xs uppercase tracking-widest text-espresso/70">Typical Crowd</label>
+            <div class="flex gap-2 flex-wrap">
+                @for (opt of crowdOptions; track opt) {
+                <button type="button" (click)="crowdLevel.set(opt)"
+                    class="px-3 py-1.5 zine-border font-marker text-sm transition-all flex items-center gap-1"
+                    [class]="crowdLevel() === opt ? 'bg-primary text-espresso shadow-[2px_2px_0_var(--color-espresso)]' : 'bg-off-white text-espresso/60 hover:bg-white'">
+                    <span class="material-symbols-outlined text-sm">{{ opt === 'Empty' ? 'weekend' : opt === 'Moderate'
+                        ? 'groups' : 'diversity_3' }}</span>
+                    {{ opt }}
+                </button>
+                }
+            </div>
+        </div>
+
+        <!-- ─── NOISE LEVEL ────────────────────────────────────── -->
+        <div class="space-y-2">
+            <label class="font-zine font-bold text-xs uppercase tracking-widest text-espresso/70">Noise Level</label>
+            <div class="flex gap-2 flex-wrap">
+                @for (opt of noiseOptions; track opt) {
+                <button type="button" (click)="noiseLevel.set(opt)"
+                    class="px-3 py-1.5 zine-border font-marker text-sm transition-all flex items-center gap-1"
+                    [class]="noiseLevel() === opt ? 'bg-primary text-espresso shadow-[2px_2px_0_var(--color-espresso)]' : 'bg-off-white text-espresso/60 hover:bg-white'">
+                    <span class="material-symbols-outlined text-sm">{{ opt === 'Library Quiet' ? 'volume_mute' : opt ===
+                        'Chill Chatter' ? 'volume_down' : 'volume_up' }}</span>
+                    {{ opt }}
+                </button>
+                }
+            </div>
+        </div>
+
+        <!-- ─── OUTLET AVAILABILITY ────────────────────────────── -->
+        <div class="space-y-2">
+            <label class="font-zine font-bold text-xs uppercase tracking-widest text-espresso/70">Power Outlets</label>
+            <div class="flex gap-2">
+                @for (opt of outletOptions; track opt) {
+                <button type="button" (click)="outletAvailability.set(opt)"
+                    class="flex-1 py-1.5 zine-border font-marker text-sm transition-all flex items-center justify-center gap-1"
+                    [class]="outletAvailability() === opt ? 'bg-sage text-espresso shadow-[2px_2px_0_var(--color-espresso)]' : 'bg-off-white text-espresso/60 hover:bg-white'">
+                    <span class="material-symbols-outlined text-sm">{{ opt === 'Many' ? 'electrical_services' : opt ===
+                        'Few' ? 'power' : 'power_off' }}</span>
+                    {{ opt }}
+                </button>
+                }
+            </div>
+        </div>
+
+        <!-- ─── LATE NIGHT ─────────────────────────────────────── -->
+        <div class="flex items-center justify-between bg-off-white zine-border p-4 -rotate-1">
+            <div>
+                <p class="font-marker text-sm text-espresso">Open Late Night</p>
+                <p class="font-zine text-xs uppercase text-espresso/50">After 10pm 🌙</p>
+            </div>
+            <button type="button" (click)="isLateNight.set(!isLateNight())"
+                class="w-12 h-6 zine-border transition-colors duration-200 relative shrink-0"
+                [class]="isLateNight() ? 'bg-primary' : 'bg-espresso/20'">
+                <div class="absolute top-0.5 size-5 bg-off-white border-2 border-espresso transition-all duration-200"
+                    [class]="isLateNight() ? 'left-6' : 'left-0.5'"></div>
+            </button>
+        </div>
+
+        <!-- ─── PERKS ──────────────────────────────────────────── -->
+        <div class="space-y-2">
+            <label class="font-zine font-bold text-xs uppercase tracking-widest text-espresso/70">
+                Special Perks
+                <span class="text-[10px] normal-case">(comma-separated)</span>
+            </label>
+            <div class="relative">
+                <div class="absolute inset-0 bg-espresso translate-x-1 translate-y-1"></div>
+                <textarea [value]="perksText()" (input)="perksText.set($any($event.target).value)" rows="2"
+                    placeholder="e.g. Free upsize on Mondays, 10% off for students"
+                    class="relative w-full bg-off-white border-2 border-espresso p-3 font-marker text-sm text-espresso placeholder:text-espresso/30 focus:outline-none focus:ring-2 focus:ring-primary resize-none"></textarea>
+            </div>
+        </div>
+
+        <!-- ─── GOOGLE MAPS LINK ────────────────────────────────── -->
+        <div class="space-y-2">
+            <label class="font-zine font-bold text-xs uppercase tracking-widest text-espresso/70">
+                Google Maps Link
+                <span class="text-[10px] normal-case">(coordinates auto-extracted)</span>
+            </label>
+            <div class="relative">
+                <div class="absolute inset-0 bg-espresso translate-x-1 translate-y-1"></div>
+                <input [value]="googleMapsUrl()" (input)="onMapsUrlInput($any($event.target).value)"
+                    placeholder="https://maps.google.com/..."
+                    class="relative w-full bg-off-white border-2 border-espresso p-3 font-marker text-sm text-espresso placeholder:text-espresso/30 focus:outline-none focus:ring-2 focus:ring-primary" />
+            </div>
+            @if (googleMapsUrl() && extractCoords(googleMapsUrl()); as coords) {
+            <p class="text-espresso/60 text-xs font-zine font-bold uppercase flex items-center gap-1">
+                <span class="material-symbols-outlined text-sm text-sage">check_circle</span>
+                Coordinates found: {{ coords.lat.toFixed(4) }}, {{ coords.lng.toFixed(4) }}
+            </p>
+            } @else if (googleMapsUrl() && !extractCoords(googleMapsUrl())) {
+            <p class="text-espresso/50 text-xs font-zine uppercase">
+                ⚠ Short link detected — coordinates will default to KL centre. Use a full Maps URL for accurate pinning.
+            </p>
+            }
+        </div>
+
+        <!-- ─── SUBMIT ─────────────────────────────────────────── -->
+        <button (click)="submit()" [disabled]="submitting()"
+            class="w-full bg-espresso text-off-white font-marker text-lg px-6 py-4 zine-border shadow-[6px_6px_0_var(--color-primary)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:translate-x-0 disabled:translate-y-0 disabled:shadow-[6px_6px_0_var(--color-primary)]">
+            @if (uploadingPhotos()) {
+            <span class="material-symbols-outlined animate-spin">cloud_upload</span>
+            Uploading Photos...
+            } @else if (submitting()) {
+            <span class="material-symbols-outlined animate-spin">autorenew</span>
+            Submitting...
+            } @else {
+            <span class="material-symbols-outlined">add_location_alt</span>
+            Submit Spot (+100 pts)
+            }
+        </button>
+
+        <p class="text-center font-zine text-xs text-espresso/40 uppercase tracking-widest">
+            Submissions go live immediately and help the community 🌿
+        </p>
+    </main>
+    }
+</div>

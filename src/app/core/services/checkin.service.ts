@@ -90,11 +90,32 @@ export class CheckInService {
         };
         await setDoc(liveRef, activeCheckin);
 
-        // Update user points and checkins
+        // Streak calculation
+        const today = new Date().toISOString().split('T')[0]; // "YYYY-MM-DD"
         const userRef = doc(this.usersRef, user.uid);
+        const userSnap = await getDoc(userRef);
+        const userData = userSnap.exists() ? userSnap.data() : {};
+        const lastDate: string | undefined = userData['lastCheckinDate'];
+        const currentStreak: number = userData['streak'] || 0;
+
+        let newStreak: number;
+        if (!lastDate) {
+            newStreak = 1;
+        } else if (lastDate === today) {
+            newStreak = currentStreak; // already checked in today
+        } else {
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yesterdayStr = yesterday.toISOString().split('T')[0];
+            newStreak = lastDate === yesterdayStr ? currentStreak + 1 : 1;
+        }
+
+        // Update user points, checkins, streak
         await updateDoc(userRef, {
             points: increment(pointsEarned),
             totalCheckins: increment(1),
+            streak: newStreak,
+            lastCheckinDate: today,
         });
 
         // Check and award badges

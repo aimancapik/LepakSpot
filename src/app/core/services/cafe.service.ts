@@ -3,13 +3,15 @@ import {
     Firestore,
     collection,
     getDocs,
-    query,
-    where,
     doc,
     getDoc,
+    setDoc,
     Timestamp,
+    updateDoc,
+    increment,
 } from '@angular/fire/firestore';
 import { Cafe, CafeTag } from '../models/cafe.model';
+import { AuthService } from './auth.service';
 
 const MOCK_CAFES: Cafe[] = [
     {
@@ -28,6 +30,8 @@ const MOCK_CAFES: Cafe[] = [
         wifiSpeed: 'Average',
         outletAvailability: 'Few',
         isLateNight: false,
+        openingHours: '8am – 10pm, Mon–Sun',
+        googleMapsUrl: 'https://maps.google.com/?q=3.1478,101.7125',
         perks: ['Free Croissant on 3rd Check-in', '10% off beans'],
         secretMenu: ['The Dirty Chai Volcano', 'Matcha Espresso Fusion'],
     },
@@ -47,6 +51,8 @@ const MOCK_CAFES: Cafe[] = [
         wifiSpeed: 'Fast',
         outletAvailability: 'Many',
         isLateNight: false,
+        openingHours: '9am – 6pm, Mon–Fri | 10am – 6pm, Sat–Sun',
+        googleMapsUrl: 'https://maps.google.com/?q=3.1489,101.7098',
         perks: ['Free Upsize on all Coffees'],
         secretMenu: ['Feeka Cloud Latte'],
     },
@@ -66,6 +72,8 @@ const MOCK_CAFES: Cafe[] = [
         wifiSpeed: 'Average',
         outletAvailability: 'Many',
         isLateNight: false,
+        openingHours: '8am – 10pm, Daily',
+        googleMapsUrl: 'https://maps.google.com/?q=3.1466,101.6958',
     },
     {
         id: 'mock-pulp',
@@ -83,6 +91,8 @@ const MOCK_CAFES: Cafe[] = [
         wifiSpeed: 'Fast',
         outletAvailability: 'Many',
         isLateNight: false,
+        openingHours: '10am – 6pm, Tue–Sun | Closed Mon',
+        googleMapsUrl: 'https://maps.google.com/?q=3.1318,101.6873',
     },
     {
         id: 'mock-brew',
@@ -100,25 +110,38 @@ const MOCK_CAFES: Cafe[] = [
         wifiSpeed: 'Average',
         outletAvailability: 'None',
         isLateNight: true,
+        openingHours: '2pm – 2am, Daily',
+        googleMapsUrl: 'https://maps.google.com/?q=3.1358,101.6217',
     },
 ];
 
 @Injectable({ providedIn: 'root' })
 export class CafeService {
     private firestore = inject(Firestore);
+    private authService = inject(AuthService);
     private readonly cafesRef = collection(this.firestore, 'cafes');
+    private readonly usersRef = collection(this.firestore, 'users');
 
     nearbyCafes = signal<Cafe[]>(MOCK_CAFES);
     selectedTags = signal<CafeTag[]>([]);
     showLateNightOnly = signal(false);
+    searchQuery = signal('');
 
     filteredCafes = computed(() => {
         const tags = this.selectedTags();
         const lateNight = this.showLateNightOnly();
-        let cafes = this.nearbyCafes();
+        const query = this.searchQuery().toLowerCase().trim();
+        let cafes = this.nearbyCafes().filter(c => !c.pendingApproval);
 
         if (lateNight) {
             cafes = cafes.filter(c => c.isLateNight);
+        }
+
+        if (query) {
+            cafes = cafes.filter(c =>
+                c.name.toLowerCase().includes(query) ||
+                c.address.toLowerCase().includes(query)
+            );
         }
 
         if (tags.length === 0) return cafes;
@@ -151,6 +174,26 @@ export class CafeService {
         }
     }
 
+    async getCafeById(id: string): Promise<Cafe | null> {
+        // Check in-memory cache first
+        const cached = this.nearbyCafes().find(c => c.id === id);
+        if (cached) return cached;
+
+        // Check mock data
+        const mock = MOCK_CAFES.find(c => c.id === id);
+        if (mock) return mock;
+
+        try {
+            const cafeDoc = await getDoc(doc(this.firestore, `cafes/${id}`));
+            if (cafeDoc.exists()) {
+                return { id: cafeDoc.id, ...cafeDoc.data() } as Cafe;
+            }
+        } catch {
+            // ignore
+        }
+        return null;
+    }
+
     async getCafesByIds(ids: string[]): Promise<Cafe[]> {
         const results: Cafe[] = [];
         for (const id of ids) {
@@ -169,5 +212,53 @@ export class CafeService {
             }
         }
         return results;
+    }
+
+    /** Submit a new cafe suggestion. Awards 100 pts to the submitting user. */
+    async submitCafe(data: Partial<Cafe>): Promise<string> {
+        const user = this.authService.currentUser();
+        if (!user) throw new Error('Not authenticated');
+
+        const newDoc = doc(this.cafesRef);
+        const cafe: Cafe = {
+            id: newDoc.id,
+            name: data.name || '',
+            address: data.address || '',
+            lat: data.lat || 0,
+            lng: data.lng || 0,
+            tags: data.tags || [],
+            rating: 0,
+            photos: data.photos || [],
+            addedBy: user.uid,
+            submittedBy: user.uid,
+            createdAt: Timestamp.now(),
+            pendingApproval: false, // show immediately, trust users
+            openingHours: data.openingHours,
+            wifiSpeed: data.wifiSpeed,
+            outletAvailability: data.outletAvailability,
+            crowdLevel: data.crowdLevel,
+            noiseLevel: data.noiseLevel,
+            isLateNight: data.isLateNight || false,
+            perks: data.perks || [],
+            secretMenu: data.secretMenu || [],
+            googleMapsUrl: data.googleMapsUrl,
+        };
+
+        await setDoc(newDoc, cafe);
+
+        // Award 100 pts
+        const userRef = doc(this.usersRef, user.uid);
+        await updateDoc(userRef, { points: increment(100) });
+
+        // Refresh user in auth service
+        const updatedSnap = await getDoc(userRef);
+        if (updatedSnap.exists()) {
+            this.authService.currentUser.set({ uid: user.uid, ...updatedSnap.data() } as any);
+        }
+
+        // Add to local list so it appears immediately
+        this.nearbyCafes.update(cafes => [...cafes, cafe]);
+
+        return newDoc.id;
     }
 }

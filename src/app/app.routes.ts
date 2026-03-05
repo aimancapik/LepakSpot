@@ -71,6 +71,15 @@ export const routes: Routes = [
     data: { showBottomNavbar: true, activeTab: 'profile' }
   },
   {
+    path: 'cafe/add',
+    loadComponent: () =>
+      import('./features/cafe/add/add-cafe.component').then(
+        (m) => m.AddCafeComponent
+      ),
+    canActivate: [authGuard],
+    data: { showBottomNavbar: false }
+  },
+  {
     path: 'cafe/:id',
     loadComponent: () =>
       import('./features/cafe/detail/cafe-detail.component').then(

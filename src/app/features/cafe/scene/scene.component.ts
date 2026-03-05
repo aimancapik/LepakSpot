@@ -11,6 +11,7 @@ import { ReviewService } from '../../../core/services/review.service';
 import { Cafe } from '../../../core/models/cafe.model';
 import { Review } from '../../../core/models/review.model';
 import { SaveToListModalComponent } from '../../../shared/components/save-to-list-modal/save-to-list-modal.component';
+import { ToastService } from '../../../shared/components/toast/toast.service';
 
 @Component({
     selector: 'app-scene',
@@ -26,6 +27,7 @@ export class SceneComponent implements OnInit {
     private broadcastService = inject(BroadcastService);
     private checkInService = inject(CheckInService);
     private reviewService = inject(ReviewService);
+    private toastService = inject(ToastService);
 
     cafe = signal<Cafe | null>(null);
     isUpdatingVibe = signal(false);
@@ -84,10 +86,10 @@ export class SceneComponent implements OnInit {
         try {
             await this.checkInService.checkIn(this.cafe()!.id, this.cafe()!.name);
             this.isCheckedIn.set(true);
-            alert('Checked in successfully! You unlocked the VIP perks.');
+            this.toastService.show('Checked in! 🎉 VIP perks unlocked.', 'success');
         } catch (error) {
             console.error('Error checking in:', error);
-            alert('Failed to check in. Make sure you are logged in.');
+            this.toastService.show('Failed to check in. Are you logged in?', 'error');
         } finally {
             this.checkingIn.set(false);
         }
@@ -112,7 +114,7 @@ export class SceneComponent implements OnInit {
             this.reviewSubmitted.set(true);
         } catch (error) {
             console.error('Failed to submit review', error);
-            alert('Could not submit review. Are you logged in?');
+            this.toastService.show('Could not submit review. Are you logged in?', 'error');
         } finally {
             this.submittingReview.set(false);
         }
@@ -137,7 +139,7 @@ export class SceneComponent implements OnInit {
 
     submitVibeUpdate() {
         this.isUpdatingVibe.set(false);
-        alert('Thanks for keeping the zine alive! Your vibe check has been submitted.');
+        this.toastService.show('Vibe updated! Thanks for keeping the zine alive 🌿', 'success');
     }
 
     toggleBroadcastForm() {
@@ -164,10 +166,20 @@ export class SceneComponent implements OnInit {
             );
             this.isBroadcasting.set(false);
             this.broadcastMessage.set('');
-            alert('Broadcast sent! Friends can now see you are here.');
+            this.toastService.show('Broadcast sent! 📡 Friends can see you are here.', 'success');
         } catch (error) {
             console.error('Error creating broadcast:', error);
-            alert('Failed to send broadcast. Try again later.');
+            this.toastService.show('Failed to send broadcast. Try again later.', 'error');
         }
+    }
+
+    openDirections() {
+        const cafe = this.cafe();
+        if (!cafe) return;
+        // Prefer Google Maps URL if set, else build Waze link from coordinates
+        const url = cafe.googleMapsUrl
+            ? cafe.googleMapsUrl
+            : `https://waze.com/ul?ll=${cafe.lat},${cafe.lng}&navigate=yes`;
+        window.open(url, '_blank', 'noopener');
     }
 }

@@ -24,7 +24,8 @@
                 <span class="material-symbols-outlined px-3 text-espresso">search</span>
                 <input
                     class="w-full bg-transparent border-none focus:ring-0 font-zine font-bold text-sm uppercase placeholder:text-espresso/40 py-3"
-                    placeholder="CRUSHING ON A CAFE?" type="text" />
+                    placeholder="CRUSHING ON A CAFE?" type="text" [value]="cafeService.searchQuery()"
+                    (input)="cafeService.searchQuery.set($any($event.target).value)" />
             </div>
         </div>
     </header>
@@ -184,8 +185,13 @@
         }
     </main>
 
-    <!-- Floating Action Button -->
-    <div class="fixed bottom-24 right-6 z-40 max-w-md">
+    <!-- Floating Action Buttons -->
+    <div class="fixed bottom-24 right-6 z-40 max-w-md flex flex-col items-end gap-3">
+        <a routerLink="/cafe/add"
+            class="bg-sage text-espresso font-marker text-sm px-4 py-3 rounded-full zine-border zine-shadow hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex items-center gap-2">
+            <span class="material-symbols-outlined text-base">add_location_alt</span>
+            SUGGEST A SPOT
+        </a>
         <a routerLink="/session/create"
             class="bg-primary text-espresso font-marker text-lg px-6 py-4 rounded-full zine-border zine-shadow hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex items-center gap-2">
             <span class="material-symbols-outlined">coffee</span>
