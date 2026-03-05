@@ -88,7 +88,8 @@ export class BillSplitComponent implements OnInit, OnDestroy {
         try {
             const sId = this.sessionId();
             const items = this.parsedItems();
-            const sub = this.rawSubtotal();
+            // Always recalculate subtotal from items (covers manual entry flow)
+            const sub = items.reduce((acc, item) => acc + (item.price || 0), 0);
             const tax = this.rawTax();
             const sc = this.rawServiceCharge();
             const total = sub + tax + sc;
@@ -122,6 +123,24 @@ export class BillSplitComponent implements OnInit, OnDestroy {
         }
 
         await this.billSplitService.updateItemAssignment(this.sessionId(), bill.id!, itemId, newAssignedTo);
+    }
+
+    startManualEntry() {
+        this.parsedItems.set([]);
+        this.rawSubtotal.set(0);
+        this.rawTax.set(0);
+        this.rawServiceCharge.set(0);
+        this.viewState.set('CONFIRM_ITEMS');
+    }
+
+    addItem() {
+        const newItem = {
+            id: crypto.randomUUID(),
+            name: '',
+            price: 0,
+            assignedTo: [],
+        };
+        this.parsedItems.update(items => [...items, newItem]);
     }
 
     goToSummary() {

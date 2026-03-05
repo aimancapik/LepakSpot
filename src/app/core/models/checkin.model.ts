@@ -1,10 +1,8 @@
-import { Timestamp } from '@angular/fire/firestore';
-
 export interface CheckIn {
     id: string;
     userId: string;
     cafeId: string;
     cafeName: string;
-    timestamp: Timestamp;
+    timestamp: string;
     pointsEarned: number;
 }

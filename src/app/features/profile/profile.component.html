@@ -123,8 +123,8 @@
                     <div class="flex-1 min-w-0">
                         <p class="font-zine font-bold italic uppercase text-lg truncate leading-none">{{
                             checkin.cafeName }}</p>
-                        <p class="font-marker text-[10px] text-espresso/60 mt-1 uppercase">{{ (checkin.timestamp ?
-                            checkin.timestamp.toDate() : null) | date: 'd MMM, h:mm a' }}</p>
+                        <p class="font-marker text-[10px] text-espresso/60 mt-1 uppercase">{{ checkin.timestamp | date:
+                            'd MMM, h:mm a' }}</p>
                     </div>
                     <div class="shrink-0 bg-sage border-2 border-espresso px-2 py-1 rotate-3">
                         <span class="font-marker text-sm">+{{ checkin.pointsEarned }}</span>

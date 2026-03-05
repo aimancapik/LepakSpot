@@ -16,6 +16,16 @@ export const routes: Routes = [
     canActivate: [authGuard],
     data: { showBottomNavbar: true, activeTab: 'home' }
   },
+  { path: 'session', redirectTo: 'session/join', pathMatch: 'full' },
+  {
+    path: 'session/join',
+    loadComponent: () =>
+      import('./features/session/lobby/lobby.component').then(
+        (m) => m.LobbyComponent
+      ),
+    canActivate: [authGuard],
+    data: { showBottomNavbar: false }
+  },
   {
     path: 'session/create',
     loadComponent: () =>

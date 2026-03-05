@@ -4,10 +4,10 @@
 
     <!-- Header -->
     <div class="relative z-10 px-6 pt-12 pb-6 flex items-center justify-between">
-        <a routerLink="/home"
+        <button (click)="leave()"
             class="flex size-10 items-center justify-center rounded-xl bg-white border-2 border-espresso shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-[2px] active:shadow-none transition-all -rotate-2">
             <span class="material-symbols-outlined text-espresso font-bold">arrow_back</span>
-        </a>
+        </button>
         <div class="relative inline-block rotate-2">
             <div class="absolute -inset-1 bg-latte transform rotate-2 rounded-sm border-2 border-espresso -z-10"></div>
             <h2 class="font-marker text-2xl tracking-wide text-espresso relative z-10 px-2 py-1">Join Session</h2>

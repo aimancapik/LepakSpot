@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit, signal, ViewEncapsulation } from '@angular/core';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ChangeDetectionStrategy, Component, effect, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { SessionService } from '../../../core/services/session.service';
 import { AuthService } from '../../../core/services/auth.service';
@@ -8,11 +8,11 @@ import { AuthService } from '../../../core/services/auth.service';
   selector: 'app-lobby',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, FormsModule],
+  imports: [FormsModule],
   templateUrl: './lobby.component.html',
   styleUrl: './lobby.component.scss',
 })
-export class LobbyComponent implements OnInit {
+export class LobbyComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private sessionService = inject(SessionService);
@@ -24,19 +24,29 @@ export class LobbyComponent implements OnInit {
   joining = signal(false);
   joined = signal(false);
 
+  constructor() {
+    // Reactively navigate when session status becomes 'voting' — no polling needed
+    effect(() => {
+      const session = this.sessionService.activeSession();
+      if (session?.status === 'voting') {
+        this.router.navigate(['/session', session.id, 'voting']);
+      }
+    });
+  }
+
   ngOnInit() {
     const sessionId = this.route.snapshot.paramMap.get('id');
     if (sessionId) {
       this.sessionService.listenSession(sessionId);
       this.joined.set(true);
-      // Watch for status change
-      const checkStatus = setInterval(() => {
-        const session = this.sessionService.activeSession();
-        if (session?.status === 'voting') {
-          clearInterval(checkStatus);
-          this.router.navigate(['/session', session.id, 'voting']);
-        }
-      }, 1000);
+    }
+  }
+
+  ngOnDestroy() {
+    // Only cleanup if not transitioning into the session itself
+    const session = this.sessionService.activeSession();
+    if (!session || session.status !== 'voting') {
+      this.sessionService.cleanup();
     }
   }
 
@@ -74,14 +84,7 @@ export class LobbyComponent implements OnInit {
       const sessionId = await this.sessionService.joinSession(code);
       if (sessionId) {
         this.joined.set(true);
-        // Watch for voting start
-        const checkStatus = setInterval(() => {
-          const session = this.sessionService.activeSession();
-          if (session?.status === 'voting') {
-            clearInterval(checkStatus);
-            this.router.navigate(['/session', session.id, 'voting']);
-          }
-        }, 1000);
+        // effect() in constructor handles navigation when status becomes 'voting'
       } else {
         this.error.set('Session not found. Check the code and try again.');
       }
@@ -90,5 +93,16 @@ export class LobbyComponent implements OnInit {
     } finally {
       this.joining.set(false);
     }
+  }
+
+  async leave() {
+    const sessionId = this.route.snapshot.paramMap.get('id')
+      ?? this.sessionService.activeSession()?.id;
+    if (sessionId) {
+      await this.sessionService.leaveSession(sessionId);
+    } else {
+      this.sessionService.cleanup();
+    }
+    this.router.navigate(['/home']);
   }
 }

@@ -1,31 +1,15 @@
 import { Injectable, inject, signal } from '@angular/core';
-import {
-    Firestore,
-    doc,
-    setDoc,
-    updateDoc,
-    getDoc,
-    collection,
-    query,
-    where,
-    getDocs,
-    onSnapshot,
-    arrayUnion,
-    Timestamp,
-    type Unsubscribe,
-} from '@angular/fire/firestore';
 import { Session } from '../models/session.model';
 import { AuthService } from './auth.service';
+import { SupabaseService } from './supabase.service';
 
 @Injectable({ providedIn: 'root' })
 export class SessionService {
-    private firestore = inject(Firestore);
+    private supabase = inject(SupabaseService);
     private authService = inject(AuthService);
 
-    private readonly sessionsRef = collection(this.firestore, 'sessions');
-
     activeSession = signal<Session | null>(null);
-    private unsubscribe: Unsubscribe | null = null;
+    private realtimeChannel: any = null;
 
     private generateCode(): string {
         const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -40,11 +24,9 @@ export class SessionService {
         const user = this.authService.currentUser();
         if (!user) throw new Error('Not authenticated');
 
-        const newDocRef = doc(this.sessionsRef);
         const code = this.generateCode();
 
-        const session: Session = {
-            id: newDocRef.id,
+        const session = {
             code,
             createdBy: user.uid,
             members: [user.uid],
@@ -52,89 +34,195 @@ export class SessionService {
             votes: {},
             status: 'waiting',
             winnerId: null,
-            createdAt: Timestamp.now(),
+            createdAt: new Date().toISOString(),
         };
 
-        await setDoc(newDocRef, session);
-        this.activeSession.set(session);
-        this.listenSession(newDocRef.id);
-        return newDocRef.id;
+        const { data, error } = await this.supabase.client
+            .from('sessions')
+            .insert(session)
+            .select('*')
+            .single();
+
+        if (error) throw error;
+
+        const created = data as Session;
+        this.activeSession.set(created);
+        this.listenSession(created.id);
+        return created.id;
     }
 
     async joinSession(code: string): Promise<string | null> {
         const user = this.authService.currentUser();
         if (!user) throw new Error('Not authenticated');
 
-        const q = query(this.sessionsRef, where('code', '==', code.toUpperCase()));
-        const snapshot = await getDocs(q);
+        const { data } = await this.supabase.client
+            .from('sessions')
+            .select('*')
+            .eq('code', code.toUpperCase())
+            .single();
 
-        if (snapshot.empty) return null;
+        if (!data) return null;
 
-        const sessionDoc = snapshot.docs[0];
-        const sessionId = sessionDoc.id;
+        const session = data as Session;
+        const members = session.members || [];
+        if (!members.includes(user.uid)) {
+            members.push(user.uid);
+            await this.supabase.client
+                .from('sessions')
+                .update({ members })
+                .eq('id', session.id);
+        }
 
-        await updateDoc(doc(this.sessionsRef, sessionId), {
-            members: arrayUnion(user.uid),
-        });
-
-        this.listenSession(sessionId);
-        return sessionId;
+        this.listenSession(session.id);
+        return session.id;
     }
 
     listenSession(id: string) {
-        if (this.unsubscribe) this.unsubscribe();
+        if (this.realtimeChannel) {
+            this.supabase.client.removeChannel(this.realtimeChannel);
+        }
 
-        const sessionRef = doc(this.sessionsRef, id);
-        this.unsubscribe = onSnapshot(sessionRef, (snap) => {
-            if (snap.exists()) {
-                this.activeSession.set({ id: snap.id, ...snap.data() } as Session);
-            }
-        });
+        // Initial load
+        this.supabase.client
+            .from('sessions')
+            .select('*')
+            .eq('id', id)
+            .single()
+            .then(({ data }) => {
+                if (data) this.activeSession.set(data as Session);
+            });
+
+        this.realtimeChannel = this.supabase.client
+            .channel(`session_${id}`)
+            .on('postgres_changes', {
+                event: '*',
+                schema: 'public',
+                table: 'sessions',
+                filter: `id=eq.${id}`
+            }, (payload: any) => {
+                if (payload.new) {
+                    this.activeSession.set(payload.new as Session);
+                }
+            })
+            .subscribe();
     }
 
     async castVote(sessionId: string, cafeId: string) {
         const user = this.authService.currentUser();
         if (!user) return;
 
-        const sessionRef = doc(this.sessionsRef, sessionId);
-        await updateDoc(sessionRef, {
-            [`votes.${user.uid}`]: cafeId,
-        });
+        const { data: sessionData } = await this.supabase.client
+            .from('sessions')
+            .select('*')
+            .eq('id', sessionId)
+            .single();
 
-        // Check if all members voted
-        const freshSnap = await getDoc(sessionRef);
-        if (freshSnap.exists()) {
-            const data = freshSnap.data() as Session;
-            const totalMembers = data.members.length;
-            const totalVotes = Object.keys(data.votes).length;
+        if (!sessionData) return;
 
-            if (totalVotes >= totalMembers) {
-                // Calculate winner
-                const voteCounts: Record<string, number> = {};
-                Object.values(data.votes).forEach((cId) => {
-                    voteCounts[cId] = (voteCounts[cId] || 0) + 1;
-                });
-                const winnerId = Object.entries(voteCounts).sort(
-                    (a, b) => b[1] - a[1]
-                )[0][0];
+        const votes = sessionData.votes || {};
+        votes[user.uid] = cafeId;
 
-                await updateDoc(sessionRef, {
-                    status: 'done',
-                    winnerId,
-                });
+        await this.supabase.client
+            .from('sessions')
+            .update({ votes })
+            .eq('id', sessionId);
+
+        await this.checkCompletion(sessionId);
+    }
+
+    async abstain(sessionId: string) {
+        const user = this.authService.currentUser();
+        if (!user) return;
+
+        const { data: sessionData } = await this.supabase.client
+            .from('sessions')
+            .select('*')
+            .eq('id', sessionId)
+            .single();
+
+        if (!sessionData) return;
+
+        const votes = sessionData.votes || {};
+        if (!votes[user.uid]) {
+            votes[user.uid] = '__abstain__';
+            await this.supabase.client
+                .from('sessions')
+                .update({ votes })
+                .eq('id', sessionId);
+        }
+
+        await this.checkCompletion(sessionId);
+    }
+
+    private async checkCompletion(sessionId: string) {
+        const { data: freshData } = await this.supabase.client
+            .from('sessions')
+            .select('*')
+            .eq('id', sessionId)
+            .single();
+
+        if (!freshData) return;
+
+        const totalMembers = (freshData.members as string[]).length;
+        const totalVotes = Object.keys(freshData.votes || {}).length;
+
+        if (totalVotes >= totalMembers) {
+            const realVotes = Object.entries(freshData.votes as Record<string, string>)
+                .filter(([, v]) => v !== '__abstain__');
+
+            if (realVotes.length === 0) {
+                const fallbackWinner = (freshData.cafeOptions as string[])[0] ?? null;
+                await this.supabase.client
+                    .from('sessions')
+                    .update({ status: 'done', winnerId: fallbackWinner })
+                    .eq('id', sessionId);
+                return;
             }
+
+            const voteCounts: Record<string, number> = {};
+            realVotes.forEach(([, cId]) => {
+                voteCounts[cId] = (voteCounts[cId] || 0) + 1;
+            });
+            const winnerId = Object.entries(voteCounts).sort((a, b) => b[1] - a[1])[0][0];
+
+            await this.supabase.client
+                .from('sessions')
+                .update({ status: 'done', winnerId })
+                .eq('id', sessionId);
         }
     }
 
+    async leaveSession(sessionId: string) {
+        const user = this.authService.currentUser();
+        if (!user) return;
+
+        const { data } = await this.supabase.client
+            .from('sessions')
+            .select('members')
+            .eq('id', sessionId)
+            .single();
+
+        if (data) {
+            const members = (data.members as string[]).filter(uid => uid !== user.uid);
+            await this.supabase.client
+                .from('sessions')
+                .update({ members })
+                .eq('id', sessionId);
+        }
+        this.cleanup();
+    }
+
     async startVoting(sessionId: string) {
-        const sessionRef = doc(this.sessionsRef, sessionId);
-        await updateDoc(sessionRef, { status: 'voting' });
+        await this.supabase.client
+            .from('sessions')
+            .update({ status: 'voting' })
+            .eq('id', sessionId);
     }
 
     cleanup() {
-        if (this.unsubscribe) {
-            this.unsubscribe();
-            this.unsubscribe = null;
+        if (this.realtimeChannel) {
+            this.supabase.client.removeChannel(this.realtimeChannel);
+            this.realtimeChannel = null;
         }
         this.activeSession.set(null);
     }

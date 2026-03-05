@@ -122,7 +122,7 @@ export class SceneComponent implements OnInit {
 
     formatDate(ts: any): string {
         if (!ts) return '';
-        const date = ts.toDate ? ts.toDate() : new Date(ts);
+        const date = new Date(ts);
         return date.toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' });
     }
 

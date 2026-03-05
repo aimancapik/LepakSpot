@@ -8,9 +8,7 @@ import {
     CafeTag, WifiSpeed, CrowdLevel, NoiseLevel, OutletAvailability
 } from '../../../core/models/cafe.model';
 import { Location, UpperCasePipe } from '@angular/common';
-import {
-    Storage, ref, uploadBytes, getDownloadURL
-} from '@angular/fire/storage';
+import { SupabaseService } from '../../../core/services/supabase.service';
 
 @Component({
     selector: 'app-add-cafe',
@@ -23,7 +21,7 @@ export class AddCafeComponent {
     private cafeService = inject(CafeService);
     private toastService = inject(ToastService);
     private authService = inject(AuthService);
-    private storage = inject(Storage);
+    private supabase = inject(SupabaseService);
     private router = inject(Router);
     private location = inject(Location);
 
@@ -93,7 +91,7 @@ export class AddCafeComponent {
             reader.readAsDataURL(file);
             this.photoFiles.update(f => [...f, file]);
         });
-        input.value = ''; // reset so same file can be re-added
+        input.value = '';
     }
 
     removePhoto(index: number) {
@@ -107,10 +105,17 @@ export class AddCafeComponent {
         const urls: string[] = [];
         for (const file of this.photoFiles()) {
             const path = `cafe-photos/${user.uid}/${Date.now()}-${file.name}`;
-            const storageRef = ref(this.storage, path);
-            const snap = await uploadBytes(storageRef, file);
-            const url = await getDownloadURL(snap.ref);
-            urls.push(url);
+            const { data, error } = await this.supabase.client.storage
+                .from('cafe-photos')
+                .upload(path, file, { upsert: true });
+            if (error) {
+                console.error('Upload error:', error);
+                continue;
+            }
+            const { data: urlData } = this.supabase.client.storage
+                .from('cafe-photos')
+                .getPublicUrl(data.path);
+            urls.push(urlData.publicUrl);
         }
         return urls;
     }

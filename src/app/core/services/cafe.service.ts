@@ -1,17 +1,7 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
-import {
-    Firestore,
-    collection,
-    getDocs,
-    doc,
-    getDoc,
-    setDoc,
-    Timestamp,
-    updateDoc,
-    increment,
-} from '@angular/fire/firestore';
 import { Cafe, CafeTag } from '../models/cafe.model';
 import { AuthService } from './auth.service';
+import { SupabaseService } from './supabase.service';
 
 const MOCK_CAFES: Cafe[] = [
     {
@@ -24,7 +14,7 @@ const MOCK_CAFES: Cafe[] = [
         lng: 101.7125,
         photos: ['https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=600&h=400&fit=crop'],
         addedBy: 'system',
-        createdAt: Timestamp.now(),
+        createdAt: new Date().toISOString(),
         crowdLevel: 'Packed',
         noiseLevel: 'Loud',
         wifiSpeed: 'Average',
@@ -45,7 +35,7 @@ const MOCK_CAFES: Cafe[] = [
         lng: 101.7098,
         photos: ['https://images.unsplash.com/photo-1559305616-3f99cd43e353?w=600&h=400&fit=crop'],
         addedBy: 'system',
-        createdAt: Timestamp.now(),
+        createdAt: new Date().toISOString(),
         crowdLevel: 'Moderate',
         noiseLevel: 'Chill Chatter',
         wifiSpeed: 'Fast',
@@ -66,7 +56,7 @@ const MOCK_CAFES: Cafe[] = [
         lng: 101.6958,
         photos: ['https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=600&h=400&fit=crop'],
         addedBy: 'system',
-        createdAt: Timestamp.now(),
+        createdAt: new Date().toISOString(),
         crowdLevel: 'Empty',
         noiseLevel: 'Library Quiet',
         wifiSpeed: 'Average',
@@ -85,7 +75,7 @@ const MOCK_CAFES: Cafe[] = [
         lng: 101.6873,
         photos: ['https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=600&h=400&fit=crop'],
         addedBy: 'system',
-        createdAt: Timestamp.now(),
+        createdAt: new Date().toISOString(),
         crowdLevel: 'Packed',
         noiseLevel: 'Chill Chatter',
         wifiSpeed: 'Fast',
@@ -104,7 +94,7 @@ const MOCK_CAFES: Cafe[] = [
         lng: 101.6217,
         photos: ['https://images.unsplash.com/photo-1493857671505-72967e2e2760?w=600&h=400&fit=crop'],
         addedBy: 'system',
-        createdAt: Timestamp.now(),
+        createdAt: new Date().toISOString(),
         crowdLevel: 'Moderate',
         noiseLevel: 'Loud',
         wifiSpeed: 'Average',
@@ -117,10 +107,8 @@ const MOCK_CAFES: Cafe[] = [
 
 @Injectable({ providedIn: 'root' })
 export class CafeService {
-    private firestore = inject(Firestore);
+    private supabase = inject(SupabaseService);
     private authService = inject(AuthService);
-    private readonly cafesRef = collection(this.firestore, 'cafes');
-    private readonly usersRef = collection(this.firestore, 'users');
 
     nearbyCafes = signal<Cafe[]>(MOCK_CAFES);
     selectedTags = signal<CafeTag[]>([]);
@@ -160,14 +148,14 @@ export class CafeService {
 
     async getNearby(_lat?: number, _lng?: number, _radiusKm = 5) {
         try {
-            const snapshot = await getDocs(this.cafesRef);
-            if (snapshot.empty) {
+            const { data, error } = await this.supabase.client
+                .from('cafes')
+                .select('*');
+
+            if (error || !data || data.length === 0) {
                 this.nearbyCafes.set(MOCK_CAFES);
             } else {
-                const cafes = snapshot.docs.map(
-                    (d) => ({ id: d.id, ...d.data() } as Cafe)
-                );
-                this.nearbyCafes.set(cafes);
+                this.nearbyCafes.set(data as Cafe[]);
             }
         } catch {
             this.nearbyCafes.set(MOCK_CAFES);
@@ -175,22 +163,20 @@ export class CafeService {
     }
 
     async getCafeById(id: string): Promise<Cafe | null> {
-        // Check in-memory cache first
         const cached = this.nearbyCafes().find(c => c.id === id);
         if (cached) return cached;
 
-        // Check mock data
         const mock = MOCK_CAFES.find(c => c.id === id);
         if (mock) return mock;
 
         try {
-            const cafeDoc = await getDoc(doc(this.firestore, `cafes/${id}`));
-            if (cafeDoc.exists()) {
-                return { id: cafeDoc.id, ...cafeDoc.data() } as Cafe;
-            }
-        } catch {
-            // ignore
-        }
+            const { data } = await this.supabase.client
+                .from('cafes')
+                .select('*')
+                .eq('id', id)
+                .single();
+            if (data) return data as Cafe;
+        } catch { }
         return null;
     }
 
@@ -203,25 +189,22 @@ export class CafeService {
                 continue;
             }
             try {
-                const cafeDoc = await getDoc(doc(this.firestore, `cafes/${id}`));
-                if (cafeDoc.exists()) {
-                    results.push({ id: cafeDoc.id, ...cafeDoc.data() } as Cafe);
-                }
-            } catch {
-                // skip
-            }
+                const { data } = await this.supabase.client
+                    .from('cafes')
+                    .select('*')
+                    .eq('id', id)
+                    .single();
+                if (data) results.push(data as Cafe);
+            } catch { }
         }
         return results;
     }
 
-    /** Submit a new cafe suggestion. Awards 100 pts to the submitting user. */
     async submitCafe(data: Partial<Cafe>): Promise<string> {
         const user = this.authService.currentUser();
         if (!user) throw new Error('Not authenticated');
 
-        const newDoc = doc(this.cafesRef);
-        const cafe: Cafe = {
-            id: newDoc.id,
+        const cafe: Partial<Cafe> = {
             name: data.name || '',
             address: data.address || '',
             lat: data.lat || 0,
@@ -231,8 +214,8 @@ export class CafeService {
             photos: data.photos || [],
             addedBy: user.uid,
             submittedBy: user.uid,
-            createdAt: Timestamp.now(),
-            pendingApproval: false, // show immediately, trust users
+            createdAt: new Date().toISOString(),
+            pendingApproval: false,
             openingHours: data.openingHours,
             wifiSpeed: data.wifiSpeed,
             outletAvailability: data.outletAvailability,
@@ -244,21 +227,28 @@ export class CafeService {
             googleMapsUrl: data.googleMapsUrl,
         };
 
-        await setDoc(newDoc, cafe);
+        const { data: inserted, error } = await this.supabase.client
+            .from('cafes')
+            .insert(cafe)
+            .select('id')
+            .single();
+
+        if (error) throw error;
+        const newId = inserted!.id;
 
         // Award 100 pts
-        const userRef = doc(this.usersRef, user.uid);
-        await updateDoc(userRef, { points: increment(100) });
+        await this.supabase.client.rpc('increment_points', { user_uid: user.uid, amount: 100 }).then(() => { });
+        // Fallback: direct update if RPC not set up
+        await this.supabase.client
+            .from('users')
+            .update({ points: (user.points || 0) + 100 })
+            .eq('uid', user.uid);
 
-        // Refresh user in auth service
-        const updatedSnap = await getDoc(userRef);
-        if (updatedSnap.exists()) {
-            this.authService.currentUser.set({ uid: user.uid, ...updatedSnap.data() } as any);
-        }
+        await this.authService.refreshCurrentUser();
 
-        // Add to local list so it appears immediately
-        this.nearbyCafes.update(cafes => [...cafes, cafe]);
+        // Add to local list
+        this.nearbyCafes.update(cafes => [...cafes, { ...cafe, id: newId } as Cafe]);
 
-        return newDoc.id;
+        return newId;
     }
 }

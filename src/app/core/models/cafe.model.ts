@@ -1,5 +1,3 @@
-import { Timestamp } from '@angular/fire/firestore';
-
 export type CafeTag = 'wifi' | 'aesthetic' | 'halal' | 'study' | 'chill';
 export type CrowdLevel = 'Empty' | 'Moderate' | 'Packed';
 export type NoiseLevel = 'Library Quiet' | 'Chill Chatter' | 'Loud';
@@ -16,7 +14,7 @@ export interface Cafe {
     rating: number;
     photos: string[];
     addedBy: string;
-    createdAt: Timestamp;
+    createdAt: string;
     crowdLevel?: CrowdLevel;
     noiseLevel?: NoiseLevel;
     wifiSpeed?: WifiSpeed;

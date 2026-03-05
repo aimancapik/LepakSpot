@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit, signal, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CafeService } from '../../../core/services/cafe.service';
 import { SessionService } from '../../../core/services/session.service';
@@ -26,47 +26,48 @@ export class CreateSessionComponent implements OnInit {
   sessionCode = signal('');
   sessionId = signal('');
   sessionMembers = signal<string[]>([]);
+  creating = signal(false);
+  private cafeIdsToUse: string[] = [];
 
   async ngOnInit() {
     this.route.queryParams.subscribe(async (params) => {
       const listId = params['listId'];
-      let cafeIdsToUse: string[] = [];
 
       if (listId) {
         const list = await this.cafeListService.getListById(listId);
         if (list && list.cafeIds.length > 0) {
-          // Shuffle or just use them all if less than 10? Sessions can handle any.
-          // Let's use up to 10 cafes from the list for the session
           const listCafes = await this.cafeService.getCafesByIds(list.cafeIds);
           this.sessionCafes.set(listCafes.slice(0, 10));
-          cafeIdsToUse = this.sessionCafes().map(c => c.id!);
+          this.cafeIdsToUse = this.sessionCafes().map(c => c.id!);
+          return;
         }
       }
 
-      if (cafeIdsToUse.length === 0) {
-        await this.cafeService.getNearby();
-        const allCafes = this.cafeService.nearbyCafes();
-
-        // Pick up to 5 random cafés
-        const shuffled = [...allCafes].sort(() => Math.random() - 0.5);
-        const picked = shuffled.slice(0, 5);
-        this.sessionCafes.set(picked);
-        cafeIdsToUse = picked.map((c) => c.id!);
-      }
-
-      // Create session
-      try {
-        const id = await this.sessionService.createSession(cafeIdsToUse);
-        this.sessionId.set(id);
-        const session = this.sessionService.activeSession();
-        if (session) {
-          this.sessionCode.set(session.code);
-          this.sessionMembers.set([this.authService.currentUser()?.displayName || 'You']);
-        }
-      } catch (err) {
-        console.error('Failed to create session:', err);
-      }
+      await this.cafeService.getNearby();
+      const allCafes = this.cafeService.nearbyCafes();
+      const shuffled = [...allCafes].sort(() => Math.random() - 0.5);
+      const picked = shuffled.slice(0, 5);
+      this.sessionCafes.set(picked);
+      this.cafeIdsToUse = picked.map((c) => c.id!);
     });
+  }
+
+  async create() {
+    if (this.creating() || this.cafeIdsToUse.length === 0) return;
+    this.creating.set(true);
+    try {
+      const id = await this.sessionService.createSession(this.cafeIdsToUse);
+      this.sessionId.set(id);
+      const session = this.sessionService.activeSession();
+      if (session) {
+        this.sessionCode.set(session.code);
+        this.sessionMembers.set([this.authService.currentUser()?.displayName || 'You']);
+      }
+    } catch (err) {
+      console.error('Failed to create session:', err);
+    } finally {
+      this.creating.set(false);
+    }
   }
 
   async shareSession() {

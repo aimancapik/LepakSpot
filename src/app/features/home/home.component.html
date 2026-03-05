@@ -11,7 +11,7 @@
                     Hi {{ authService.currentUser()?.displayName?.split(' ')?.[0] || 'there' }},<br />Find a Spot
                 </h1>
             </div>
-            <button
+            <button (click)="showNotifications()"
                 class="w-12 h-12 zine-border zine-shadow bg-off-white flex items-center justify-center rounded-lg hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all">
                 <span class="material-symbols-outlined text-espresso">notifications</span>
             </button>

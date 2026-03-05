@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { CafeService } from '../../core/services/cafe.service';
 import { BroadcastService } from '../../core/services/broadcast.service';
+import { ToastService } from '../../shared/components/toast/toast.service';
 import { CafeTag } from '../../core/models/cafe.model';
 
 @Component({
@@ -17,6 +18,7 @@ export class HomeComponent implements OnInit {
   authService = inject(AuthService);
   cafeService = inject(CafeService);
   broadcastService = inject(BroadcastService);
+  private toastService = inject(ToastService);
 
   chips: { tag: CafeTag; label: string; icon: string }[] = [
     { tag: 'wifi', label: 'WiFi', icon: 'wifi' },
@@ -41,5 +43,9 @@ export class HomeComponent implements OnInit {
 
   isTagActive(tag: CafeTag): boolean {
     return this.cafeService.selectedTags().includes(tag);
+  }
+
+  showNotifications() {
+    this.toastService.show('Notifications coming soon! 🔔', 'info');
   }
 }

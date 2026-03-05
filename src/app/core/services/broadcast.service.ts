@@ -1,52 +1,49 @@
 import { Injectable, inject, signal } from '@angular/core';
-import {
-    Firestore,
-    collection,
-    query,
-    where,
-    onSnapshot,
-    addDoc,
-    Timestamp,
-    doc,
-    updateDoc,
-    arrayUnion,
-    deleteDoc,
-    getDocs
-} from '@angular/fire/firestore';
 import { Broadcast } from '../models/broadcast.model';
 import { AuthService } from './auth.service';
+import { SupabaseService } from './supabase.service';
 
 @Injectable({ providedIn: 'root' })
 export class BroadcastService {
-    private firestore = inject(Firestore);
+    private supabase = inject(SupabaseService);
     private authService = inject(AuthService);
-    private broadcastsRef = collection(this.firestore, 'broadcasts');
 
     activeBroadcasts = signal<Broadcast[]>([]);
+    private realtimeChannel: any = null;
 
     constructor() {
         this.listenToActiveBroadcasts();
     }
 
     private listenToActiveBroadcasts() {
-        // In a real app we might only listen to broadcasts from 'friends'
-        // For the MVP, we'll listen to all active broadcasts
-        const now = Timestamp.now();
-        const q = query(
-            this.broadcastsRef,
-            where('expiresAt', '>', now)
-        );
+        const now = new Date().toISOString();
 
-        onSnapshot(q, (snapshot) => {
-            const broadcasts = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            } as Broadcast));
+        // Initial load
+        this.supabase.client
+            .from('broadcasts')
+            .select('*')
+            .gt('expiresAt', now)
+            .order('createdAt', { ascending: false })
+            .then(({ data }) => {
+                this.activeBroadcasts.set((data || []) as Broadcast[]);
+            });
 
-            // Sort by newest first
-            broadcasts.sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
-            this.activeBroadcasts.set(broadcasts);
-        });
+        // Realtime subscription
+        this.realtimeChannel = this.supabase.client
+            .channel('broadcasts_live')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'broadcasts' }, () => {
+                // Re-fetch on any change
+                const refreshNow = new Date().toISOString();
+                this.supabase.client
+                    .from('broadcasts')
+                    .select('*')
+                    .gt('expiresAt', refreshNow)
+                    .order('createdAt', { ascending: false })
+                    .then(({ data }) => {
+                        this.activeBroadcasts.set((data || []) as Broadcast[]);
+                    });
+            })
+            .subscribe();
     }
 
     async createBroadcast(cafeId: string, cafeName: string, message: string, hoursValid: number = 3) {
@@ -56,37 +53,57 @@ export class BroadcastService {
         const now = new Date();
         const expiresAt = new Date(now.getTime() + hoursValid * 60 * 60 * 1000);
 
-        const newBroadcast: Omit<Broadcast, 'id'> = {
+        const newBroadcast = {
             hostId: user.uid,
             hostName: user.displayName || 'Anonymous',
             cafeId,
             cafeName,
             message,
-            expiresAt: Timestamp.fromDate(expiresAt),
-            createdAt: Timestamp.fromDate(now),
-            attendees: [user.uid] // host is automatically an attendee
+            expiresAt: expiresAt.toISOString(),
+            createdAt: now.toISOString(),
+            attendees: [user.uid],
         };
 
-        const docRef = await addDoc(this.broadcastsRef, newBroadcast);
-        return docRef.id;
+        const { data, error } = await this.supabase.client
+            .from('broadcasts')
+            .insert(newBroadcast)
+            .select('id')
+            .single();
+
+        if (error) throw error;
+        return data!.id;
     }
 
     async joinBroadcast(broadcastId: string) {
         const user = this.authService.currentUser();
         if (!user) throw new Error('Must be logged in to join');
 
-        const bRef = doc(this.firestore, `broadcasts/${broadcastId}`);
-        await updateDoc(bRef, {
-            attendees: arrayUnion(user.uid)
-        });
+        // Get current attendees
+        const { data } = await this.supabase.client
+            .from('broadcasts')
+            .select('attendees')
+            .eq('id', broadcastId)
+            .single();
+
+        if (data) {
+            const attendees = (data.attendees as string[]) || [];
+            if (!attendees.includes(user.uid)) {
+                attendees.push(user.uid);
+                await this.supabase.client
+                    .from('broadcasts')
+                    .update({ attendees })
+                    .eq('id', broadcastId);
+            }
+        }
     }
 
     async deleteBroadcast(broadcastId: string) {
         const user = this.authService.currentUser();
         if (!user) throw new Error('Must be logged in to delete');
 
-        // In reality, we should check if user.uid === broadcast.hostId via backend rules
-        const bRef = doc(this.firestore, `broadcasts/${broadcastId}`);
-        await deleteDoc(bRef);
+        await this.supabase.client
+            .from('broadcasts')
+            .delete()
+            .eq('id', broadcastId);
     }
 }

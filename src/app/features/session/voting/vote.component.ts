@@ -1,8 +1,10 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit, signal, computed, effect, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal, computed, effect } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { SessionService } from '../../../core/services/session.service';
 import { CafeService } from '../../../core/services/cafe.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { CafeListService } from '../../../core/services/cafe-list.service';
+import { ToastService } from '../../../shared/components/toast/toast.service';
 import { Cafe } from '../../../core/models/cafe.model';
 
 @Component({
@@ -19,10 +21,13 @@ export class VoteComponent implements OnInit {
   private sessionService = inject(SessionService);
   private cafeService = inject(CafeService);
   private authService = inject(AuthService);
+  private cafeListService = inject(CafeListService);
+  private toastService = inject(ToastService);
 
   cafes = signal<Cafe[]>([]);
   currentIndex = signal(0);
   isFav = signal(false);
+  private hasAbstained = signal(false);
 
   currentCafe = computed(() => {
     const idx = this.currentIndex();
@@ -86,19 +91,40 @@ export class VoteComponent implements OnInit {
     if (!session || !cafe) return;
 
     await this.sessionService.castVote(session.id, cafe.id);
-    this.next();
+    await this.next();
   }
 
-  skip() {
-    this.next();
+  async skip() {
+    await this.next();
   }
 
-  favourite() {
-    this.isFav.update((v) => !v);
+  async favourite() {
+    const cafe = this.currentCafe();
+    if (!cafe || this.isFav()) return;
+    this.isFav.set(true);
+    try {
+      await this.cafeListService.quickSave(cafe.id);
+      this.toastService.show('Saved to Quick Saves! ⭐', 'success');
+    } catch {
+      this.isFav.set(false);
+      this.toastService.show('Could not save. Try again.', 'error');
+    }
   }
 
-  private next() {
+  private async next() {
     this.isFav.set(false);
     this.currentIndex.update((i) => i + 1);
+
+    // If the user has gone through all cafes without voting, record an abstention
+    // so the session is not permanently stalled
+    const session = this.sessionService.activeSession();
+    if (this.currentIndex() >= this.cafes().length && !this.hasAbstained() && session) {
+      const userUid = this.authService.currentUser()?.uid;
+      const alreadyVoted = userUid && session.votes[userUid];
+      if (!alreadyVoted) {
+        this.hasAbstained.set(true);
+        await this.sessionService.abstain(session.id);
+      }
+    }
   }
 }

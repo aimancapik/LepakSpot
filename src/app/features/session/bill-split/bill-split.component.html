@@ -45,7 +45,11 @@
                 </div>
             </label>
 
-            <p class="mt-6 text-sm font-bold opacity-60">or enter manually (coming soon)</p>
+            <button (click)="startManualEntry()"
+                class="mt-6 flex items-center gap-2 text-sm font-bold text-espresso/70 underline underline-offset-4 hover:text-espresso transition-colors">
+                <span class="material-symbols-outlined text-base">edit_note</span>
+                Enter manually instead
+            </button>
         </div>
         }
 
@@ -90,7 +94,16 @@
                     </div>
                 </div>
                 }
+                @if (parsedItems().length === 0) {
+                <p class="text-center text-espresso/50 font-bold text-sm py-4">No items yet. Add one below.</p>
+                }
             </div>
+
+            <button (click)="addItem()"
+                class="flex items-center gap-2 text-sm font-bold text-espresso border-2 border-dashed border-espresso px-4 py-2 rounded-lg hover:bg-espresso/5 transition-colors w-full justify-center">
+                <span class="material-symbols-outlined text-base">add</span>
+                Add Item
+            </button>
 
             <div
                 class="bg-latte border-2 border-espresso rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-4 mt-2 -rotate-1">
@@ -102,7 +115,7 @@
                     <span class="font-bold">Tax:</span>
                     <div class="flex items-center gap-1 font-marker">
                         <span class="text-sm">RM</span>
-                        <input type="number" [(ngModel)]="rawTax"
+                        <input type="number" [ngModel]="rawTax()" (ngModelChange)="rawTax.set(+$event)"
                             class="w-16 bg-white border border-espresso rounded px-1 text-right outline-none">
                     </div>
                 </div>
@@ -110,7 +123,7 @@
                     <span class="font-bold">Service Charge:</span>
                     <div class="flex items-center gap-1 font-marker">
                         <span class="text-sm">RM</span>
-                        <input type="number" [(ngModel)]="rawServiceCharge"
+                        <input type="number" [ngModel]="rawServiceCharge()" (ngModelChange)="rawServiceCharge.set(+$event)"
                             class="w-16 bg-white border border-espresso rounded px-1 text-right outline-none">
                     </div>
                 </div>

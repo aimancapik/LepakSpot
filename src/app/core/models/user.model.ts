@@ -1,5 +1,3 @@
-import { Timestamp } from '@angular/fire/firestore';
-
 export interface User {
   uid: string;
   displayName: string;
@@ -10,5 +8,5 @@ export interface User {
   totalCheckins: number;
   streak?: number;
   lastCheckinDate?: string;
-  createdAt: Timestamp;
+  createdAt: string;
 }

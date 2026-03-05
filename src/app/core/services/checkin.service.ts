@@ -1,25 +1,7 @@
-import { Injectable, inject } from '@angular/core';
-import {
-    Firestore,
-    collection,
-    doc,
-    setDoc,
-    updateDoc,
-    increment,
-    query,
-    where,
-    orderBy,
-    limit,
-    getDocs,
-    Timestamp,
-    getDoc,
-    onSnapshot,
-    collectionData,
-} from '@angular/fire/firestore';
+import { Injectable, inject, signal } from '@angular/core';
 import { CheckIn } from '../models/checkin.model';
 import { AuthService } from './auth.service';
-import { Observable, from, of } from 'rxjs';
-import { signal } from '@angular/core';
+import { SupabaseService } from './supabase.service';
 
 export type DensityLevel = 'empty' | 'chill' | 'moderate' | 'busy' | 'packed';
 
@@ -28,7 +10,7 @@ export interface ActiveCheckIn {
     displayName: string;
     photoURL: string;
     cafeId: string;
-    timestamp: Timestamp;
+    timestamp: string;
 }
 
 export interface CafeDensity {
@@ -49,60 +31,56 @@ const ACTIVE_WINDOW_MS = 2 * 60 * 60 * 1000; // 2 hours
 
 @Injectable({ providedIn: 'root' })
 export class CheckInService {
-    private firestore = inject(Firestore);
+    private supabase = inject(SupabaseService);
     private authService = inject(AuthService);
 
-    private readonly checkinsRef = collection(this.firestore, 'checkins');
-    private readonly liveCheckinsRef = collection(this.firestore, 'live_checkins');
-    private readonly usersRef = collection(this.firestore, 'users');
-
-    // Live density map: cafeId -> density info
     densityMap = signal<Map<string, CafeDensity>>(new Map());
-    // Active check-ins for the currently selected cafe
     activePeopleAtCafe = signal<ActiveCheckIn[]>([]);
+
+    private realtimeChannel: any = null;
+    private densityChannel: any = null;
 
     async checkIn(cafeId: string, cafeName: string): Promise<void> {
         const user = this.authService.currentUser();
         if (!user) throw new Error('Not authenticated');
 
-        const newDoc = doc(this.checkinsRef);
         const pointsEarned = 25;
 
-        const checkin: CheckIn = {
-            id: newDoc.id,
+        const checkin = {
             userId: user.uid,
             cafeId,
             cafeName,
-            timestamp: Timestamp.now(),
+            timestamp: new Date().toISOString(),
             pointsEarned,
         };
 
-        await setDoc(newDoc, checkin);
+        await this.supabase.client.from('checkins').insert(checkin);
 
-        // Also update the live_checkins collection (auto-expires after 2h via client)
-        const liveRef = doc(this.liveCheckinsRef, user.uid);
-        const activeCheckin: ActiveCheckIn = {
+        // Update live_checkins (upsert)
+        await this.supabase.client.from('live_checkins').upsert({
             userId: user.uid,
             displayName: user.displayName,
             photoURL: user.photoURL || '',
             cafeId,
-            timestamp: Timestamp.now(),
-        };
-        await setDoc(liveRef, activeCheckin);
+            timestamp: new Date().toISOString(),
+        });
 
         // Streak calculation
-        const today = new Date().toISOString().split('T')[0]; // "YYYY-MM-DD"
-        const userRef = doc(this.usersRef, user.uid);
-        const userSnap = await getDoc(userRef);
-        const userData = userSnap.exists() ? userSnap.data() : {};
-        const lastDate: string | undefined = userData['lastCheckinDate'];
-        const currentStreak: number = userData['streak'] || 0;
+        const today = new Date().toISOString().split('T')[0];
+        const { data: userData } = await this.supabase.client
+            .from('users')
+            .select('streak, lastCheckinDate, points, totalCheckins, badges')
+            .eq('uid', user.uid)
+            .single();
+
+        const lastDate = userData?.lastCheckinDate;
+        const currentStreak = userData?.streak || 0;
 
         let newStreak: number;
         if (!lastDate) {
             newStreak = 1;
         } else if (lastDate === today) {
-            newStreak = currentStreak; // already checked in today
+            newStreak = currentStreak;
         } else {
             const yesterday = new Date();
             yesterday.setDate(yesterday.getDate() - 1);
@@ -110,79 +88,113 @@ export class CheckInService {
             newStreak = lastDate === yesterdayStr ? currentStreak + 1 : 1;
         }
 
-        // Update user points, checkins, streak
-        await updateDoc(userRef, {
-            points: increment(pointsEarned),
-            totalCheckins: increment(1),
-            streak: newStreak,
-            lastCheckinDate: today,
-        });
+        await this.supabase.client
+            .from('users')
+            .update({
+                points: (userData?.points || 0) + pointsEarned,
+                totalCheckins: (userData?.totalCheckins || 0) + 1,
+                streak: newStreak,
+                lastCheckinDate: today,
+            })
+            .eq('uid', user.uid);
 
         // Check and award badges
-        await this.checkBadges(user.uid);
+        await this.checkBadges(user.uid, newStreak);
 
         // Refresh user data
-        const updatedSnap = await getDoc(userRef);
-        if (updatedSnap.exists()) {
-            this.authService.currentUser.set({
-                uid: user.uid,
-                ...updatedSnap.data(),
-            } as any);
-        }
+        await this.authService.refreshCurrentUser();
     }
 
-    /**
-     * Subscribe to real-time active check-ins for a specific cafe.
-     * Returns an unsubscribe function.
-     */
     watchCafe(cafeId: string): () => void {
-        const twoHoursAgo = Timestamp.fromMillis(Date.now() - ACTIVE_WINDOW_MS);
-        const liveRef = this.liveCheckinsRef;
-        const q = query(
-            liveRef,
-            where('cafeId', '==', cafeId),
-            where('timestamp', '>=', twoHoursAgo)
-        );
-        return onSnapshot(q, (snapshot) => {
-            const people = snapshot.docs.map(d => d.data() as ActiveCheckIn);
-            this.activePeopleAtCafe.set(people);
-        });
+        const twoHoursAgo = new Date(Date.now() - ACTIVE_WINDOW_MS).toISOString();
+
+        // Initial load
+        this.supabase.client
+            .from('live_checkins')
+            .select('*')
+            .eq('cafeId', cafeId)
+            .gte('timestamp', twoHoursAgo)
+            .then(({ data }) => {
+                this.activePeopleAtCafe.set((data || []) as ActiveCheckIn[]);
+            });
+
+        // Realtime subscription
+        this.realtimeChannel = this.supabase.client
+            .channel(`live_checkins_${cafeId}`)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'live_checkins', filter: `cafeId=eq.${cafeId}` }, () => {
+                // Re-fetch on any change
+                this.supabase.client
+                    .from('live_checkins')
+                    .select('*')
+                    .eq('cafeId', cafeId)
+                    .gte('timestamp', twoHoursAgo)
+                    .then(({ data }) => {
+                        this.activePeopleAtCafe.set((data || []) as ActiveCheckIn[]);
+                    });
+            })
+            .subscribe();
+
+        return () => {
+            if (this.realtimeChannel) {
+                this.supabase.client.removeChannel(this.realtimeChannel);
+                this.realtimeChannel = null;
+            }
+        };
     }
 
-    /**
-     * Subscribe to all cafes' density in real time.
-     * Returns an unsubscribe function.
-     */
     watchAllDensity(): () => void {
-        const twoHoursAgo = Timestamp.fromMillis(Date.now() - ACTIVE_WINDOW_MS);
-        const liveRef = this.liveCheckinsRef;
-        const q = query(liveRef, where('timestamp', '>=', twoHoursAgo));
-        return onSnapshot(q, (snapshot) => {
-            const countMap = new Map<string, number>();
-            snapshot.docs.forEach(d => {
-                const data = d.data() as ActiveCheckIn;
-                countMap.set(data.cafeId, (countMap.get(data.cafeId) || 0) + 1);
-            });
-            const densityMap = new Map<string, CafeDensity>();
-            countMap.forEach((count, cafeId) => {
-                densityMap.set(cafeId, { cafeId, count, level: getDensityLevel(count) });
-            });
-            this.densityMap.set(densityMap);
-        });
+        const twoHoursAgo = new Date(Date.now() - ACTIVE_WINDOW_MS).toISOString();
+
+        const refreshDensity = () => {
+            this.supabase.client
+                .from('live_checkins')
+                .select('*')
+                .gte('timestamp', twoHoursAgo)
+                .then(({ data }) => {
+                    const countMap = new Map<string, number>();
+                    (data || []).forEach((d: any) => {
+                        countMap.set(d.cafeId, (countMap.get(d.cafeId) || 0) + 1);
+                    });
+                    const densityMap = new Map<string, CafeDensity>();
+                    countMap.forEach((count, cafeId) => {
+                        densityMap.set(cafeId, { cafeId, count, level: getDensityLevel(count) });
+                    });
+                    this.densityMap.set(densityMap);
+                });
+        };
+
+        refreshDensity();
+
+        this.densityChannel = this.supabase.client
+            .channel('live_checkins_all')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'live_checkins' }, () => {
+                refreshDensity();
+            })
+            .subscribe();
+
+        return () => {
+            if (this.densityChannel) {
+                this.supabase.client.removeChannel(this.densityChannel);
+                this.densityChannel = null;
+            }
+        };
     }
 
     getDensityForCafe(cafeId: string): CafeDensity {
         return this.densityMap().get(cafeId) ?? { cafeId, count: 0, level: 'empty' };
     }
 
-    private async checkBadges(uid: string) {
-        const userRef = doc(this.usersRef, uid);
-        const userSnap = await getDoc(userRef);
-        if (!userSnap.exists()) return;
+    private async checkBadges(uid: string, currentStreak: number) {
+        const { data: userData } = await this.supabase.client
+            .from('users')
+            .select('badges, totalCheckins')
+            .eq('uid', uid)
+            .single();
 
-        const userData = userSnap.data();
-        const currentBadges: string[] = userData['badges'] || [];
-        const totalCheckins: number = userData['totalCheckins'] || 0;
+        if (!userData) return;
+
+        const currentBadges: string[] = userData.badges || [];
+        const totalCheckins: number = userData.totalCheckins || 0;
         const newBadges: string[] = [];
 
         if (totalCheckins >= 50 && !currentBadges.includes('Caffeine King')) {
@@ -200,10 +212,34 @@ export class CheckInService {
             newBadges.push('Night Owl');
         }
 
+        if (currentStreak >= 7 && !currentBadges.includes('Streak Master')) {
+            newBadges.push('Streak Master');
+        }
+
+        // Halal Hunter: check if user has visited 10+ halal cafes
+        if (!currentBadges.includes('Halal Hunter')) {
+            const { data: checkinData } = await this.supabase.client
+                .from('checkins')
+                .select('cafeId')
+                .eq('userId', uid);
+            const uniqueCafeIds = [...new Set((checkinData || []).map((c: any) => c.cafeId))];
+            if (uniqueCafeIds.length > 0) {
+                const { data: halalCafes } = await this.supabase.client
+                    .from('cafes')
+                    .select('id')
+                    .contains('tags', ['halal'])
+                    .in('id', uniqueCafeIds);
+                if ((halalCafes || []).length >= 10) {
+                    newBadges.push('Halal Hunter');
+                }
+            }
+        }
+
         if (newBadges.length > 0) {
-            await updateDoc(userRef, {
-                badges: [...currentBadges, ...newBadges],
-            });
+            await this.supabase.client
+                .from('users')
+                .update({ badges: [...currentBadges, ...newBadges] })
+                .eq('uid', uid);
         }
     }
 
@@ -211,27 +247,26 @@ export class CheckInService {
         const user = this.authService.currentUser();
         if (!user) return false;
 
-        const twoHoursAgo = Timestamp.fromMillis(Date.now() - ACTIVE_WINDOW_MS);
-        const q = query(
-            this.checkinsRef,
-            where('userId', '==', user.uid),
-            where('cafeId', '==', cafeId),
-            where('timestamp', '>=', twoHoursAgo),
-            limit(1)
-        );
-        const snapshot = await getDocs(q);
-        return !snapshot.empty;
+        const twoHoursAgo = new Date(Date.now() - ACTIVE_WINDOW_MS).toISOString();
+        const { data } = await this.supabase.client
+            .from('checkins')
+            .select('id')
+            .eq('userId', user.uid)
+            .eq('cafeId', cafeId)
+            .gte('timestamp', twoHoursAgo)
+            .limit(1);
+
+        return !!(data && data.length > 0);
     }
 
     async getUserCheckins(uid: string): Promise<CheckIn[]> {
-        const checkinsRef = this.checkinsRef;
-        const q = query(
-            checkinsRef,
-            where('userId', '==', uid),
-            orderBy('timestamp', 'desc'),
-            limit(10)
-        );
-        const snapshot = await getDocs(q);
-        return snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as CheckIn));
+        const { data } = await this.supabase.client
+            .from('checkins')
+            .select('*')
+            .eq('userId', uid)
+            .order('timestamp', { ascending: false })
+            .limit(10);
+
+        return (data || []) as CheckIn[];
     }
 }

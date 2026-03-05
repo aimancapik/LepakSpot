@@ -2,181 +2,214 @@
     <!-- Grain overlay -->
     <div class="fixed inset-0 opacity-[0.03] pointer-events-none z-50 zine-texture mix-blend-multiply"></div>
 
-    <!-- Hand-drawn Confetti BG (Zine style) -->
-    <div class="absolute inset-0 pointer-events-none z-0 overflow-hidden opacity-40">
-        <!-- We can just use some scattered elements via CSS or keep a pattern -->
-        <div class="absolute top-10 left-10 text-primary -rotate-12"><span class="font-marker text-4xl">*</span></div>
-        <div class="absolute top-40 right-10 text-sage rotate-45"><span class="font-marker text-5xl">+</span></div>
-        <div class="absolute bottom-40 left-5 text-latte rotate-12"><span class="font-marker text-6xl">#</span></div>
-        <div class="absolute bottom-20 right-12 text-primary rotate-90"><span class="font-marker text-3xl">*</span>
-        </div>
-        <div class="absolute top-1/2 left-1/4 text-espresso/20 -rotate-45"><span class="font-marker text-4xl">~</span>
-        </div>
+    <!-- Confetti BG -->
+    <div class="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+        <div class="absolute top-8 left-8 text-primary opacity-30 -rotate-12 animate-[wiggle_3s_ease-in-out_infinite]"><span class="font-marker text-5xl">*</span></div>
+        <div class="absolute top-32 right-8 text-sage opacity-40 rotate-45 animate-[wiggle_4s_ease-in-out_infinite_0.5s]"><span class="font-marker text-6xl">+</span></div>
+        <div class="absolute bottom-48 left-4 text-latte opacity-50 rotate-12 animate-[wiggle_3.5s_ease-in-out_infinite_1s]"><span class="font-marker text-7xl">#</span></div>
+        <div class="absolute bottom-24 right-10 text-primary opacity-25 rotate-90 animate-[wiggle_4s_ease-in-out_infinite_0.8s]"><span class="font-marker text-4xl">*</span></div>
+        <div class="absolute top-1/3 left-1/3 text-espresso opacity-10 -rotate-45"><span class="font-marker text-5xl">~</span></div>
+        <div class="absolute top-2/3 right-1/4 text-sage opacity-20 rotate-12"><span class="font-marker text-4xl">✦</span></div>
     </div>
 
     <!-- Top Nav -->
-    <nav
-        class="flex items-center justify-between px-6 pt-12 pb-4 bg-off-white/90 backdrop-blur-md sticky top-0 z-20 border-b-2 border-espresso shadow-sm">
+    <nav class="flex items-center justify-between px-6 pt-12 pb-4 bg-off-white/90 backdrop-blur-md sticky top-0 z-20 border-b-2 border-espresso shadow-sm">
         <a routerLink="/home"
             class="flex size-10 items-center justify-center rounded-xl bg-white border-2 border-espresso shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-[2px] active:shadow-none transition-all rotate-2">
             <span class="material-symbols-outlined text-espresso font-bold">arrow_back</span>
         </a>
         <div class="relative -rotate-1">
-            <h2
-                class="font-marker text-2xl tracking-wide text-espresso bg-latte px-2 py-0.5 border-2 border-espresso shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+            <h2 class="font-marker text-2xl tracking-wide text-espresso bg-latte px-2 py-0.5 border-2 border-espresso shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                 The Verdict</h2>
         </div>
-        <button
-            class="flex size-10 items-center justify-center rounded-xl bg-primary border-2 border-espresso shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-[2px] active:shadow-none transition-all -rotate-3">
-            <span class="material-symbols-outlined text-espresso font-bold">share</span>
+        <button (click)="share()"
+            class="flex size-10 items-center justify-center rounded-xl border-2 border-espresso shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-[2px] active:shadow-none transition-all -rotate-3"
+            [class]="shareSuccess() ? 'bg-sage' : 'bg-primary'">
+            <span class="material-symbols-outlined text-espresso font-bold">{{ shareSuccess() ? 'check' : 'share' }}</span>
         </button>
     </nav>
 
-    <!-- Main Content -->
-    <main class="flex-1 flex flex-col items-center px-6 pt-8 pb-32 relative z-10 w-full">
-        <!-- Celebratory Header -->
-        <div class="text-center mb-8 relative">
-            <div class="absolute -top-6 -left-4 text-4xl rotate-[-20deg]">🎉</div>
-            <div class="absolute -bottom-2 -right-4 text-4xl rotate-[15deg]">✨</div>
+    <!-- Share copied toast -->
+    @if (shareSuccess()) {
+    <div class="fixed top-24 left-1/2 -translate-x-1/2 z-50 bg-espresso text-white font-marker text-sm px-4 py-2 rounded-full shadow-lg border-2 border-espresso animate-bounce">
+        Copied to clipboard! 📋
+    </div>
+    }
 
-            <div class="inline-block relative rotate-1 mb-2">
-                <div
-                    class="absolute inset-0 bg-primary border-2 border-espresso rounded-sm shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] -rotate-3 -z-10">
-                </div>
-                <h1 class="font-marker text-4xl text-white tracking-wider px-4 py-1 relative z-10"
-                    style="text-shadow: 2px 2px 0 #453227, -1px -1px 0 #453227, 1px -1px 0 #453227, -1px 1px 0 #453227, 1px 1px 0 #453227;">
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col items-center px-6 pt-6 pb-32 relative z-10 w-full">
+
+        <!-- Celebratory Header -->
+        <div class="text-center mb-6 relative w-full">
+            <div class="absolute -top-4 -left-2 text-3xl -rotate-[20deg] select-none">🎉</div>
+            <div class="absolute -top-4 -right-2 text-3xl rotate-[15deg] select-none">🎊</div>
+            <div class="absolute -bottom-2 left-1/2 -translate-x-1/2 text-2xl select-none">✨</div>
+
+            <div class="inline-block relative rotate-1 mb-3">
+                <div class="absolute inset-0 bg-espresso border-2 border-espresso rounded-sm -rotate-3 -z-10 translate-x-1 translate-y-1"></div>
+                <h1 class="font-marker text-5xl text-white tracking-wider px-5 py-1.5 relative z-10 bg-primary border-2 border-espresso"
+                    style="text-shadow: 2px 2px 0 #453227, -1px -1px 0 #453227;">
                     WINNER!</h1>
             </div>
-            <p
-                class="font-bold text-espresso/80 mt-3 bg-white inline-block px-3 py-1 border-2 border-espresso rounded-md shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] -rotate-1">
-                Perfect spot chosen.</p>
+            <p class="font-bold text-espresso/80 mt-4 bg-white inline-block px-3 py-1 border-2 border-espresso rounded-md shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] -rotate-1 text-sm">
+                The group has spoken. 🗳️
+            </p>
+
+            <!-- Vote tally pill -->
+            @if (totalVoters() > 0) {
+            <div class="flex items-center justify-center gap-2 mt-3">
+                <div class="bg-sage border-2 border-espresso px-4 py-1.5 rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex items-center gap-2 rotate-1">
+                    <span class="material-symbols-outlined text-sm">how_to_vote</span>
+                    <span class="font-marker text-sm text-espresso">
+                        {{ winnerVotes() }} / {{ totalVoters() }} votes
+                    </span>
+                </div>
+            </div>
+            }
         </div>
 
         <!-- Winner Cafe Card -->
         @if (winnerCafe()) {
         <div class="relative w-full -rotate-1">
-            <!-- Tape -->
-            <div
-                class="absolute -top-4 right-10 w-16 h-8 bg-white/40 backdrop-blur-sm border border-white/60 -rotate-6 z-30 shadow-sm mix-blend-overlay">
-            </div>
-            <div
-                class="absolute -bottom-4 left-10 w-16 h-8 bg-white/40 backdrop-blur-sm border border-white/60 rotate-6 z-30 shadow-sm mix-blend-overlay">
-            </div>
+            <!-- Tape strips -->
+            <div class="absolute -top-3 right-12 w-14 h-6 bg-latte/60 border border-espresso/30 -rotate-6 z-30 shadow-sm"></div>
+            <div class="absolute -bottom-3 left-12 w-14 h-6 bg-latte/60 border border-espresso/30 rotate-6 z-30 shadow-sm"></div>
 
-            <div
-                class="bg-white rounded-xl overflow-hidden border-2 border-espresso shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] relative z-10">
-                <div class="h-56 bg-center bg-no-repeat bg-cover relative border-b-2 border-espresso"
+            <div class="bg-white rounded-2xl overflow-hidden border-2 border-espresso shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] relative z-10">
+
+                <!-- Cafe Photo -->
+                <div class="h-52 bg-center bg-no-repeat bg-cover relative border-b-2 border-espresso"
                     [style.background-image]="'url(' + (winnerCafe()!.photos[0] || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=600&h=400&fit=crop') + ')'">
 
+                    <!-- Dark gradient overlay -->
+                    <div class="absolute inset-0 bg-gradient-to-t from-espresso/40 to-transparent"></div>
+
                     <!-- Rating Badge -->
-                    <div
-                        class="absolute top-4 right-4 bg-latte border-2 border-espresso px-3 py-1 rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex items-center gap-1 rotate-3">
-                        <span class="material-symbols-outlined text-espresso text-sm fill-1">star</span>
-                        <span class="font-marker font-bold">{{ winnerCafe()!.rating }}</span>
+                    <div class="absolute top-3 right-3 bg-latte border-2 border-espresso px-2.5 py-1 rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex items-center gap-1 rotate-3">
+                        <span class="material-symbols-outlined text-espresso text-sm" style="font-variation-settings:'FILL' 1">star</span>
+                        <span class="font-marker font-bold text-sm">{{ winnerCafe()!.rating }}</span>
                     </div>
 
                     <!-- Open Now sticker -->
-                    <div
-                        class="absolute bottom-4 left-4 bg-sage border-2 border-espresso px-3 py-1 rounded shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] -rotate-3 text-espresso">
+                    <div class="absolute bottom-3 left-3 bg-sage border-2 border-espresso px-3 py-1 rounded shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] -rotate-2 text-espresso">
                         <span class="font-marker text-sm uppercase tracking-wider font-bold">Open Now</span>
                     </div>
                 </div>
 
-                <div class="p-6 bg-off-white">
-                    <div class="mb-5 relative">
-                        <h3 class="font-marker text-3xl leading-tight text-espresso">{{ winnerCafe()!.name }}</h3>
-                        <p
-                            class="text-espresso flex items-start gap-1 mt-2 text-sm font-bold bg-white border border-espresso p-2 rounded shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] rotate-1">
+                <!-- Card Body -->
+                <div class="p-5 bg-off-white">
+                    <!-- Cafe Name -->
+                    <div class="mb-4">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-2xl">👑</span>
+                            <h3 class="font-marker text-3xl leading-tight text-espresso">{{ winnerCafe()!.name }}</h3>
+                        </div>
+                        <p class="text-espresso flex items-start gap-1.5 text-sm font-bold bg-white border border-espresso p-2 rounded-lg shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] rotate-[0.5deg]">
                             <span class="material-symbols-outlined text-sm mt-0.5 shrink-0">location_on</span>
                             <span>{{ winnerCafe()!.address }}</span>
                         </p>
                     </div>
 
-                    <div class="flex flex-col gap-4 relative z-20">
+                    <!-- Section label -->
+                    <div class="w-full flex items-center gap-2 mb-4 opacity-50">
+                        <div class="flex-1 border-t-2 border-dashed border-espresso"></div>
+                        <span class="font-marker text-xs text-espresso uppercase tracking-widest">actions</span>
+                        <div class="flex-1 border-t-2 border-dashed border-espresso"></div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex flex-col gap-3">
+
+                        <!-- Let's Go -->
                         <a [href]="'https://www.google.com/maps/search/?api=1&query=' + winnerCafe()!.lat + ',' + winnerCafe()!.lng"
                             target="_blank"
-                            class="group relative flex items-center justify-center w-full active:scale-95 transition-transform rotate-1">
-                            <div
-                                class="absolute inset-0 bg-primary border-2 border-espresso rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] group-active:translate-y-[4px] group-active:shadow-none transition-all">
-                            </div>
-                            <div
-                                class="relative z-10 py-3.5 flex items-center gap-2 font-marker text-lg text-espresso uppercase tracking-wider">
+                            class="group relative flex items-center justify-center w-full active:scale-[0.98] transition-transform rotate-[0.5deg]">
+                            <div class="absolute inset-0 bg-espresso rounded-xl translate-x-1 translate-y-1"></div>
+                            <div class="absolute inset-0 bg-primary border-2 border-espresso rounded-xl group-active:translate-y-1 group-active:translate-x-0.5 transition-transform"></div>
+                            <div class="relative z-10 py-3.5 flex items-center gap-2 font-marker text-lg text-white uppercase tracking-wider"
+                                style="text-shadow: 1px 1px 0 #453227;">
                                 <span class="material-symbols-outlined font-bold">directions_walk</span>
                                 Let's Go!
                             </div>
                         </a>
 
+                        <!-- Check In -->
                         <button (click)="checkin()" [disabled]="checkedIn()"
-                            class="group relative flex items-center justify-center w-full transition-transform -rotate-1"
-                            [class.active:scale-95]="!checkedIn()">
-
+                            class="group relative flex items-center justify-center w-full transition-transform -rotate-[0.5deg]"
+                            [class.active:scale-[0.98]]="!checkedIn()">
                             @if (checkedIn()) {
-                            <div
-                                class="absolute inset-0 bg-sage border-2 border-espresso rounded-xl shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] opacity-70">
-                            </div>
+                            <div class="absolute inset-0 bg-sage border-2 border-espresso rounded-xl opacity-80"></div>
                             <div class="relative z-10 py-3.5 flex items-center gap-2 font-marker text-lg text-espresso">
-                                <span class="material-symbols-outlined font-bold">check_circle</span>
+                                <span class="material-symbols-outlined font-bold" style="font-variation-settings:'FILL' 1">check_circle</span>
                                 Checked In! +25 Points
                             </div>
                             } @else {
-                            <div
-                                class="absolute inset-0 bg-white border-2 border-espresso border-dashed rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] group-active:translate-y-[4px] group-active:shadow-none transition-all">
-                            </div>
-                            <div
-                                class="relative z-10 py-3.5 flex items-center gap-2 font-marker text-lg text-espresso uppercase tracking-wider">
+                            <div class="absolute inset-0 bg-espresso rounded-xl translate-x-1 translate-y-1"></div>
+                            <div class="absolute inset-0 bg-white border-2 border-espresso border-dashed rounded-xl group-active:translate-y-1 group-active:translate-x-0.5 transition-transform"></div>
+                            <div class="relative z-10 py-3.5 flex items-center gap-2 font-marker text-lg text-espresso uppercase tracking-wider">
                                 <span class="material-symbols-outlined font-bold">add_location_alt</span>
                                 I'm Here
                             </div>
                             }
                         </button>
 
-                        <!-- Split Bill Button -->
+                        <!-- Split Bill -->
                         <button (click)="navigateToBillSplit()"
-                            class="group relative flex items-center justify-center w-full active:scale-95 transition-transform rotate-2 mt-2">
-                            <div
-                                class="absolute inset-0 bg-latte border-2 border-espresso rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] group-active:translate-y-[4px] group-active:shadow-none transition-all">
-                            </div>
-                            <div
-                                class="relative z-10 py-3.5 flex items-center gap-2 font-marker text-lg text-espresso uppercase tracking-wider">
+                            class="group relative flex items-center justify-center w-full active:scale-[0.98] transition-transform rotate-[0.5deg]">
+                            <div class="absolute inset-0 bg-espresso rounded-xl translate-x-1 translate-y-1"></div>
+                            <div class="absolute inset-0 bg-latte border-2 border-espresso rounded-xl group-active:translate-y-1 group-active:translate-x-0.5 transition-transform"></div>
+                            <div class="relative z-10 py-3.5 flex items-center gap-2 font-marker text-lg text-espresso uppercase tracking-wider">
                                 <span class="material-symbols-outlined font-bold">receipt_long</span>
                                 Split Bill
                             </div>
                         </button>
+
                     </div>
 
-                    <!-- Amenities (Zine Style) -->
-                    <div class="mt-8 relative">
-                        <!-- Divider -->
-                        <div class="w-full text-center overflow-hidden mb-4 opacity-40">
-                            <span class="font-marker text-espresso tracking-[0.5em]">-------</span>
+                    <!-- Amenities -->
+                    <div class="mt-6">
+                        <div class="w-full text-center overflow-hidden mb-4 opacity-30">
+                            <span class="font-marker text-espresso tracking-[0.6em] text-xs">- - - - - - - - - - -</span>
                         </div>
-
-                        <div class="flex justify-between">
-                            <div
-                                class="flex flex-col items-center gap-1 -rotate-3 border-2 border-espresso bg-white w-14 h-14 justify-center rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                        <div class="flex justify-around">
+                            <div class="flex flex-col items-center gap-1 -rotate-3 border-2 border-espresso bg-white w-14 h-14 justify-center rounded-xl shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                                 <span class="material-symbols-outlined text-xl">wifi</span>
                                 <span class="text-[8px] font-bold uppercase font-marker">WiFi</span>
                             </div>
-                            <div
-                                class="flex flex-col items-center gap-1 rotate-2 border-2 border-espresso bg-latte w-14 h-14 justify-center rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                            <div class="flex flex-col items-center gap-1 rotate-2 border-2 border-espresso bg-latte w-14 h-14 justify-center rounded-xl shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                                 <span class="material-symbols-outlined text-xl">local_parking</span>
                                 <span class="text-[8px] font-bold uppercase font-marker">Park</span>
                             </div>
-                            <div
-                                class="flex flex-col items-center gap-1 -rotate-1 border-2 border-espresso bg-primary w-14 h-14 justify-center rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                            <div class="flex flex-col items-center gap-1 -rotate-1 border-2 border-espresso bg-primary w-14 h-14 justify-center rounded-xl shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                                 <span class="material-symbols-outlined text-xl">ev_station</span>
                                 <span class="text-[8px] font-bold uppercase font-marker">Charge</span>
                             </div>
-                            <div
-                                class="flex flex-col items-center gap-1 rotate-3 border-2 border-espresso bg-sage w-14 h-14 justify-center rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                            <div class="flex flex-col items-center gap-1 rotate-3 border-2 border-espresso bg-sage w-14 h-14 justify-center rounded-xl shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                                 <span class="material-symbols-outlined text-xl">pets</span>
                                 <span class="text-[8px] font-bold uppercase font-marker">Pets</span>
                             </div>
                         </div>
                     </div>
+
                 </div>
             </div>
         </div>
         }
+
+        <!-- Loading state -->
+        @if (!winnerCafe()) {
+        <div class="flex flex-col items-center justify-center gap-4 mt-12">
+            <div class="w-16 h-16 border-4 border-espresso border-t-primary rounded-full animate-spin"></div>
+            <p class="font-marker text-xl text-espresso animate-pulse">Counting votes...</p>
+        </div>
+        }
+
     </main>
 </div>
+
+<style>
+    @keyframes wiggle {
+        0%, 100% { transform: rotate(var(--tw-rotate, 0deg)) scale(1); }
+        50% { transform: rotate(calc(var(--tw-rotate, 0deg) + 8deg)) scale(1.1); }
+    }
+</style>

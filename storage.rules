@@ -1,0 +1,14 @@
+rules_version = '2';
+
+// Craft rules based on data in your Firestore database
+// allow write: if request.auth != null;
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      // For now, allowing all check-ins to upload photos if they are authenticated
+      // You can refine this later
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+  }
+}

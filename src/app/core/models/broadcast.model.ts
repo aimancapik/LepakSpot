@@ -1,13 +1,11 @@
-import { Timestamp } from '@angular/fire/firestore';
-
 export interface Broadcast {
     id: string;
     hostId: string;
-    hostName: string; // denormalized for easy display
+    hostName: string;
     cafeId: string;
-    cafeName: string; // denormalized for easy display
+    cafeName: string;
     message: string;
-    expiresAt: Timestamp;
-    attendees: string[]; // array of user IDs
-    createdAt: Timestamp;
+    expiresAt: string;
+    attendees: string[];
+    createdAt: string;
 }

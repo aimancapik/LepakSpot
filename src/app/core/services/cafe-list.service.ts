@@ -1,83 +1,50 @@
 import { Injectable, inject, signal } from '@angular/core';
-import {
-    Firestore,
-    collection,
-    query,
-    where,
-    onSnapshot,
-    addDoc,
-    Timestamp,
-    doc,
-    updateDoc,
-    arrayUnion,
-    arrayRemove,
-    deleteDoc,
-    getDoc,
-    getDocs
-} from '@angular/fire/firestore';
 import { CafeList } from '../models/cafe-list.model';
 import { AuthService } from './auth.service';
+import { SupabaseService } from './supabase.service';
 
 @Injectable({ providedIn: 'root' })
 export class CafeListService {
-    private firestore = inject(Firestore);
+    private supabase = inject(SupabaseService);
     private authService = inject(AuthService);
-    private listsRef = collection(this.firestore, 'cafeLists');
 
     myLists = signal<CafeList[]>([]);
     sharedLists = signal<CafeList[]>([]);
 
-    constructor() {
-        // We could theoretically listen to auth state changes and re-subscribe,
-        // but for now, we'll manually trigger loading when needed by the UI.
-    }
-
-    /**
-     * Subscribe to lists owned by the user.
-     */
     loadMyLists() {
         const user = this.authService.currentUser();
         if (!user) return;
 
-        const q = query(this.listsRef, where('ownerId', '==', user.uid));
-        onSnapshot(q, (snapshot) => {
-            const lists = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            } as CafeList));
-
-            // Sort by updated time descending
-            lists.sort((a, b) => b.updatedAt.toMillis() - a.updatedAt.toMillis());
-            this.myLists.set(lists);
-        });
+        this.supabase.client
+            .from('cafe_lists')
+            .select('*')
+            .eq('ownerId', user.uid)
+            .order('updatedAt', { ascending: false })
+            .then(({ data }) => {
+                this.myLists.set((data || []) as CafeList[]);
+            });
     }
 
-    /**
-     * Subscribe to lists shared with the user.
-     */
     loadSharedLists() {
         const user = this.authService.currentUser();
         if (!user) return;
 
-        const q = query(this.listsRef, where('collaboratorIds', 'array-contains', user.uid));
-        onSnapshot(q, (snapshot) => {
-            const lists = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            } as CafeList));
-
-            // Sort by updated time descending
-            lists.sort((a, b) => b.updatedAt.toMillis() - a.updatedAt.toMillis());
-            this.sharedLists.set(lists);
-        });
+        this.supabase.client
+            .from('cafe_lists')
+            .select('*')
+            .contains('collaboratorIds', [user.uid])
+            .order('updatedAt', { ascending: false })
+            .then(({ data }) => {
+                this.sharedLists.set((data || []) as CafeList[]);
+            });
     }
 
     async createList(title: string, description: string = '', isPublic: boolean = false) {
         const user = this.authService.currentUser();
         if (!user) throw new Error('Must be logged in to create a list');
 
-        const now = Timestamp.now();
-        const newList: Omit<CafeList, 'id'> = {
+        const now = new Date().toISOString();
+        const newList = {
             title,
             description,
             ownerId: user.uid,
@@ -85,57 +52,118 @@ export class CafeListService {
             cafeIds: [],
             isPublic,
             createdAt: now,
-            updatedAt: now
+            updatedAt: now,
         };
 
-        const docRef = await addDoc(this.listsRef, newList);
-        return docRef.id;
+        const { data, error } = await this.supabase.client
+            .from('cafe_lists')
+            .insert(newList)
+            .select('id')
+            .single();
+
+        if (error) throw error;
+        return data!.id;
     }
 
     async getListById(listId: string): Promise<CafeList | null> {
-        const listRef = doc(this.firestore, `cafeLists/${listId}`);
-        const snap = await getDoc(listRef);
-        if (snap.exists()) {
-            return { id: snap.id, ...snap.data() } as CafeList;
-        }
-        return null;
+        const { data } = await this.supabase.client
+            .from('cafe_lists')
+            .select('*')
+            .eq('id', listId)
+            .single();
+
+        return (data as CafeList) || null;
     }
 
     async addCafeToList(listId: string, cafeId: string) {
-        const listRef = doc(this.firestore, `cafeLists/${listId}`);
-        await updateDoc(listRef, {
-            cafeIds: arrayUnion(cafeId),
-            updatedAt: Timestamp.now()
-        });
+        const { data } = await this.supabase.client
+            .from('cafe_lists')
+            .select('cafeIds')
+            .eq('id', listId)
+            .single();
+
+        if (data) {
+            const cafeIds = (data.cafeIds as string[]) || [];
+            if (!cafeIds.includes(cafeId)) {
+                cafeIds.push(cafeId);
+                await this.supabase.client
+                    .from('cafe_lists')
+                    .update({ cafeIds, updatedAt: new Date().toISOString() })
+                    .eq('id', listId);
+            }
+        }
     }
 
     async removeCafeFromList(listId: string, cafeId: string) {
-        const listRef = doc(this.firestore, `cafeLists/${listId}`);
-        await updateDoc(listRef, {
-            cafeIds: arrayRemove(cafeId),
-            updatedAt: Timestamp.now()
-        });
+        const { data } = await this.supabase.client
+            .from('cafe_lists')
+            .select('cafeIds')
+            .eq('id', listId)
+            .single();
+
+        if (data) {
+            const cafeIds = ((data.cafeIds as string[]) || []).filter(id => id !== cafeId);
+            await this.supabase.client
+                .from('cafe_lists')
+                .update({ cafeIds, updatedAt: new Date().toISOString() })
+                .eq('id', listId);
+        }
     }
 
     async addCollaborator(listId: string, userId: string) {
-        const listRef = doc(this.firestore, `cafeLists/${listId}`);
-        await updateDoc(listRef, {
-            collaboratorIds: arrayUnion(userId),
-            updatedAt: Timestamp.now()
-        });
+        const { data } = await this.supabase.client
+            .from('cafe_lists')
+            .select('collaboratorIds')
+            .eq('id', listId)
+            .single();
+
+        if (data) {
+            const collaboratorIds = (data.collaboratorIds as string[]) || [];
+            if (!collaboratorIds.includes(userId)) {
+                collaboratorIds.push(userId);
+                await this.supabase.client
+                    .from('cafe_lists')
+                    .update({ collaboratorIds, updatedAt: new Date().toISOString() })
+                    .eq('id', listId);
+            }
+        }
     }
 
     async removeCollaborator(listId: string, userId: string) {
-        const listRef = doc(this.firestore, `cafeLists/${listId}`);
-        await updateDoc(listRef, {
-            collaboratorIds: arrayRemove(userId),
-            updatedAt: Timestamp.now()
-        });
+        const { data } = await this.supabase.client
+            .from('cafe_lists')
+            .select('collaboratorIds')
+            .eq('id', listId)
+            .single();
+
+        if (data) {
+            const collaboratorIds = ((data.collaboratorIds as string[]) || []).filter(id => id !== userId);
+            await this.supabase.client
+                .from('cafe_lists')
+                .update({ collaboratorIds, updatedAt: new Date().toISOString() })
+                .eq('id', listId);
+        }
     }
 
     async deleteList(listId: string) {
-        // Backend rules should ensure only owner can delete
-        const listRef = doc(this.firestore, `cafeLists/${listId}`);
-        await deleteDoc(listRef);
+        await this.supabase.client
+            .from('cafe_lists')
+            .delete()
+            .eq('id', listId);
+    }
+
+    async quickSave(cafeId: string) {
+        const user = this.authService.currentUser();
+        if (!user) return;
+
+        const { data } = await this.supabase.client
+            .from('cafe_lists')
+            .select('id')
+            .eq('ownerId', user.uid)
+            .eq('title', 'Quick Saves')
+            .single();
+
+        const listId = data?.id ?? await this.createList('Quick Saves');
+        await this.addCafeToList(listId, cafeId);
     }
 }

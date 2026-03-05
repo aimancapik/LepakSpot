@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit, signal, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { SessionService } from '../../../core/services/session.service';
 import { CafeService } from '../../../core/services/cafe.service';
@@ -23,6 +23,18 @@ export class ResultComponent implements OnInit {
   winnerCafe = signal<Cafe | null>(null);
   checkedIn = signal(false);
   sessionId = signal<string | null>(null);
+  shareSuccess = signal(false);
+
+  winnerVotes = computed(() => {
+    const session = this.sessionService.activeSession();
+    const winner = this.winnerCafe();
+    if (!session || !winner) return 0;
+    return Object.values(session.votes).filter(v => v === winner.id).length;
+  });
+
+  totalVoters = computed(() => {
+    return this.sessionService.activeSession()?.members.length ?? 0;
+  });
 
   async ngOnInit() {
     const sId = this.route.snapshot.paramMap.get('id');
@@ -34,7 +46,6 @@ export class ResultComponent implements OnInit {
 
     this.sessionService.listenSession(sId);
 
-    // Wait for session data
     await new Promise<void>((resolve) => {
       const check = setInterval(() => {
         const session = this.sessionService.activeSession();
@@ -63,6 +74,27 @@ export class ResultComponent implements OnInit {
       this.checkedIn.set(true);
     } catch (err) {
       console.error('Check-in failed:', err);
+    }
+  }
+
+  async share() {
+    const cafe = this.winnerCafe();
+    const sId = this.sessionId();
+    if (!cafe) return;
+
+    const text = `🎉 We're heading to ${cafe.name}!\n📍 ${cafe.address}`;
+    const url = `${window.location.origin}/session/${sId}/result`;
+
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: 'LepakSpot — The Verdict!', text, url });
+      } else {
+        await navigator.clipboard.writeText(`${text}\n${url}`);
+        this.shareSuccess.set(true);
+        setTimeout(() => this.shareSuccess.set(false), 2500);
+      }
+    } catch {
+      // user cancelled or browser blocked — silently ignore
     }
   }
 
