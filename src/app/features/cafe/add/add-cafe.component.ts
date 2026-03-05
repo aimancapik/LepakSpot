@@ -7,7 +7,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import {
     CafeTag, WifiSpeed, CrowdLevel, NoiseLevel, OutletAvailability
 } from '../../../core/models/cafe.model';
-import { Location } from '@angular/common';
+import { Location, UpperCasePipe } from '@angular/common';
 import {
     Storage, ref, uploadBytes, getDownloadURL
 } from '@angular/fire/storage';
@@ -16,7 +16,7 @@ import {
     selector: 'app-add-cafe',
     standalone: true,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [FormsModule],
+    imports: [FormsModule, UpperCasePipe],
     templateUrl: './add-cafe.component.html',
 })
 export class AddCafeComponent {
