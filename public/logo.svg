@@ -1,0 +1,14 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Zine-style background block -->
+  <rect x="10" y="40" width="180" height="120" fill="#2D2926" transform="rotate(-2 100 100)"/>
+  <rect x="15" y="45" width="170" height="110" fill="#D48C3A" transform="rotate(1 100 100)"/>
+  
+  <!-- Hand-drawn coffee cup silhouette -->
+  <path d="M60 70H120C120 70 120 110 90 110C60 110 60 70 60 70Z" fill="white" stroke="#2D2926" stroke-width="4"/>
+  <path d="M120 80C130 80 135 85 135 90C135 95 130 100 120 100" stroke="#2D2926" stroke-width="4" stroke-linecap="round"/>
+  <path d="M85 60C85 60 87 55 90 55C93 55 95 60 95 60" stroke="white" stroke-width="3" stroke-linecap="round"/>
+  <path d="M75 62C75 62 77 58 80 58C83 58 85 62 85 62" stroke="white" stroke-width="3" stroke-linecap="round"/>
+  
+  <!-- Text -->
+  <text x="100" y="145" text-anchor="middle" font-family="Permanent Marker, cursive" font-size="24" fill="#2D2926" font-weight="bold" transform="rotate(-1 100 145)">LepakSpot</text>
+</svg>

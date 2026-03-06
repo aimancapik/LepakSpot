@@ -3,13 +3,16 @@
     <!-- Header Section -->
     <header class="p-6 pt-10">
         <div class="flex justify-between items-start mb-8">
-            <div class="relative">
-                <div class="absolute -top-4 -left-2 w-12 h-12 bg-sage rounded-full -z-10 opacity-60"></div>
-                <p class="font-marker text-lg text-primary rotate-[-2deg]">{{ greeting }}</p>
-                <h1
-                    class="text-4xl font-black italic tracking-tighter leading-none uppercase text-espresso drop-shadow-sm">
-                    Hi {{ authService.currentUser()?.displayName?.split(' ')?.[0] || 'there' }},<br />Find a Spot
-                </h1>
+            <div class="relative flex items-center gap-4">
+                <div class="absolute -top-4 -left-2 w-16 h-16 bg-sage rounded-full -z-10 opacity-60"></div>
+                <img src="logo.svg" alt="LS" class="w-12 h-12 rotate-[-4deg] zine-border shadow-sm" />
+                <div>
+                    <p class="font-marker text-lg text-primary rotate-[-2deg]">{{ greeting }}</p>
+                    <h1
+                        class="text-4xl font-black italic tracking-tighter leading-none uppercase text-espresso drop-shadow-sm">
+                        Hi {{ authService.currentUser()?.displayName?.split(' ')?.[0] || 'there' }},<br />Find a Spot
+                    </h1>
+                </div>
             </div>
             <button (click)="showNotifications()"
                 class="w-12 h-12 zine-border zine-shadow bg-off-white flex items-center justify-center rounded-lg hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all">
