@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { SessionService } from '../../../core/services/session.service';
@@ -24,12 +24,21 @@ export class LobbyComponent implements OnInit, OnDestroy {
   joining = signal(false);
   joined = signal(false);
 
+  isOwner = computed(() => {
+    const session = this.sessionService.activeSession();
+    return session?.createdBy === this.authService.currentUser()?.uid;
+  });
+  memberCount = computed(() => this.sessionService.activeSession()?.members.length ?? 0);
+  sessionCode = computed(() => this.sessionService.activeSession()?.code ?? '');
+
   constructor() {
-    // Reactively navigate when session status becomes 'voting' — no polling needed
+    // Reactively navigate when session status changes — no polling needed
     effect(() => {
       const session = this.sessionService.activeSession();
       if (session?.status === 'voting') {
         this.router.navigate(['/session', session.id, 'voting']);
+      } else if (session?.status === 'done') {
+        this.router.navigate(['/session', session.id, 'result']);
       }
     });
   }
@@ -37,15 +46,20 @@ export class LobbyComponent implements OnInit, OnDestroy {
   ngOnInit() {
     const sessionId = this.route.snapshot.paramMap.get('id');
     if (sessionId) {
-      this.sessionService.listenSession(sessionId);
       this.joined.set(true);
+      this.sessionService.joinSessionById(sessionId).catch((err: unknown) => {
+        const msg = err instanceof Error ? err.message : 'Could not join session.';
+        this.error.set(msg);
+        this.joined.set(false);
+      });
     }
   }
 
   ngOnDestroy() {
     // Only cleanup if not transitioning into the session itself
     const session = this.sessionService.activeSession();
-    if (!session || session.status !== 'voting') {
+    const isTransitioning = session?.status === 'voting' || session?.status === 'done';
+    if (!isTransitioning) {
       this.sessionService.cleanup();
     }
   }
@@ -88,8 +102,9 @@ export class LobbyComponent implements OnInit, OnDestroy {
       } else {
         this.error.set('Session not found. Check the code and try again.');
       }
-    } catch {
-      this.error.set('Something went wrong. Please try again.');
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Something went wrong. Please try again.';
+      this.error.set(msg);
     } finally {
       this.joining.set(false);
     }
@@ -104,5 +119,12 @@ export class LobbyComponent implements OnInit, OnDestroy {
       this.sessionService.cleanup();
     }
     this.router.navigate(['/home']);
+  }
+
+  async startVoting() {
+    const session = this.sessionService.activeSession();
+    if (!session || !this.isOwner()) return;
+    await this.sessionService.startVoting(session.id);
+    // Navigation is handled by effect in constructor
   }
 }

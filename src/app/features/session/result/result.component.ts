@@ -3,6 +3,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { SessionService } from '../../../core/services/session.service';
 import { CafeService } from '../../../core/services/cafe.service';
 import { CheckInService } from '../../../core/services/checkin.service';
+import { ToastService } from '../../../shared/components/toast/toast.service';
 import { Cafe } from '../../../core/models/cafe.model';
 
 @Component({
@@ -19,9 +20,11 @@ export class ResultComponent implements OnInit {
   private sessionService = inject(SessionService);
   private cafeService = inject(CafeService);
   private checkinService = inject(CheckInService);
+  private toastService = inject(ToastService);
 
   winnerCafe = signal<Cafe | null>(null);
   checkedIn = signal(false);
+  checkingIn = signal(false);  // spam protection
   sessionId = signal<string | null>(null);
   shareSuccess = signal(false);
 
@@ -46,34 +49,47 @@ export class ResultComponent implements OnInit {
 
     this.sessionService.listenSession(sId);
 
-    await new Promise<void>((resolve) => {
+    // Wait for winner data with 10-second timeout
+    const winnerLoaded = await new Promise<boolean>((resolve) => {
       const check = setInterval(() => {
         const session = this.sessionService.activeSession();
-        if (session?.winnerId) {
-          clearInterval(check);
-          resolve();
-        }
+        if (session?.winnerId) { clearInterval(check); resolve(true); }
       }, 200);
+      setTimeout(() => { clearInterval(check); resolve(false); }, 10_000);
     });
+
+    if (!winnerLoaded) {
+      console.warn('Result page: timed out waiting for winner data.');
+      return;
+    }
 
     const session = this.sessionService.activeSession()!;
     if (session.winnerId) {
       const cafes = await this.cafeService.getCafesByIds([session.winnerId]);
       if (cafes.length > 0) {
         this.winnerCafe.set(cafes[0]);
+        // Check if already checked in so button reflects current state
+        const hasCheckedIn = await this.checkinService.hasCheckedInToday(cafes[0].id);
+        if (hasCheckedIn) this.checkedIn.set(true);
       }
     }
   }
 
   async checkin() {
     const cafe = this.winnerCafe();
-    if (!cafe) return;
+    if (!cafe || this.checkedIn() || this.checkingIn()) return;
 
+    this.checkingIn.set(true);
     try {
       await this.checkinService.checkIn(cafe.id, cafe.name);
       this.checkedIn.set(true);
+      this.toastService.show('Checked in! +25 points earned.', 'success');
     } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Check-in failed.';
+      this.toastService.show(msg, 'error');
       console.error('Check-in failed:', err);
+    } finally {
+      this.checkingIn.set(false);
     }
   }
 

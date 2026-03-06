@@ -236,13 +236,15 @@ export class CafeService {
         if (error) throw error;
         const newId = inserted!.id;
 
-        // Award 100 pts
-        await this.supabase.client.rpc('increment_points', { user_uid: user.uid, amount: 100 }).then(() => { });
-        // Fallback: direct update if RPC not set up
-        await this.supabase.client
-            .from('users')
-            .update({ points: (user.points || 0) + 100 })
-            .eq('uid', user.uid);
+        // Award 100 pts — use RPC, fall back to direct update only if RPC fails
+        const { error: rpcError } = await this.supabase.client
+            .rpc('increment_points', { user_uid: user.uid, amount: 100 });
+        if (rpcError) {
+            await this.supabase.client
+                .from('users')
+                .update({ points: (user.points || 0) + 100 })
+                .eq('uid', user.uid);
+        }
 
         await this.authService.refreshCurrentUser();
 
@@ -250,5 +252,14 @@ export class CafeService {
         this.nearbyCafes.update(cafes => [...cafes, { ...cafe, id: newId } as Cafe]);
 
         return newId;
+    }
+
+    async updateVibeData(id: string, updates: { crowdLevel?: string; noiseLevel?: string }): Promise<void> {
+        const { error } = await this.supabase.client.from('cafes').update(updates).eq('id', id);
+        if (error) throw error;
+        // Update local signal so display reflects immediately
+        this.nearbyCafes.update(cafes =>
+            cafes.map(c => c.id === id ? { ...c, ...updates } as Cafe : c)
+        );
     }
 }

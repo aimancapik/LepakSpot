@@ -1,10 +1,11 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit, signal, computed, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal, computed } from '@angular/core';
 import { AuthService } from '../../core/services/auth.service';
 import { CheckInService } from '../../core/services/checkin.service';
 import { CheckIn } from '../../core/models/checkin.model';
 import { DatePipe } from '@angular/common';
 import { CafeListService } from '../../core/services/cafe-list.service';
 import { RouterModule } from '@angular/router';
+import { ToastService } from '../../shared/components/toast/toast.service';
 
 interface Badge {
   name: string;
@@ -34,8 +35,10 @@ export class ProfileComponent implements OnInit {
   authService = inject(AuthService);
   private checkinService = inject(CheckInService);
   cafeListService = inject(CafeListService);
+  private toastService = inject(ToastService);
 
   recentCheckins = signal<CheckIn[]>([]);
+  checkinsLoading = signal(true);
   allBadges = ALL_BADGES;
 
   userTitle = computed(() => {
@@ -59,8 +62,12 @@ export class ProfileComponent implements OnInit {
         const checkins = await this.checkinService.getUserCheckins(user.uid);
         this.recentCheckins.set(checkins);
       } catch {
-        // Firestore index might not exist yet
+        this.toastService.show('Could not load your check-in history.', 'error');
+      } finally {
+        this.checkinsLoading.set(false);
       }
+    } else {
+      this.checkinsLoading.set(false);
     }
   }
 }

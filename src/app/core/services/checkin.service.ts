@@ -44,6 +44,10 @@ export class CheckInService {
         const user = this.authService.currentUser();
         if (!user) throw new Error('Not authenticated');
 
+        // Guard: prevent duplicate check-ins within the 2-hour window
+        const alreadyCheckedIn = await this.hasCheckedInToday(cafeId);
+        if (alreadyCheckedIn) throw new Error('Already checked in at this cafe recently.');
+
         const pointsEarned = 25;
 
         const checkin = {
@@ -122,12 +126,13 @@ export class CheckInService {
         this.realtimeChannel = this.supabase.client
             .channel(`live_checkins_${cafeId}`)
             .on('postgres_changes', { event: '*', schema: 'public', table: 'live_checkins', filter: `cafeId=eq.${cafeId}` }, () => {
-                // Re-fetch on any change
+                // Recompute the window fresh on every change event
+                const freshTwoHoursAgo = new Date(Date.now() - ACTIVE_WINDOW_MS).toISOString();
                 this.supabase.client
                     .from('live_checkins')
                     .select('*')
                     .eq('cafeId', cafeId)
-                    .gte('timestamp', twoHoursAgo)
+                    .gte('timestamp', freshTwoHoursAgo)
                     .then(({ data }) => {
                         this.activePeopleAtCafe.set((data || []) as ActiveCheckIn[]);
                     });
@@ -143,9 +148,8 @@ export class CheckInService {
     }
 
     watchAllDensity(): () => void {
-        const twoHoursAgo = new Date(Date.now() - ACTIVE_WINDOW_MS).toISOString();
-
         const refreshDensity = () => {
+            const twoHoursAgo = new Date(Date.now() - ACTIVE_WINDOW_MS).toISOString();
             this.supabase.client
                 .from('live_checkins')
                 .select('*')
@@ -241,6 +245,30 @@ export class CheckInService {
                 .update({ badges: [...currentBadges, ...newBadges] })
                 .eq('uid', uid);
         }
+    }
+
+    async checkOut(): Promise<void> {
+        const user = this.authService.currentUser();
+        if (!user) throw new Error('Not authenticated');
+        const { error } = await this.supabase.client
+            .from('live_checkins')
+            .delete()
+            .eq('userId', user.uid);
+        if (error) throw error;
+    }
+
+    async isCurrentlyPresent(cafeId: string): Promise<boolean> {
+        const user = this.authService.currentUser();
+        if (!user) return false;
+        const twoHoursAgo = new Date(Date.now() - ACTIVE_WINDOW_MS).toISOString();
+        const { data } = await this.supabase.client
+            .from('live_checkins')
+            .select('userId')
+            .eq('userId', user.uid)
+            .eq('cafeId', cafeId)
+            .gte('timestamp', twoHoursAgo)
+            .limit(1);
+        return !!(data && data.length > 0);
     }
 
     async hasCheckedInToday(cafeId: string): Promise<boolean> {

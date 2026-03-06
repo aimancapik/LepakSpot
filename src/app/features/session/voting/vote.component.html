@@ -54,8 +54,10 @@
                 class="absolute -top-4 left-1/2 -translate-x-1/2 w-20 h-8 bg-white/40 backdrop-blur-sm border border-white/60 rotate-2 z-20 shadow-sm mix-blend-overlay">
             </div>
 
-            <div
-                class="bg-white rounded-xl border-2 border-espresso shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] overflow-hidden flex flex-col relative z-10">
+            <div class="bg-white rounded-xl border-2 border-espresso shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] overflow-hidden flex flex-col relative z-10 transition-transform duration-200"
+                (touchstart)="onTouchStart($event)" (touchmove)="onTouchMove($event)" (touchend)="onTouchEnd()"
+                [style.transform]="'translate(' + swipeOffset().x + 'px, ' + swipeOffset().y + 'px) rotate(' + swipeRotation() + 'deg)'"
+                [style.opacity]="swipeOpacity()">
                 <!-- Image Section -->
                 <div class="w-full bg-center bg-no-repeat aspect-[4/3] bg-cover relative border-b-2 border-espresso"
                     [style.background-image]="'url(' + (currentCafe()!.photos[0] || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=600&h=400&fit=crop') + ')'">
@@ -105,23 +107,27 @@
         <!-- Voting Actions -->
         <div class="flex justify-center gap-8 items-center px-4 relative z-20">
             <!-- Skip Button -->
-            <button (click)="skip()"
-                class="relative size-16 flex items-center justify-center group active:scale-95 transition-transform rotate-3">
+            <button (click)="skip()" [disabled]="isActing()"
+                class="relative size-16 flex items-center justify-center group active:scale-95 transition-transform rotate-3 disabled:opacity-50 disabled:cursor-not-allowed">
                 <div
                     class="absolute inset-0 bg-white border-2 border-espresso rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] group-active:translate-y-[4px] group-active:translate-x-[4px] group-active:shadow-none transition-all">
                 </div>
                 <span
-                    class="material-symbols-outlined text-3xl text-espresso/80 group-hover:text-red-500 relative z-10 font-bold group-hover:-rotate-12 transition-transform">thumb_down</span>
+                    class="material-symbols-outlined text-3xl text-espresso/80 group-hover:text-red-500 relative z-10 font-bold group-hover:-rotate-12 transition-transform">
+                    {{ isActing() ? 'hourglass_top' : 'thumb_down' }}
+                </span>
             </button>
 
             <!-- Vote Button -->
-            <button (click)="vote()"
-                class="relative size-20 flex items-center justify-center group active:scale-95 transition-transform -rotate-2">
+            <button (click)="vote()" [disabled]="isActing()"
+                class="relative size-20 flex items-center justify-center group active:scale-95 transition-transform -rotate-2 disabled:opacity-50 disabled:cursor-not-allowed">
                 <div
                     class="absolute inset-0 bg-primary border-2 border-espresso rounded-2xl shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] group-active:translate-y-[6px] group-active:translate-x-[6px] group-active:shadow-none transition-all">
                 </div>
                 <span
-                    class="material-symbols-outlined text-4xl text-espresso relative z-10 font-bold group-hover:scale-110 transition-transform">thumb_up</span>
+                    class="material-symbols-outlined text-4xl text-espresso relative z-10 font-bold group-hover:scale-110 transition-transform">
+                    {{ isActing() ? 'hourglass_top' : 'thumb_up' }}
+                </span>
             </button>
 
             <!-- Favourite Button -->

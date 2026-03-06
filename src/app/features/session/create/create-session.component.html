@@ -23,7 +23,11 @@
 
     <div class="flex gap-6 px-6 overflow-x-auto snap-x no-scrollbar pb-8 relative">
         @for (cafe of sessionCafes(); track cafe.id; let i = $index) {
-        <div class="snap-center shrink-0 w-64 relative group">
+        <div class="snap-center shrink-0 w-64 relative group transition-transform duration-200"
+            [class.scale-105]="spinHighlight() === i"
+            [class.ring-4]="spinHighlight() === i"
+            [class.ring-primary]="spinHighlight() === i"
+            [class.ring-offset-2]="spinHighlight() === i">
             <!-- Background Blob -->
             <div class="absolute inset-0 translate-x-3 translate-y-3 border-2 border-espresso z-0"
                 [class]="i % 2 === 0 ? 'bg-sage rotate-2' : 'bg-primary -rotate-2'"></div>
@@ -34,6 +38,11 @@
                 <div class="tape-effect overflow-hidden zine-border aspect-[4/3] bg-espresso relative mb-3">
                     <img [src]="cafe.photos[0] || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=600&h=400&fit=crop'"
                         class="w-full h-full object-cover grayscale contrast-125 opacity-90 transition-all hover:grayscale-0 hover:opacity-100" />
+                    @if (spinHighlight() === i && !isSpinning()) {
+                    <div class="absolute inset-0 flex items-center justify-center bg-black/40">
+                        <span class="font-marker text-white text-lg font-black rotate-[-12deg] border-4 border-white px-3 py-1 tracking-widest">THE ONE!</span>
+                    </div>
+                    }
                 </div>
 
                 <h3 class="font-zine text-xl font-black italic uppercase text-espresso leading-tight">{{ cafe.name }}
@@ -101,27 +110,45 @@
                 <p class="font-marker text-xs text-espresso/60 uppercase mb-3">Members Joined</p>
                 <div class="flex items-center gap-4">
                     <div class="flex -space-x-3">
-                        @for (member of sessionMembers(); track member; let i = $index) {
-                        <div class="size-10 rounded-full border-2 border-espresso flex items-center justify-center font-marker text-sm text-espresso zine-shadow-sm hover:-translate-y-1 transition-transform relative z-10 bg-off-white"
+                        @for (i of memberAvatarRange(); track i) {
+                        <div class="size-10 rounded-full border-2 border-espresso flex items-center justify-center font-marker text-sm text-espresso zine-shadow-sm hover:-translate-y-1 transition-transform relative z-10"
                             [class]="i % 2 === 0 ? 'bg-sage scale-105' : 'bg-primary scale-95'">
-                            {{ member[0] }}
+                            <span class="material-symbols-outlined text-base">person</span>
                         </div>
                         }
                     </div>
                     <span class="font-zine text-sm font-bold uppercase text-espresso">
-                        {{ sessionMembers().length }} {{ sessionMembers().length === 1 ? 'member' : 'members' }}
+                        {{ memberCount() }} {{ memberCount() === 1 ? 'member' : 'members' }}
                     </span>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Roulette Button -->
+    <div class="px-6 pt-8">
+        <button (click)="spinRoulette()" [disabled]="isSpinning() || sessionCafes().length === 0"
+            class="w-full py-3 bg-off-white text-espresso font-black font-zine text-lg italic uppercase zine-border zine-shadow hover:translate-x-1 hover:translate-y-1 hover:shadow-none active:translate-x-2 active:translate-y-2 active:shadow-none transition-all duration-200 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed">
+            @if (isSpinning()) {
+            <span class="material-symbols-outlined animate-spin">casino</span>
+            Spinning...
+            } @else {
+            <span class="material-symbols-outlined">casino</span>
+            Let Fate Decide
+            }
+        </button>
+    </div>
+
     <!-- Start Voting Button -->
-    <div class="px-6 pt-10 pb-28">
+    <div class="px-6 pt-4 pb-28">
         <button (click)="startVoting()" [disabled]="!sessionId()"
             class="w-full py-4 bg-primary text-espresso font-black font-zine text-2xl italic uppercase zine-border zine-shadow hover:translate-x-1 hover:translate-y-1 hover:shadow-none active:translate-x-2 active:translate-y-2 active:shadow-none transition-all duration-200 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed">
             <span class="material-symbols-outlined text-2xl">how_to_vote</span>
+            @if (spinHighlight() >= 0 && sessionCafes()[spinHighlight()]) {
+            CONFIRMED: {{ sessionCafes()[spinHighlight()].name }}
+            } @else {
             START VOTING
+            }
         </button>
     </div>
 

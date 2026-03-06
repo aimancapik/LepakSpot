@@ -109,10 +109,26 @@
                 <span class="material-symbols-outlined">task_alt</span>
                 <span>You're checked in! +25 pts</span>
             </div>
-            } @else if (isAlreadyCheckedIn()) {
+            } @else if (checkInStatus() === 'loading') {
             <div class="checkin-already">
-                <span class="material-symbols-outlined">where_to_vote</span>
-                <span>You're here</span>
+                <div class="spinner"></div>
+                <span>Checking status...</span>
+            </div>
+            } @else if (checkInStatus() === 'already' || isAlreadyCheckedIn()) {
+            <button class="checkin-btn" [class.loading]="isCheckingOut()" (click)="handleCheckOut()"
+                [disabled]="isCheckingOut()">
+                @if (isCheckingOut()) {
+                <div class="spinner"></div>
+                <span>Leaving...</span>
+                } @else {
+                <span class="material-symbols-outlined">logout</span>
+                <span>I'm Leaving</span>
+                }
+            </button>
+            } @else if (checkInStatus() === 'was-here') {
+            <div class="checkin-already">
+                <span class="material-symbols-outlined">how_to_reg</span>
+                <span>Checked in today</span>
             </div>
             } @else {
             <button class="checkin-btn" [class.loading]="isCheckingIn()" (click)="handleCheckIn()"

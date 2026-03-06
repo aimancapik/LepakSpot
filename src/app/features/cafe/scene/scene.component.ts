@@ -8,7 +8,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { BroadcastService } from '../../../core/services/broadcast.service';
 import { CheckInService } from '../../../core/services/checkin.service';
 import { ReviewService } from '../../../core/services/review.service';
-import { Cafe } from '../../../core/models/cafe.model';
+import { Cafe, CrowdLevel, NoiseLevel } from '../../../core/models/cafe.model';
 import { Review } from '../../../core/models/review.model';
 import { SaveToListModalComponent } from '../../../shared/components/save-to-list-modal/save-to-list-modal.component';
 import { ToastService } from '../../../shared/components/toast/toast.service';
@@ -31,11 +31,16 @@ export class SceneComponent implements OnInit {
 
     cafe = signal<Cafe | null>(null);
     isUpdatingVibe = signal(false);
+    isSubmittingVibe = signal(false);
+    selectedCrowdLevel = signal<CrowdLevel | null>(null);
+    selectedNoiseLevel = signal<NoiseLevel | null>(null);
     isBroadcasting = signal(false);
     showSaveModal = signal(false);
     broadcastMessage = signal('');
     isCheckedIn = signal(false);
+    isPresent = signal(false);
     checkingIn = signal(false);
+    checkingOut = signal(false);
 
     // Review state
     reviews = this.reviewService.cafeReviews;
@@ -62,8 +67,12 @@ export class SceneComponent implements OnInit {
 
     private async verifyCheckInStatus(cafeId: string) {
         try {
-            const hasCheckedIn = await this.checkInService.hasCheckedInToday(cafeId);
+            const [hasCheckedIn, isPresent] = await Promise.all([
+                this.checkInService.hasCheckedInToday(cafeId),
+                this.checkInService.isCurrentlyPresent(cafeId),
+            ]);
             this.isCheckedIn.set(hasCheckedIn);
+            this.isPresent.set(isPresent);
         } catch (error) {
             console.error('Failed to verify check-in status', error);
         }
@@ -86,12 +95,29 @@ export class SceneComponent implements OnInit {
         try {
             await this.checkInService.checkIn(this.cafe()!.id, this.cafe()!.name);
             this.isCheckedIn.set(true);
+            this.isPresent.set(true);
             this.toastService.show('Checked in! 🎉 VIP perks unlocked.', 'success');
         } catch (error) {
             console.error('Error checking in:', error);
-            this.toastService.show('Failed to check in. Are you logged in?', 'error');
+            const msg = error instanceof Error ? error.message : 'Failed to check in.';
+            this.toastService.show(msg, 'error');
         } finally {
             this.checkingIn.set(false);
+        }
+    }
+
+    async checkOut() {
+        if (this.checkingOut()) return;
+        this.checkingOut.set(true);
+        try {
+            await this.checkInService.checkOut();
+            this.isPresent.set(false);
+            this.toastService.show('Checked out. See you next time! 👋', 'success');
+        } catch (error) {
+            const msg = error instanceof Error ? error.message : 'Could not check out.';
+            this.toastService.show(msg, 'error');
+        } finally {
+            this.checkingOut.set(false);
         }
     }
 
@@ -137,9 +163,35 @@ export class SceneComponent implements OnInit {
         }
     }
 
-    submitVibeUpdate() {
-        this.isUpdatingVibe.set(false);
-        this.toastService.show('Vibe updated! Thanks for keeping the zine alive 🌿', 'success');
+    async submitVibeUpdate() {
+        const cafe = this.cafe();
+        if (!cafe || this.isSubmittingVibe()) return;
+
+        const crowd = this.selectedCrowdLevel();
+        const noise = this.selectedNoiseLevel();
+        if (!crowd && !noise) {
+            this.toastService.show('Select at least one vibe option to update.', 'info');
+            return;
+        }
+
+        this.isSubmittingVibe.set(true);
+        try {
+            const updates: Partial<Cafe> = {};
+            if (crowd) updates.crowdLevel = crowd;
+            if (noise) updates.noiseLevel = noise;
+
+            await this.cafeService.updateVibeData(cafe.id!, updates as { crowdLevel?: CrowdLevel; noiseLevel?: NoiseLevel });
+            this.cafe.update(c => c ? { ...c, ...updates } : c);
+            this.isUpdatingVibe.set(false);
+            this.selectedCrowdLevel.set(null);
+            this.selectedNoiseLevel.set(null);
+            this.toastService.show('Vibe updated! Thanks for keeping the zine alive 🌿', 'success');
+        } catch (error) {
+            console.error('Failed to update vibe:', error);
+            this.toastService.show('Could not update vibe. Try again.', 'error');
+        } finally {
+            this.isSubmittingVibe.set(false);
+        }
     }
 
     toggleBroadcastForm() {
@@ -154,7 +206,7 @@ export class SceneComponent implements OnInit {
         const currentCafe = this.cafe();
 
         if (!currentUser || !currentCafe) {
-            alert('You must be logged in to broadcast.');
+            this.toastService.show('You must be logged in to broadcast.', 'error');
             return;
         }
 

@@ -89,6 +89,9 @@
                             [class]="hasBadge(badge.name) ? 'text-off-white' : ''">{{ badge.icon }}</span>
                     </div>
                     <p class="font-marker text-[10px] uppercase leading-tight text-espresso z-10">{{ badge.name }}</p>
+                    @if (!hasBadge(badge.name)) {
+                    <p class="font-marker text-[8px] text-espresso/40 mt-1 leading-tight z-10">{{ badge.requirement }}</p>
+                    }
                 </div>
                 }
             </div>
@@ -101,7 +104,19 @@
                 Recent Moves
             </h3>
 
-            @if (recentCheckins().length === 0) {
+            @if (checkinsLoading()) {
+            <div class="space-y-3">
+                @for (i of [1,2,3]; track i) {
+                <div class="flex items-center gap-4 bg-off-white zine-border p-3 opacity-50 animate-pulse ml-1">
+                    <div class="w-10 h-10 bg-espresso/20 shrink-0"></div>
+                    <div class="flex-1 space-y-2">
+                        <div class="h-4 bg-espresso/20 rounded w-3/4"></div>
+                        <div class="h-3 bg-espresso/10 rounded w-1/2"></div>
+                    </div>
+                </div>
+                }
+            </div>
+            } @else if (recentCheckins().length === 0) {
             <div class="bg-off-white zine-border p-8 text-center rotate-[-1deg] zine-shadow">
                 <span class="material-symbols-outlined text-5xl text-espresso mb-2">history</span>
                 <p class="font-marker text-lg">No moves yet...</p>

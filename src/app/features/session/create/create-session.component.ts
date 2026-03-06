@@ -1,9 +1,10 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit, OnDestroy, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { CafeService } from '../../../core/services/cafe.service';
 import { SessionService } from '../../../core/services/session.service';
-import { AuthService } from '../../../core/services/auth.service';
 import { CafeListService } from '../../../core/services/cafe-list.service';
+import { ToastService } from '../../../shared/components/toast/toast.service';
 import { Cafe } from '../../../core/models/cafe.model';
 
 @Component({
@@ -14,23 +15,29 @@ import { Cafe } from '../../../core/models/cafe.model';
   templateUrl: './create-session.component.html',
   styleUrl: './create-session.component.scss',
 })
-export class CreateSessionComponent implements OnInit {
+export class CreateSessionComponent implements OnInit, OnDestroy {
   private cafeService = inject(CafeService);
   private sessionService = inject(SessionService);
-  private authService = inject(AuthService);
   private cafeListService = inject(CafeListService);
+  private toastService = inject(ToastService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
 
   sessionCafes = signal<Cafe[]>([]);
   sessionCode = signal('');
   sessionId = signal('');
-  sessionMembers = signal<string[]>([]);
   creating = signal(false);
-  private cafeIdsToUse: string[] = [];
+  isSpinning = signal(false);
+  spinHighlight = signal(-1);
 
-  async ngOnInit() {
-    this.route.queryParams.subscribe(async (params) => {
+  memberCount = computed(() => this.sessionService.activeSession()?.members.length ?? (this.sessionId() ? 1 : 0));
+  memberAvatarRange = computed(() => Array.from({ length: Math.min(this.memberCount(), 5) }, (_, i) => i));
+
+  private cafeIdsToUse: string[] = [];
+  private queryParamsSub?: Subscription;
+
+  ngOnInit() {
+    this.queryParamsSub = this.route.queryParams.subscribe(async (params) => {
       const listId = params['listId'];
 
       if (listId) {
@@ -61,12 +68,37 @@ export class CreateSessionComponent implements OnInit {
       const session = this.sessionService.activeSession();
       if (session) {
         this.sessionCode.set(session.code);
-        this.sessionMembers.set([this.authService.currentUser()?.displayName || 'You']);
       }
     } catch (err) {
       console.error('Failed to create session:', err);
     } finally {
       this.creating.set(false);
+    }
+  }
+
+  async spinRoulette() {
+    if (this.isSpinning() || this.sessionCafes().length === 0) return;
+    this.isSpinning.set(true);
+    this.spinHighlight.set(-1);
+
+    const total = this.sessionCafes().length;
+    const winner = Math.floor(Math.random() * total);
+    const steps = 20 + winner;
+
+    for (let i = 0; i <= steps; i++) {
+      await new Promise(r => setTimeout(r, 60 + i * 8));
+      this.spinHighlight.set(i % total);
+    }
+
+    this.spinHighlight.set(winner);
+    await new Promise(r => setTimeout(r, 800));
+    this.isSpinning.set(false);
+
+    const winnerId = this.sessionCafes()[winner].id!;
+    this.cafeIdsToUse = [winnerId];
+
+    if (this.sessionId()) {
+      await this.sessionService.updateSessionCafes(this.sessionId(), this.cafeIdsToUse);
     }
   }
 
@@ -83,10 +115,18 @@ export class CreateSessionComponent implements OnInit {
         await navigator.share(shareData);
       } else {
         await navigator.clipboard.writeText(`Join my LepakSpot session! Code: ${code}`);
-        alert('Session code copied to clipboard!');
+        this.toastService.show('Session code copied to clipboard!', 'success');
       }
     } catch {
       // User cancelled share
+    }
+  }
+
+  ngOnDestroy() {
+    this.queryParamsSub?.unsubscribe();
+    const session = this.sessionService.activeSession();
+    if (session?.status === 'waiting') {
+      this.sessionService.cleanup();
     }
   }
 

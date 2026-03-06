@@ -95,7 +95,28 @@
                     </div>
 
                     <h3 class="font-marker text-2xl text-espresso mb-1">You're in!</h3>
+                    @if (isOwner()) {
+                    <p class="text-sm font-bold text-espresso/80">Waiting for friends to join...</p>
+                    <div class="mt-3 flex items-center gap-2 justify-center">
+                        <span class="font-marker text-xs text-espresso/60 uppercase">Code:</span>
+                        <span class="font-marker text-lg font-bold text-primary tracking-widest">{{ sessionCode()
+                            }}</span>
+                    </div>
+                    } @else {
                     <p class="text-sm font-bold text-espresso/80">Waiting for the host to start voting...</p>
+                    }
+                    <div class="flex items-center gap-1 justify-center mt-2">
+                        <span class="material-symbols-outlined text-sm text-espresso/60">group</span>
+                        <span class="font-marker text-sm font-bold text-espresso">{{ memberCount() }} in the crew</span>
+                    </div>
+
+                    @if (isOwner() && memberCount() > 0) {
+                    <button (click)="startVoting()"
+                        class="w-full mt-6 py-3 bg-primary text-espresso font-bold rounded-xl border-2 border-espresso shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-[4px] active:shadow-none transition-all flex items-center justify-center gap-2 hover:bg-primary/90 text-sm uppercase tracking-wider font-marker">
+                        <span class="material-symbols-outlined font-bold">how_to_vote</span>
+                        Start Voting
+                    </button>
+                    }
 
                     <div class="flex gap-2 items-center justify-center mt-4">
                         <span class="w-2.5 h-2.5 bg-espresso border border-espresso rounded-full animate-bounce"></span>

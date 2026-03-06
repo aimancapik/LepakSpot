@@ -8,6 +8,7 @@ import { SessionService } from '../../../core/services/session.service';
 import { Bill, ReceiptItem } from '../../../core/models/bill.model';
 import { Session } from '../../../core/models/session.model';
 import { AuthService } from '../../../core/services/auth.service';
+import { ToastService } from '../../../shared/components/toast/toast.service';
 
 @Component({
     selector: 'app-bill-split',
@@ -23,6 +24,7 @@ export class BillSplitComponent implements OnInit, OnDestroy {
     public ocrService = inject(OcrService);
     private sessionService = inject(SessionService);
     public authService = inject(AuthService);
+    private toastService = inject(ToastService);
 
     sessionId = signal<string>('');
     session = computed(() => this.sessionService.activeSession());
@@ -79,7 +81,7 @@ export class BillSplitComponent implements OnInit, OnDestroy {
 
             this.viewState.set('CONFIRM_ITEMS');
         } catch (e) {
-            alert('Failed to process image. Please try again or enter manually.');
+            this.toastService.show('Failed to process image. Please try again or enter manually.', 'error');
             this.viewState.set('INITIAL');
         }
     }
@@ -99,7 +101,7 @@ export class BillSplitComponent implements OnInit, OnDestroy {
             this.viewState.set('ASSIGNING');
         } catch (e) {
             console.error('Error creating bill', e);
-            alert('Error creating bill');
+            this.toastService.show('Error creating bill. Please try again.', 'error');
         }
     }
 

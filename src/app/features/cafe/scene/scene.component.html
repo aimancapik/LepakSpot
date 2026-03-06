@@ -90,17 +90,35 @@
 
         <!-- Action Buttons -->
         <div class="flex justify-center flex-wrap gap-4 -mt-4 z-10 transition-all font-marker text-sm px-2">
-            <!-- CHECK IN BUTTON -->
-            <button (click)="checkIn()" [disabled]="isCheckedIn() || checkingIn()"
+            <!-- CHECK IN / CHECKOUT BUTTON -->
+            @if (isCheckedIn() && isPresent()) {
+            <!-- Currently present — show I'm Leaving -->
+            <button (click)="checkOut()" [disabled]="checkingOut()"
+                [class.hidden]="isUpdatingVibe() || isBroadcasting()"
+                class="flex-1 min-w-[120px] bg-sage text-espresso px-4 py-2 rounded-full zine-border shadow-[4px_4px_0_var(--color-espresso)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex justify-center items-center gap-2 group disabled:opacity-50 disabled:shadow-none disabled:translate-y-1 disabled:translate-x-1">
+                <span class="material-symbols-outlined text-lg transition-transform group-hover:scale-125">
+                    {{ checkingOut() ? 'sync' : 'logout' }}
+                </span>
+                {{ checkingOut() ? "LEAVING..." : "I'M LEAVING" }}
+            </button>
+            } @else if (isCheckedIn()) {
+            <!-- Checked in today but already left — passive state -->
+            <button disabled [class.hidden]="isUpdatingVibe() || isBroadcasting()"
+                class="flex-1 min-w-[120px] bg-white text-espresso px-4 py-2 rounded-full zine-border flex justify-center items-center gap-2 opacity-50 cursor-not-allowed shadow-none translate-x-1 translate-y-1">
+                <span class="material-symbols-outlined text-lg text-primary">how_to_reg</span>
+                CHECKED IN TODAY
+            </button>
+            } @else {
+            <!-- Not checked in — show Check In -->
+            <button (click)="checkIn()" [disabled]="checkingIn()"
                 [class.hidden]="isUpdatingVibe() || isBroadcasting()"
                 class="flex-1 min-w-[120px] bg-white text-espresso px-4 py-2 rounded-full zine-border shadow-[4px_4px_0_var(--color-primary)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex justify-center items-center gap-2 group disabled:opacity-50 disabled:shadow-none disabled:translate-y-1 disabled:translate-x-1">
-                <span
-                    class="material-symbols-outlined text-lg transition-transform group-hover:scale-125 group-disabled:scale-100"
-                    [class.text-primary]="isCheckedIn()">
-                    {{ isCheckedIn() ? 'how_to_reg' : 'location_on' }}
+                <span class="material-symbols-outlined text-lg transition-transform group-hover:scale-125">
+                    {{ checkingIn() ? 'sync' : 'location_on' }}
                 </span>
-                {{ checkingIn() ? 'CHECKING IN...' : (isCheckedIn() ? 'CHECKED IN' : 'CHECK IN') }}
+                {{ checkingIn() ? 'CHECKING IN...' : 'CHECK IN' }}
             </button>
+            }
 
             <button (click)="toggleVibeForm()" [class.hidden]="isUpdatingVibe() || isBroadcasting()"
                 class="flex-1 min-w-[120px] bg-primary text-espresso px-4 py-2 rounded-full zine-border shadow-[4px_4px_0_var(--color-espresso)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex justify-center items-center gap-2">
@@ -121,6 +139,88 @@
                 DIRECTIONS
             </button>
         </div>
+
+        <!-- Vibe Update Form (shown when isUpdatingVibe is true) -->
+        @if (isUpdatingVibe()) {
+        <div
+            class="bg-off-white zine-border p-5 shadow-[4px_4px_0_var(--color-espresso)] -rotate-1 relative overflow-hidden">
+            <div class="flex items-center justify-between mb-4 border-b-2 border-espresso/20 pb-2">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-espresso text-2xl">edit_note</span>
+                    <h3 class="font-marker text-xl tracking-widest uppercase text-espresso">Spill the Tea</h3>
+                </div>
+                <button (click)="toggleVibeForm()" class="text-espresso/50 hover:text-espresso transition-colors">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+
+            <!-- Crowd Level -->
+            <div class="mb-4">
+                <p class="font-zine text-xs uppercase tracking-widest text-espresso/60 mb-2">Crowd Level</p>
+                <div class="flex flex-wrap gap-2">
+                    @for (level of ['Empty', 'Moderate', 'Packed']; track level) {
+                    <button (click)="selectedCrowdLevel.set($any(level))"
+                        [class.bg-primary]="selectedCrowdLevel() === level"
+                        [class.bg-white]="selectedCrowdLevel() !== level"
+                        class="font-marker text-sm px-3 py-1 zine-border text-espresso transition-colors">
+                        {{ level }}
+                    </button>
+                    }
+                </div>
+            </div>
+
+            <!-- Noise Level -->
+            <div class="mb-5">
+                <p class="font-zine text-xs uppercase tracking-widest text-espresso/60 mb-2">Noise Level</p>
+                <div class="flex flex-wrap gap-2">
+                    @for (level of ['Library Quiet', 'Chill Chatter', 'Loud']; track level) {
+                    <button (click)="selectedNoiseLevel.set($any(level))"
+                        [class.bg-primary]="selectedNoiseLevel() === level"
+                        [class.bg-white]="selectedNoiseLevel() !== level"
+                        class="font-marker text-sm px-3 py-1 zine-border text-espresso transition-colors">
+                        {{ level }}
+                    </button>
+                    }
+                </div>
+            </div>
+
+            <!-- Submit -->
+            <button (click)="submitVibeUpdate()" [disabled]="isSubmittingVibe()"
+                class="w-full font-marker text-sm uppercase py-2 bg-espresso text-off-white zine-border shadow-[3px_3px_0_var(--color-primary)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all disabled:opacity-40 disabled:translate-x-0.5 disabled:translate-y-0.5 disabled:shadow-none">
+                {{ isSubmittingVibe() ? 'Updating...' : 'Update Vibe' }}
+            </button>
+        </div>
+        }
+
+        <!-- Broadcast Form (shown when isBroadcasting is true) -->
+        @if (isBroadcasting()) {
+        <div
+            class="bg-sage zine-border p-5 shadow-[4px_4px_0_var(--color-espresso)] rotate-1 relative overflow-hidden">
+            <div class="flex items-center justify-between mb-4 border-b-2 border-espresso/20 pb-2">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-espresso text-2xl">campaign</span>
+                    <h3 class="font-marker text-xl tracking-widest uppercase text-espresso">Lepak Alert</h3>
+                </div>
+                <button (click)="toggleBroadcastForm()" class="text-espresso/50 hover:text-espresso transition-colors">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+
+            <p class="font-zine text-xs uppercase tracking-widest text-espresso/60 mb-3">Tell your crew you're here!</p>
+
+            <!-- Message input -->
+            <textarea [ngModel]="broadcastMessage()" (ngModelChange)="broadcastMessage.set($event)" rows="3"
+                placeholder="e.g. Heading to {{ cafe()!.name }}! Come join 🙌"
+                class="w-full bg-white border-2 border-espresso/40 focus:border-espresso p-3 text-sm font-marker text-espresso resize-none outline-none transition-colors rounded-none mb-4">
+            </textarea>
+
+            <!-- Send button -->
+            <button (click)="createBroadcast()" [disabled]="!broadcastMessage().trim()"
+                class="w-full font-marker text-sm uppercase py-2 bg-espresso text-off-white zine-border shadow-[3px_3px_0_var(--color-primary)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all disabled:opacity-40 disabled:translate-x-0.5 disabled:translate-y-0.5 disabled:shadow-none">
+                Send Broadcast 📡
+            </button>
+        </div>
+        }
 
         <!-- VIP Perks & Secret Menu -->
         @if (cafe()!.perks?.length || cafe()!.secretMenu?.length) {
@@ -318,7 +418,7 @@
 
                 <div class="relative zine-border p-2 bg-off-white zine-shadow rounded-sm aspect-square">
                     <div class="w-full h-full overflow-hidden border-2 border-espresso bg-espresso">
-                        <img [src]="cafe()!.photos[1] || 'https://images.unsplash.com/photo-1497935586351-b67a49e012bf?w=800&fit=crop'"
+                        <img [src]="cafe()!.photos[0] || 'https://images.unsplash.com/photo-1497935586351-b67a49e012bf?w=800&fit=crop'"
                             class="w-full h-full object-cover grayscale contrast-125 hover:grayscale-0 transition-all duration-500"
                             alt="Cozy Corner" />
                     </div>
@@ -345,7 +445,7 @@
 
                 <div
                     class="relative zine-border p-3 bg-espresso z-10 shadow-[8px_8px_0_var(--color-primary)] rounded-sm aspect-[4/5] overflow-hidden">
-                    <img [src]="cafe()!.photos[2] || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800&fit=crop'"
+                    <img [src]="cafe()!.photos[1] || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800&fit=crop'"
                         class="w-full h-full object-cover sepia-[.4] contrast-125" alt="Art Vibes" />
                 </div>
                 <!-- Label -->
@@ -364,7 +464,7 @@
             <div class="relative w-full -rotate-1">
                 <div class="relative zine-border p-2 bg-off-white zine-shadow rounded-sm aspect-[5/4]">
                     <div class="w-full h-full overflow-hidden border-2 border-espresso bg-espresso">
-                        <img [src]="cafe()!.photos[3] || 'https://images.unsplash.com/photo-1525610553991-2bede1a236e2?w=800&fit=crop'"
+                        <img [src]="cafe()!.photos[2] || 'https://images.unsplash.com/photo-1525610553991-2bede1a236e2?w=800&fit=crop'"
                             class="w-full h-full object-cover grayscale contrast-125 hover:grayscale-0 transition-all duration-500"
                             alt="Late Night" />
                     </div>

@@ -10,6 +10,7 @@ import {
 } from '@angular/fire/auth';
 import { SupabaseService } from './supabase.service';
 import { User } from '../models/user.model';
+import { ToastService } from '../../shared/components/toast/toast.service';
 
 const USER_CACHE_KEY = 'lepakspot_user_cache';
 
@@ -19,6 +20,7 @@ export class AuthService {
     private supabase = inject(SupabaseService);
     private router = inject(Router);
     private injector = inject(EnvironmentInjector);
+    private toastService = inject(ToastService);
 
     currentUser = signal<User | null>(null);
     isLoggedIn = computed(() => !!this.currentUser());
@@ -161,7 +163,7 @@ export class AuthService {
         } catch (error) {
             console.error('AuthService: Sign-in error:', error);
             this.isSigningIn.set(false);
-            alert('Sign-in failed. Please check your browser console for details.');
+            this.toastService.show('Sign-in failed. Please try again.', 'error');
         }
     }
 

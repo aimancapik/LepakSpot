@@ -134,14 +134,21 @@
                         </a>
 
                         <!-- Check In -->
-                        <button (click)="checkin()" [disabled]="checkedIn()"
-                            class="group relative flex items-center justify-center w-full transition-transform -rotate-[0.5deg]"
-                            [class.active:scale-[0.98]]="!checkedIn()">
+                        <button (click)="checkin()" [disabled]="checkedIn() || checkingIn()"
+                            class="group relative flex items-center justify-center w-full transition-transform -rotate-[0.5deg] disabled:cursor-not-allowed"
+                            [class.active:scale-[0.98]]="!checkedIn() && !checkingIn()">
                             @if (checkedIn()) {
                             <div class="absolute inset-0 bg-sage border-2 border-espresso rounded-xl opacity-80"></div>
                             <div class="relative z-10 py-3.5 flex items-center gap-2 font-marker text-lg text-espresso">
                                 <span class="material-symbols-outlined font-bold" style="font-variation-settings:'FILL' 1">check_circle</span>
                                 Checked In! +25 Points
+                            </div>
+                            } @else if (checkingIn()) {
+                            <div class="absolute inset-0 bg-espresso rounded-xl translate-x-1 translate-y-1 opacity-50"></div>
+                            <div class="absolute inset-0 bg-white border-2 border-espresso border-dashed rounded-xl opacity-70"></div>
+                            <div class="relative z-10 py-3.5 flex items-center gap-2 font-marker text-lg text-espresso uppercase tracking-wider">
+                                <span class="material-symbols-outlined font-bold animate-spin">sync</span>
+                                Checking In...
                             </div>
                             } @else {
                             <div class="absolute inset-0 bg-espresso rounded-xl translate-x-1 translate-y-1"></div>

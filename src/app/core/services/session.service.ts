@@ -64,6 +64,9 @@ export class SessionService {
         if (!data) return null;
 
         const session = data as Session;
+        if (session.status === 'voting') throw new Error('This session has already started. Ask the host for the next one!');
+        if (session.status === 'done') throw new Error('This session has already ended.');
+
         const members = session.members || [];
         if (!members.includes(user.uid)) {
             members.push(user.uid);
@@ -75,6 +78,34 @@ export class SessionService {
 
         this.listenSession(session.id);
         return session.id;
+    }
+
+    async joinSessionById(sessionId: string): Promise<void> {
+        const user = this.authService.currentUser();
+        if (!user) throw new Error('Not authenticated');
+
+        const { data } = await this.supabase.client
+            .from('sessions')
+            .select('*')
+            .eq('id', sessionId)
+            .single();
+
+        if (!data) throw new Error('Session not found.');
+
+        const session = data as Session;
+        if (session.status === 'voting') throw new Error('This session has already started.');
+        if (session.status === 'done') throw new Error('This session has already ended.');
+
+        const members = session.members || [];
+        if (!members.includes(user.uid)) {
+            members.push(user.uid);
+            await this.supabase.client
+                .from('sessions')
+                .update({ members })
+                .eq('id', session.id);
+        }
+
+        this.listenSession(sessionId);
     }
 
     listenSession(id: string) {
@@ -162,6 +193,7 @@ export class SessionService {
             .single();
 
         if (!freshData) return;
+        if (freshData.winnerId) return; // Race condition guard: first writer wins
 
         const totalMembers = (freshData.members as string[]).length;
         const totalVotes = Object.keys(freshData.votes || {}).length;
@@ -216,6 +248,13 @@ export class SessionService {
         await this.supabase.client
             .from('sessions')
             .update({ status: 'voting' })
+            .eq('id', sessionId);
+    }
+
+    async updateSessionCafes(sessionId: string, cafeIds: string[]) {
+        await this.supabase.client
+            .from('sessions')
+            .update({ cafeOptions: cafeIds })
             .eq('id', sessionId);
     }
 
