@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
+import { authOrGuestGuard, authOnlyGuard } from './core/guards/guest.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
@@ -13,7 +14,7 @@ export const routes: Routes = [
     path: 'home',
     loadComponent: () =>
       import('./features/home/home.component').then((m) => m.HomeComponent),
-    canActivate: [authGuard],
+    canActivate: [authOrGuestGuard],
     data: { showBottomNavbar: true, activeTab: 'home' }
   },
   { path: 'session', redirectTo: 'session/join', pathMatch: 'full' },
@@ -23,7 +24,7 @@ export const routes: Routes = [
       import('./features/session/lobby/lobby.component').then(
         (m) => m.LobbyComponent
       ),
-    canActivate: [authGuard],
+    canActivate: [authOnlyGuard],
     data: { showBottomNavbar: false }
   },
   {
@@ -32,7 +33,7 @@ export const routes: Routes = [
       import('./features/session/create/create-session.component').then(
         (m) => m.CreateSessionComponent
       ),
-    canActivate: [authGuard],
+    canActivate: [authOnlyGuard],
     data: { showBottomNavbar: false }
   },
   {
@@ -41,7 +42,7 @@ export const routes: Routes = [
       import('./features/session/lobby/lobby.component').then(
         (m) => m.LobbyComponent
       ),
-    canActivate: [authGuard],
+    canActivate: [authOnlyGuard],
     data: { showBottomNavbar: false }
   },
   {
@@ -50,7 +51,7 @@ export const routes: Routes = [
       import('./features/session/voting/vote.component').then(
         (m) => m.VoteComponent
       ),
-    canActivate: [authGuard],
+    canActivate: [authOnlyGuard],
     data: { showBottomNavbar: false }
   },
   {
@@ -59,7 +60,7 @@ export const routes: Routes = [
       import('./features/session/result/result.component').then(
         (m) => m.ResultComponent
       ),
-    canActivate: [authGuard],
+    canActivate: [authOnlyGuard],
     data: { showBottomNavbar: false }
   },
   {
@@ -68,7 +69,7 @@ export const routes: Routes = [
       import('./features/session/bill-split/bill-split.component').then(
         (m) => m.BillSplitComponent
       ),
-    canActivate: [authGuard],
+    canActivate: [authOnlyGuard],
     data: { showBottomNavbar: false }
   },
   {
@@ -77,7 +78,7 @@ export const routes: Routes = [
       import('./features/profile/profile.component').then(
         (m) => m.ProfileComponent
       ),
-    canActivate: [authGuard],
+    canActivate: [authOnlyGuard],
     data: { showBottomNavbar: true, activeTab: 'profile' }
   },
   {
@@ -86,7 +87,7 @@ export const routes: Routes = [
       import('./features/cafe/add/add-cafe.component').then(
         (m) => m.AddCafeComponent
       ),
-    canActivate: [authGuard],
+    canActivate: [authOnlyGuard],
     data: { showBottomNavbar: false }
   },
   {
@@ -95,7 +96,7 @@ export const routes: Routes = [
       import('./features/cafe/detail/cafe-detail.component').then(
         (m) => m.CafeDetailComponent
       ),
-    canActivate: [authGuard],
+    canActivate: [authOrGuestGuard],
     data: { showBottomNavbar: false, activeTab: 'home' }
   },
   {
@@ -104,7 +105,7 @@ export const routes: Routes = [
       import('./features/cafe/scene/scene.component').then(
         (m) => m.SceneComponent
       ),
-    canActivate: [authGuard],
+    canActivate: [authOrGuestGuard],
     data: { showBottomNavbar: false, activeTab: 'home' }
   },
   {
@@ -113,14 +114,14 @@ export const routes: Routes = [
       import('./features/list-detail/list-detail.component').then(
         (m) => m.ListDetailComponent
       ),
-    canActivate: [authGuard],
+    canActivate: [authOnlyGuard],
     data: { showBottomNavbar: false, activeTab: 'profile' }
   },
   {
     path: 'map',
     loadComponent: () =>
       import('./features/map/map.component').then((m) => m.MapComponent),
-    canActivate: [authGuard],
+    canActivate: [authOrGuestGuard],
     data: { showBottomNavbar: true, activeTab: 'map' }
   },
   { path: '**', redirectTo: 'home' },

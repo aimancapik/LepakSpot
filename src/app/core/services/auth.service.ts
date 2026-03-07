@@ -23,7 +23,8 @@ export class AuthService {
     private toastService = inject(ToastService);
 
     currentUser = signal<User | null>(null);
-    isLoggedIn = computed(() => !!this.currentUser());
+    isGuest = signal<boolean>(false);
+    isLoggedIn = computed(() => !!this.currentUser() || this.isGuest());
     loading = signal(true);
     isSigningIn = signal(false);
 
@@ -32,6 +33,11 @@ export class AuthService {
         if (cached) {
             this.currentUser.set(cached);
             this.loading.set(false);
+        }
+
+        const isGuest = localStorage.getItem('lepakspot_guest_mode') === 'true';
+        if (isGuest) {
+            this.isGuest.set(true);
         }
 
         onAuthStateChanged(this.auth, async (firebaseUser) => {
@@ -172,10 +178,18 @@ export class AuthService {
             await signOut(this.auth);
             this.clearCache();
             this.currentUser.set(null);
+            this.isGuest.set(false);
+            localStorage.removeItem('lepakspot_guest_mode');
             this.router.navigate(['/login']);
         } catch (error) {
             console.error('Sign-out error:', error);
         }
+    }
+
+    continueAsGuest() {
+        this.isGuest.set(true);
+        localStorage.setItem('lepakspot_guest_mode', 'true');
+        this.router.navigate(['/home']);
     }
 
     async bypassLogin() {

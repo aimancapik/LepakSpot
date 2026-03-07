@@ -57,7 +57,22 @@ import { ToastService } from './shared/components/toast/toast.service';
     }
 
     <app-onboarding />
-    <router-outlet></router-outlet>
+
+    @if (authService.isGuest()) {
+      <div class="fixed top-0 inset-x-0 z-[60] bg-espresso text-primary py-2 px-4 flex items-center justify-between zine-border-b max-w-md mx-auto border-x-4 border-espresso">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-sm">lock_open</span>
+          <span class="font-zine text-[10px] uppercase tracking-widest font-bold">Browsing as Guest</span>
+        </div>
+        <button (click)="router.navigate(['/login'])" class="font-marker text-xs underline decoration-primary underline-offset-2">
+          Sign In
+        </button>
+      </div>
+    }
+
+    <div [class.pt-10]="authService.isGuest()">
+      <router-outlet></router-outlet>
+    </div>
     
     @if (showNav()) {
       <app-bottom-nav [activeTab]="activeTab()" />
@@ -83,7 +98,7 @@ import { ToastService } from './shared/components/toast/toast.service';
 })
 export class App implements OnInit {
   protected authService = inject(AuthService);
-  private router = inject(Router);
+  protected router = inject(Router);
   private activatedRoute = inject(ActivatedRoute);
   private swUpdate = inject(SwUpdate);
   private toastService = inject(ToastService);
