@@ -2,7 +2,7 @@ import { Component, EventEmitter, inject, Input, Output, signal, OnInit } from '
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CafeListService } from '../../../core/services/cafe-list.service';
-import { CafeList } from '../../../core/models/cafe-list.model';
+import { ToastService } from '../toast/toast.service';
 
 @Component({
     selector: 'app-save-to-list-modal',
@@ -12,6 +12,7 @@ import { CafeList } from '../../../core/models/cafe-list.model';
 })
 export class SaveToListModalComponent implements OnInit {
     private cafeListService = inject(CafeListService);
+    private toastService = inject(ToastService);
 
     @Input() cafeId!: string;
     @Output() close = new EventEmitter<void>();
@@ -19,6 +20,7 @@ export class SaveToListModalComponent implements OnInit {
     isCreatingNew = signal(false);
     newListName = signal('');
     newListDesc = signal('');
+    isSaving = signal(false);
 
     myLists = this.cafeListService.myLists;
 
@@ -28,25 +30,31 @@ export class SaveToListModalComponent implements OnInit {
 
     async createAndAdd() {
         if (!this.newListName().trim()) return;
-
+        this.isSaving.set(true);
         try {
             const listId = await this.cafeListService.createList(this.newListName(), this.newListDesc());
-            await this.addToList(listId);
+            await this.cafeListService.addCafeToList(listId, this.cafeId);
+            this.toastService.show('Saved to new list! 📋', 'success');
             this.closeModal();
         } catch (e) {
             console.error(e);
-            alert('Failed to create list');
+            this.toastService.show('Failed to create list', 'error');
+        } finally {
+            this.isSaving.set(false);
         }
     }
 
     async addToList(listId: string) {
+        this.isSaving.set(true);
         try {
             await this.cafeListService.addCafeToList(listId, this.cafeId);
-            alert('Saved to list!');
+            this.toastService.show('Spot saved! 🔖', 'success');
             this.closeModal();
         } catch (e) {
             console.error(e);
-            alert('Failed to save');
+            this.toastService.show('Failed to save to list', 'error');
+        } finally {
+            this.isSaving.set(false);
         }
     }
 

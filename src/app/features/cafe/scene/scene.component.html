@@ -110,8 +110,7 @@
             </button>
             } @else {
             <!-- Not checked in — show Check In -->
-            <button (click)="checkIn()" [disabled]="checkingIn()"
-                [class.hidden]="isUpdatingVibe() || isBroadcasting()"
+            <button (click)="checkIn()" [disabled]="checkingIn()" [class.hidden]="isUpdatingVibe() || isBroadcasting()"
                 class="flex-1 min-w-[120px] bg-white text-espresso px-4 py-2 rounded-full zine-border shadow-[4px_4px_0_var(--color-primary)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex justify-center items-center gap-2 group disabled:opacity-50 disabled:shadow-none disabled:translate-y-1 disabled:translate-x-1">
                 <span class="material-symbols-outlined text-lg transition-transform group-hover:scale-125">
                     {{ checkingIn() ? 'sync' : 'location_on' }}
@@ -194,8 +193,7 @@
 
         <!-- Broadcast Form (shown when isBroadcasting is true) -->
         @if (isBroadcasting()) {
-        <div
-            class="bg-sage zine-border p-5 shadow-[4px_4px_0_var(--color-espresso)] rotate-1 relative overflow-hidden">
+        <div class="bg-sage zine-border p-5 shadow-[4px_4px_0_var(--color-espresso)] rotate-1 relative overflow-hidden">
             <div class="flex items-center justify-between mb-4 border-b-2 border-espresso/20 pb-2">
                 <div class="flex items-center gap-2">
                     <span class="material-symbols-outlined text-espresso text-2xl">campaign</span>
@@ -418,7 +416,7 @@
 
                 <div class="relative zine-border p-2 bg-off-white zine-shadow rounded-sm aspect-square">
                     <div class="w-full h-full overflow-hidden border-2 border-espresso bg-espresso">
-                        <img [src]="cafe()!.photos[0] || 'https://images.unsplash.com/photo-1497935586351-b67a49e012bf?w=800&fit=crop'"
+                        <img [src]="cafe()!.photos[1] || cafe()!.photos[0] || 'https://images.unsplash.com/photo-1497935586351-b67a49e012bf?w=800&fit=crop'"
                             class="w-full h-full object-cover grayscale contrast-125 hover:grayscale-0 transition-all duration-500"
                             alt="Cozy Corner" />
                     </div>
@@ -445,7 +443,7 @@
 
                 <div
                     class="relative zine-border p-3 bg-espresso z-10 shadow-[8px_8px_0_var(--color-primary)] rounded-sm aspect-[4/5] overflow-hidden">
-                    <img [src]="cafe()!.photos[1] || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800&fit=crop'"
+                    <img [src]="cafe()!.photos[2] || cafe()!.photos[1] || cafe()!.photos[0] || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800&fit=crop'"
                         class="w-full h-full object-cover sepia-[.4] contrast-125" alt="Art Vibes" />
                 </div>
                 <!-- Label -->
@@ -464,7 +462,7 @@
             <div class="relative w-full -rotate-1">
                 <div class="relative zine-border p-2 bg-off-white zine-shadow rounded-sm aspect-[5/4]">
                     <div class="w-full h-full overflow-hidden border-2 border-espresso bg-espresso">
-                        <img [src]="cafe()!.photos[2] || 'https://images.unsplash.com/photo-1525610553991-2bede1a236e2?w=800&fit=crop'"
+                        <img [src]="cafe()!.photos[3] || cafe()!.photos[2] || cafe()!.photos[1] || cafe()!.photos[0] || 'https://images.unsplash.com/photo-1525610553991-2bede1a236e2?w=800&fit=crop'"
                             class="w-full h-full object-cover grayscale contrast-125 hover:grayscale-0 transition-all duration-500"
                             alt="Late Night" />
                     </div>

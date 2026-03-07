@@ -104,7 +104,7 @@ export class AddCafeComponent {
         if (!user || this.photoFiles().length === 0) return [];
         const urls: string[] = [];
         for (const file of this.photoFiles()) {
-            const path = `cafe-photos/${user.uid}/${Date.now()}-${file.name}`;
+            const path = `${user.uid}/${Date.now()}-${file.name}`;
             const { data, error } = await this.supabase.client.storage
                 .from('cafe-photos')
                 .upload(path, file, { upsert: true });

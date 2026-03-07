@@ -113,37 +113,122 @@ export class CafeService {
     nearbyCafes = signal<Cafe[]>(MOCK_CAFES);
     selectedTags = signal<CafeTag[]>([]);
     showLateNightOnly = signal(false);
+    showOpenNowOnly = signal(false);
     searchQuery = signal('');
+    sortBy = signal<'default' | 'rating' | 'nearest'>('default');
+
+    // User location for distance calc
+    userLat = signal<number | null>(null);
+    userLng = signal<number | null>(null);
 
     filteredCafes = computed(() => {
         const tags = this.selectedTags();
         const lateNight = this.showLateNightOnly();
+        const openNow = this.showOpenNowOnly();
         const query = this.searchQuery().toLowerCase().trim();
-        let cafes = this.nearbyCafes().filter(c => !c.pendingApproval);
+        const sort = this.sortBy();
+        const uLat = this.userLat();
+        const uLng = this.userLng();
+        let cafes = this.nearbyCafes().filter((c: Cafe) => !c.pendingApproval);
 
-        if (lateNight) {
-            cafes = cafes.filter(c => c.isLateNight);
-        }
+        if (lateNight) cafes = cafes.filter((c: Cafe) => c.isLateNight);
+        if (openNow) cafes = cafes.filter((c: Cafe) => this.isOpenNow(c));
 
         if (query) {
-            cafes = cafes.filter(c =>
+            cafes = cafes.filter((c: Cafe) =>
                 c.name.toLowerCase().includes(query) ||
                 c.address.toLowerCase().includes(query)
             );
         }
 
-        if (tags.length === 0) return cafes;
-        return cafes.filter((c) => tags.some((t) => c.tags.includes(t)));
+        if (tags.length > 0) {
+            cafes = cafes.filter((c: Cafe) => tags.some((t: CafeTag) => c.tags.includes(t)));
+        }
+
+        if (sort === 'rating') {
+            cafes = [...cafes].sort((a: Cafe, b: Cafe) => (b.rating ?? 0) - (a.rating ?? 0));
+        } else if (sort === 'nearest' && uLat !== null && uLng !== null) {
+            cafes = [...cafes].sort((a: Cafe, b: Cafe) =>
+                this.distanceKm(uLat!, uLng!, a.lat, a.lng) - this.distanceKm(uLat!, uLng!, b.lat, b.lng)
+            );
+        }
+
+        return cafes;
     });
 
+    /** Parses opening hours like "8am – 10pm, Daily" to check if currently open */
+    isOpenNow(cafe: Cafe): boolean {
+        if (!cafe.openingHours) return true;
+        const now = new Date();
+        const nowMins = now.getHours() * 60 + now.getMinutes();
+        const segment = cafe.openingHours.split('|')[0];
+        const match = segment.match(/(\d+(?::\d+)?(?:am|pm))\s*[–\-]\s*(\d+(?::\d+)?(?:am|pm))/i);
+        if (!match) return true;
+        const open = this.parseTimeMins(match[1]);
+        let close = this.parseTimeMins(match[2]);
+        if (close <= open) close += 24 * 60; // overnight
+        const adjustedNow = nowMins < open ? nowMins + 24 * 60 : nowMins;
+        return adjustedNow >= open && adjustedNow < close;
+    }
+
+    private parseTimeMins(t: string): number {
+        const pm = /pm/i.test(t);
+        const cleaned = t.replace(/(am|pm)/i, '').trim();
+        const [hStr, mStr] = cleaned.split(':');
+        let h = parseInt(hStr, 10);
+        const m = mStr ? parseInt(mStr, 10) : 0;
+        if (pm && h !== 12) h += 12;
+        if (!pm && h === 12) h = 0;
+        return h * 60 + m;
+    }
+
+    /** Haversine distance in km */
+    distanceKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
+        const R = 6371;
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLng = (lng2 - lng1) * Math.PI / 180;
+        const a = Math.sin(dLat / 2) ** 2 +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
+
+    /** Returns a formatted distance label e.g. "1.2 km" or "800 m" */
+    distanceLabel(cafe: Cafe): string | null {
+        const uLat = this.userLat();
+        const uLng = this.userLng();
+        if (uLat === null || uLng === null) return null;
+        const d = this.distanceKm(uLat, uLng, cafe.lat, cafe.lng);
+        return d < 1 ? `${Math.round(d * 1000)} m` : `${d.toFixed(1)} km`;
+    }
+
+    /** Request browser geolocation and store in signals */
+    requestUserLocation(): Promise<void> {
+        return new Promise(resolve => {
+            if (!navigator.geolocation) { resolve(); return; }
+            navigator.geolocation.getCurrentPosition(
+                pos => {
+                    this.userLat.set(pos.coords.latitude);
+                    this.userLng.set(pos.coords.longitude);
+                    resolve();
+                },
+                () => resolve(),
+                { timeout: 6000 }
+            );
+        });
+    }
+
     toggleTag(tag: CafeTag) {
-        this.selectedTags.update((tags) =>
-            tags.includes(tag) ? tags.filter((t) => t !== tag) : [...tags, tag]
+        this.selectedTags.update(tags =>
+            tags.includes(tag) ? tags.filter(t => t !== tag) : [...tags, tag]
         );
     }
 
     toggleLateNight() {
         this.showLateNightOnly.update(v => !v);
+    }
+
+    toggleOpenNow() {
+        this.showOpenNowOnly.update(v => !v);
     }
 
     async getNearby(_lat?: number, _lng?: number, _radiusKm = 5) {
@@ -190,10 +275,7 @@ export class CafeService {
             }
             try {
                 const { data } = await this.supabase.client
-                    .from('cafes')
-                    .select('*')
-                    .eq('id', id)
-                    .single();
+                    .from('cafes').select('*').eq('id', id).single();
                 if (data) results.push(data as Cafe);
             } catch { }
         }
@@ -228,15 +310,11 @@ export class CafeService {
         };
 
         const { data: inserted, error } = await this.supabase.client
-            .from('cafes')
-            .insert(cafe)
-            .select('id')
-            .single();
+            .from('cafes').insert(cafe).select('id').single();
 
         if (error) throw error;
         const newId = inserted!.id;
 
-        // Award 100 pts — use RPC, fall back to direct update only if RPC fails
         const { error: rpcError } = await this.supabase.client
             .rpc('increment_points', { user_uid: user.uid, amount: 100 });
         if (rpcError) {
@@ -247,17 +325,13 @@ export class CafeService {
         }
 
         await this.authService.refreshCurrentUser();
-
-        // Add to local list
         this.nearbyCafes.update(cafes => [...cafes, { ...cafe, id: newId } as Cafe]);
-
         return newId;
     }
 
     async updateVibeData(id: string, updates: { crowdLevel?: string; noiseLevel?: string }): Promise<void> {
         const { error } = await this.supabase.client.from('cafes').update(updates).eq('id', id);
         if (error) throw error;
-        // Update local signal so display reflects immediately
         this.nearbyCafes.update(cafes =>
             cafes.map(c => c.id === id ? { ...c, ...updates } as Cafe : c)
         );

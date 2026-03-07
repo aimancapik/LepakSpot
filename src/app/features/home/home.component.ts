@@ -1,16 +1,17 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal, ViewEncapsulation } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { CafeService } from '../../core/services/cafe.service';
 import { BroadcastService } from '../../core/services/broadcast.service';
 import { ToastService } from '../../shared/components/toast/toast.service';
-import { CafeTag } from '../../core/models/cafe.model';
+import { CafeTag, Cafe } from '../../core/models/cafe.model';
+import { SaveToListModalComponent } from '../../shared/components/save-to-list-modal/save-to-list-modal.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink],
+  imports: [RouterLink, SaveToListModalComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })
@@ -28,13 +29,21 @@ export class HomeComponent implements OnInit {
     { tag: 'chill', label: 'Chill', icon: 'potted_plant' },
   ];
 
-  ngOnInit() {
+  // Bookmark modal
+  bookmarkCafeId = signal<string | null>(null);
+
+  // Search history
+  recentSearches = signal<string[]>(this.loadRecentSearches());
+
+  async ngOnInit() {
     this.cafeService.getNearby();
+    // Request location silently in background
+    this.cafeService.requestUserLocation();
   }
 
   get greeting(): string {
     const hour = new Date().getHours();
-    if (hour >= 0 && hour < 5) return 'Masih Lepak? 🦉'; // Post-midnight/Early morning
+    if (hour >= 0 && hour < 5) return 'Masih Lepak? 🦉';
     if (hour >= 5 && hour < 12) return 'Selamat Pagi! ☕';
     if (hour >= 12 && hour < 14) return 'Lunch Hunt? 🥯';
     if (hour >= 14 && hour < 19) return 'Selamat Petang! 🥞';
@@ -47,5 +56,53 @@ export class HomeComponent implements OnInit {
 
   showNotifications() {
     this.toastService.show('Notifications coming soon! 🔔', 'info');
+  }
+
+  openBookmark(event: Event, cafe: Cafe) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.bookmarkCafeId.set(cafe.id);
+  }
+
+  closeBookmark() {
+    this.bookmarkCafeId.set(null);
+  }
+
+  /** Count how many active broadcasts are at a given cafe */
+  liveCount(cafeId: string): number {
+    return this.broadcastService.activeBroadcasts().filter(b => b.cafeId === cafeId).length;
+  }
+
+  onSearch(value: string) {
+    this.cafeService.searchQuery.set(value);
+    if (value.trim()) {
+      this.saveSearch(value.trim());
+    }
+  }
+
+  applyRecentSearch(q: string) {
+    this.cafeService.searchQuery.set(q);
+  }
+
+  clearSearch() {
+    this.cafeService.searchQuery.set('');
+  }
+
+  private loadRecentSearches(): string[] {
+    try {
+      return JSON.parse(localStorage.getItem('ls_recent_searches') || '[]');
+    } catch { return []; }
+  }
+
+  private saveSearch(q: string) {
+    const existing = this.recentSearches().filter(s => s !== q);
+    const updated = [q, ...existing].slice(0, 5);
+    this.recentSearches.set(updated);
+    localStorage.setItem('ls_recent_searches', JSON.stringify(updated));
+  }
+
+  clearRecentSearches() {
+    this.recentSearches.set([]);
+    localStorage.removeItem('ls_recent_searches');
   }
 }

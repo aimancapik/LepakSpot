@@ -54,7 +54,7 @@
         <div class="grid grid-cols-2 gap-4">
             <div class="flex flex-col gap-2">
                 <div class="bg-cover bg-center rounded-lg border-2 border-espresso aspect-square grayscale hover:grayscale-0 transition-all duration-500"
-                    [style.background-image]="'url(' + (cafe()!.photos[0] || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=400&fit=crop') + ')'">
+                    [style.background-image]="'url(' + (cafe()!.photos[1] || cafe()!.photos[0] || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=400&fit=crop') + ')'">
                 </div>
                 <p
                     class="font-marker text-[10px] font-bold uppercase tracking-widest leading-none bg-sage/30 p-1 self-start">
@@ -62,7 +62,7 @@
             </div>
             <div class="flex flex-col gap-2 pt-8">
                 <div class="bg-cover bg-center rounded-lg border-2 border-espresso aspect-[3/4] rotate-3"
-                    [style.background-image]="'url(' + (cafe()!.photos[1] || 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=400&fit=crop') + ')'">
+                    [style.background-image]="'url(' + (cafe()!.photos[2] || cafe()!.photos[1] || cafe()!.photos[0] || 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=400&fit=crop') + ')'">
                 </div>
                 <p
                     class="font-marker text-[10px] font-bold uppercase tracking-widest leading-none bg-primary/30 p-1 self-start ml-4">

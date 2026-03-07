@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/cor
 import { RouterOutlet, Router, ActivatedRoute, NavigationEnd } from '@angular/router';
 import { BottomNavComponent } from './shared/components/bottom-nav/bottom-nav.component';
 import { ToastComponent } from './shared/components/toast/toast.component';
+import { OnboardingComponent } from './shared/components/onboarding/onboarding.component';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { filter, map, mergeMap } from 'rxjs/operators';
 import { AuthService } from './core/services/auth.service';
@@ -12,7 +13,7 @@ import { ToastService } from './shared/components/toast/toast.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, BottomNavComponent, ToastComponent],
+  imports: [RouterOutlet, BottomNavComponent, ToastComponent, OnboardingComponent],
   template: `
     <app-toast />
     
@@ -55,6 +56,7 @@ import { ToastService } from './shared/components/toast/toast.service';
       </div>
     }
 
+    <app-onboarding />
     <router-outlet></router-outlet>
     
     @if (showNav()) {
