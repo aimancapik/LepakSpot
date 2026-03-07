@@ -212,11 +212,28 @@
                 class="w-full bg-white border-2 border-espresso/40 focus:border-espresso p-3 text-sm font-marker text-espresso resize-none outline-none transition-colors rounded-none mb-4">
             </textarea>
 
+            <!-- Duration picker -->
+            <div class="mb-4">
+                <p class="font-zine text-xs uppercase tracking-widest text-espresso/60 mb-2">How long will you be there?
+                </p>
+                <div class="flex gap-2 flex-wrap">
+                    @for (opt of [{label: '30 min', val: 0.5}, {label: '1 hr', val: 1}, {label: '2 hrs', val: 2},
+                    {label: '4 hrs', val: 4}]; track opt.val) {
+                    <button (click)="broadcastDuration.set(opt.val)"
+                        [class.bg-primary]="broadcastDuration() === opt.val"
+                        [class.bg-white]="broadcastDuration() !== opt.val"
+                        class="font-marker text-xs uppercase px-3 py-1.5 border-2 border-espresso text-espresso shadow-[2px_2px_0_var(--color-espresso)] hover:translate-x-px hover:translate-y-px hover:shadow-none transition-all">
+                        {{ opt.label }}
+                    </button>
+                    }
+                </div>
+            </div>
+
             <!-- Send button -->
             <button (click)="createBroadcast()" [disabled]="!broadcastMessage().trim()"
                 class="w-full font-marker text-sm uppercase py-2 bg-espresso text-off-white zine-border shadow-[3px_3px_0_var(--color-primary)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all disabled:opacity-40 disabled:translate-x-0.5 disabled:translate-y-0.5 disabled:shadow-none">
-                Send Broadcast 📡
-            </button>
+                Send Broadcast 📡 · {{ broadcastDuration() < 1 ? '30 min' : broadcastDuration() + 'h' }} </button>
+
         </div>
         }
 

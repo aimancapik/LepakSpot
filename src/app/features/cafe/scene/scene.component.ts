@@ -194,6 +194,8 @@ export class SceneComponent implements OnInit {
         }
     }
 
+    broadcastDuration = signal<number>(2); // hours
+
     toggleBroadcastForm() {
         this.isBroadcasting.update(v => !v);
         if (this.isBroadcasting() && this.isUpdatingVibe()) {
@@ -214,10 +216,12 @@ export class SceneComponent implements OnInit {
             await this.broadcastService.createBroadcast(
                 currentCafe.id!,
                 currentCafe.name,
-                this.broadcastMessage()
+                this.broadcastMessage(),
+                this.broadcastDuration()
             );
             this.isBroadcasting.set(false);
             this.broadcastMessage.set('');
+            this.broadcastDuration.set(2);
             this.toastService.show('Broadcast sent! 📡 Friends can see you are here.', 'success');
         } catch (error) {
             console.error('Error creating broadcast:', error);
