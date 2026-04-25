@@ -129,11 +129,10 @@
                 <strong>+100 points!</strong> 🌟
             </p>
         </div>
-
         <!-- ─── PHOTOS ─────────────────────────────────────────── -->
         <div class="space-y-3">
             <label class="font-zine font-bold text-xs uppercase tracking-widest text-espresso/70">
-                Photos <span class="text-[10px] normal-case">(up to 4)</span>
+                Gallery Photos <span class="text-[10px] normal-case">(up to 4)</span>
             </label>
 
             <!-- Preview grid -->
@@ -152,13 +151,58 @@
             }
 
             <!-- Upload button -->
-            @if (photoPreviews().length < 4) { <label
-                class="relative w-full flex flex-col items-center justify-center py-6 bg-off-white zine-border cursor-pointer hover:bg-white hover:shadow-[3px_3px_0_var(--color-espresso)] transition-all gap-2 border-dashed">
+            @if (photoPreviews().length < 4) {
+            <label
+                class="relative w-full flex flex-col items-center justify-center py-6 bg-off-white zine-border cursor-pointer hover:bg-white transition-all gap-2 border-dashed">
                 <span class="material-symbols-outlined text-3xl text-espresso/50">add_photo_alternate</span>
-                <span class="font-marker text-sm text-espresso/60">Tap to add photos</span>
+                <span class="font-marker text-sm text-espresso/60">Add Gallery Photos</span>
                 <input type="file" accept="image/*" multiple class="sr-only" (change)="onFileSelected($event)" />
-                </label>
+            </label>
+            }
+        </div>
+
+        <!-- ─── SCENE SNAPS (TAGGED) ────────────────────────────── -->
+        <div class="space-y-4">
+            <label class="font-zine font-bold text-xs uppercase tracking-widest text-espresso/70 flex justify-between">
+                <span>Scene Snaps <span class="text-[10px] normal-case">(Polaroid Style, up to 3)</span></span>
+                <span class="text-primary font-black italic">BETA</span>
+            </label>
+
+            <!-- Scene Preview Grid -->
+            <div class="grid grid-cols-1 gap-6">
+                @for (url of sceneSnapPreviews(); track url; let i = $index) {
+                <div class="relative bg-off-white p-3 zine-border shadow-[4px_4px_0_var(--color-espresso)] rotate-[-1deg] group">
+                    <div class="aspect-square bg-espresso overflow-hidden border-2 border-espresso">
+                        <img [src]="url" alt="Scene Snap" class="w-full h-full object-cover grayscale contrast-125 group-hover:grayscale-0 transition-all duration-500" />
+                    </div>
+                    
+                    <!-- Tag Input -->
+                    <div class="mt-4 relative">
+                        <div class="absolute -top-6 -right-2 bg-primary text-espresso px-3 py-1 font-marker text-[10px] rotate-6 zine-border shadow-sm">
+                            TAG IT
+                        </div>
+                        <input type="text" [value]="sceneSnapTags()[i]" (input)="updateSceneSnapTag(i, $any($event.target).value)"
+                            placeholder="e.g. Cozy Corner, Hidden Spot..."
+                            class="w-full bg-white border-b-2 border-espresso/20 focus:border-espresso p-2 font-marker text-sm text-espresso outline-none" />
+                    </div>
+
+                    <button (click)="removeSceneSnap(i)"
+                        class="absolute -top-2 -right-2 w-8 h-8 bg-espresso text-off-white flex items-center justify-center border-2 border-off-white rounded-full z-20 shadow-sm">
+                        <span class="material-symbols-outlined text-sm">close</span>
+                    </button>
+                </div>
                 }
+            </div>
+
+            <!-- Upload button for Scene Snaps -->
+            @if (sceneSnapPreviews().length < 3) {
+            <label
+                class="relative w-full flex flex-col items-center justify-center py-8 bg-latte zine-border cursor-pointer hover:bg-white transition-all gap-2 border-dashed border-espresso/30 border-4">
+                <span class="material-symbols-outlined text-4xl text-espresso/30">photo_camera</span>
+                <span class="font-marker text-sm text-espresso/50 uppercase tracking-widest italic">Add Polaroid Snap</span>
+                <input type="file" accept="image/*" multiple class="sr-only" (change)="onSceneSnapSelected($event)" />
+            </label>
+            }
         </div>
 
         <!-- ─── CAFE NAME ───────────────────────────────────────── -->

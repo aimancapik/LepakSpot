@@ -311,6 +311,7 @@ export class CafeService {
             isLateNight: data.isLateNight || false,
             perks: data.perks || [],
             secretMenu: data.secretMenu || [],
+            sceneSnaps: data.sceneSnaps || [],
             googleMapsUrl: data.googleMapsUrl,
         };
 

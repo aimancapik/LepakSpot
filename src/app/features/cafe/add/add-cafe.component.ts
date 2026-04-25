@@ -45,6 +45,11 @@ export class AddCafeComponent {
     photoFiles = signal<File[]>([]);            // raw File objects
     uploadingPhotos = signal(false);
 
+    // ─── Scene Snaps (Tagged Photos) ───────────────────────────────────
+    sceneSnapFiles = signal<File[]>([]);
+    sceneSnapPreviews = signal<string[]>([]);
+    sceneSnapTags = signal<string[]>([]); // Matches index of files
+
     // ─── Form state ─────────────────────────────────────────────────────
     submitting = signal(false);
     submitted = signal(false);
@@ -99,11 +104,43 @@ export class AddCafeComponent {
         this.photoFiles.update(f => f.filter((_, i) => i !== index));
     }
 
-    async uploadPhotos(): Promise<string[]> {
+    // ─── Scene Snap helpers ─────────────────────────────────────────────
+    onSceneSnapSelected(event: Event) {
+        const input = event.target as HTMLInputElement;
+        if (!input.files) return;
+        const newFiles = Array.from(input.files).slice(0, 3 - this.sceneSnapFiles().length);
+        newFiles.forEach(file => {
+            if (!file.type.startsWith('image/')) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                this.sceneSnapPreviews.update(p => [...p, e.target!.result as string]);
+            };
+            reader.readAsDataURL(file);
+            this.sceneSnapFiles.update(f => [...f, file]);
+            this.sceneSnapTags.update(t => [...t, '']); // Empty tag initially
+        });
+        input.value = '';
+    }
+
+    removeSceneSnap(index: number) {
+        this.sceneSnapPreviews.update(p => p.filter((_, i) => i !== index));
+        this.sceneSnapFiles.update(f => f.filter((_, i) => i !== index));
+        this.sceneSnapTags.update(t => t.filter((_, i) => i !== index));
+    }
+
+    updateSceneSnapTag(index: number, tag: string) {
+        this.sceneSnapTags.update(tags => {
+            const newTags = [...tags];
+            newTags[index] = tag;
+            return newTags;
+        });
+    }
+
+    async uploadFiles(files: File[]): Promise<string[]> {
         const user = this.authService.currentUser();
-        if (!user || this.photoFiles().length === 0) return [];
+        if (!user || files.length === 0) return [];
         const urls: string[] = [];
-        for (const file of this.photoFiles()) {
+        for (const file of files) {
             const path = `${user.uid}/${Date.now()}-${file.name}`;
             const { data, error } = await this.supabase.client.storage
                 .from('cafe-photos')
@@ -190,8 +227,15 @@ export class AddCafeComponent {
         try {
             // 1. Upload photos
             this.uploadingPhotos.set(true);
-            const photoUrls = await this.uploadPhotos();
+            const photoUrls = await this.uploadFiles(this.photoFiles());
+            const sceneUrls = await this.uploadFiles(this.sceneSnapFiles());
             this.uploadingPhotos.set(false);
+
+            // Create sceneSnaps objects
+            const sceneSnaps = sceneUrls.map((url, i) => ({
+                url,
+                tag: this.sceneSnapTags()[i] || 'Spot'
+            }));
 
             // 2. Extract coordinates from Maps URL
             const mapsUrl = this.googleMapsUrl().trim();
@@ -215,6 +259,7 @@ export class AddCafeComponent {
                 isLateNight: this.isLateNight(),
                 perks,
                 photos: photoUrls,
+                sceneSnaps,
                 googleMapsUrl: mapsUrl || undefined,
                 lat: coords?.lat ?? 3.1390,
                 lng: coords?.lng ?? 101.6869,
