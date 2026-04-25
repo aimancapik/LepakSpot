@@ -4,7 +4,7 @@
     <header
         class="flex items-center justify-between p-6 pt-10 sticky top-0 z-50 bg-latte/90 backdrop-blur-md border-b-4 border-espresso">
         <a routerLink="/home"
-            class="size-10 bg-off-white flex items-center justify-center border-2 border-espresso shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-sage active:translate-y-[2px] active:shadow-none transition-all">
+            class="size-10 bg-off-white flex items-center justify-center border-2 border-espresso zine-shadow-sm hover:bg-sage zine-click-active  transition-all">
             <span class="material-symbols-outlined text-espresso">arrow_back</span>
         </a>
         <h2
@@ -29,15 +29,15 @@
             [class.ring-primary]="spinHighlight() === i"
             [class.ring-offset-2]="spinHighlight() === i">
             <!-- Background Blob -->
-            <div class="absolute inset-0 translate-x-3 translate-y-3 border-2 border-espresso z-0"
+            <div class="absolute inset-0 translate-x-3 translate-y-3 border-2 border-espresso z-0 rounded-[14px]"
                 [class]="i % 2 === 0 ? 'bg-sage rotate-2' : 'bg-primary -rotate-2'"></div>
 
-            <div class="relative z-10 bg-off-white zine-border p-3 zine-shadow transition-transform hover:scale-[1.02] active:scale-[0.98]"
+            <div class="relative z-10 bg-off-white zine-border p-3 zine-shadow transition-transform hover:scale-[1.02] active:scale-[0.98] h-full flex flex-col"
                 [class]="i % 2 === 0 ? '-rotate-1' : 'rotate-1'">
 
-                <div class="tape-effect overflow-hidden zine-border aspect-[4/3] bg-espresso relative mb-3">
+                <div class="tape-effect overflow-hidden zine-border aspect-[4/3] bg-espresso relative mb-3 shrink-0">
                     <img [src]="cafe.photos[0] || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=600&h=400&fit=crop'"
-                        class="w-full h-full object-cover grayscale contrast-125 opacity-90 transition-all hover:grayscale-0 hover:opacity-100" />
+                        class="w-full h-full object-cover transition-all" />
                     @if (spinHighlight() === i && !isSpinning()) {
                     <div class="absolute inset-0 flex items-center justify-center bg-black/40">
                         <span class="font-marker text-white text-lg font-black rotate-[-12deg] border-4 border-white px-3 py-1 tracking-widest">THE ONE!</span>
@@ -45,20 +45,21 @@
                     }
                 </div>
 
-                <h3 class="font-zine text-xl font-black italic uppercase text-espresso leading-tight">{{ cafe.name }}
-                </h3>
-                <p class="font-marker text-[10px] text-espresso/70 mt-1 uppercase flex items-start gap-1">
-                    <span class="material-symbols-outlined text-[12px]">location_on</span>
-                    {{ cafe.address }}
-                </p>
-                <div class="flex gap-2 mt-3 flex-wrap">
-                    @for (tag of cafe.tags; track tag) {
-                    <span
-                        class="px-2 py-0.5 zine-border bg-off-white text-espresso font-marker text-[10px] uppercase shadow-[2px_2px_0_var(--color-espresso)]"
-                        [class]="i % 2 === 0 ? 'rotate-1' : '-rotate-1'">
-                        {{ tag }}
-                    </span>
-                    }
+                <div class="flex-1 flex flex-col justify-center">
+                    <h3 class="font-zine text-xl font-black italic uppercase text-espresso leading-tight">{{ cafe.name }}</h3>
+                    <p class="font-marker text-[10px] text-espresso/70 mt-1 uppercase flex items-start gap-1">
+                        <span class="material-symbols-outlined text-[12px]">location_on</span>
+                        {{ cafe.address }}
+                    </p>
+                    <div class="flex gap-2 mt-3 flex-wrap">
+                        @for (tag of cafe.tags; track tag) {
+                        <span
+                            class="px-2 py-0.5 zine-border bg-off-white text-espresso font-marker text-[10px] uppercase shadow-[2px_2px_0_var(--color-espresso)]"
+                            [class]="i % 2 === 0 ? 'rotate-1' : '-rotate-1'">
+                            {{ tag }}
+                        </span>
+                        }
+                    </div>
                 </div>
             </div>
         </div>
@@ -125,10 +126,37 @@
         </div>
     </div>
 
+    <!-- Meet in the Middle Toggle -->
+    <div class="px-6 pt-6">
+        <button (click)="meetInMiddle.set(!meetInMiddle())"
+            class="w-full flex items-center gap-4 bg-off-white zine-border p-4 transition-all active:scale-[0.98]"
+            [class.zine-shadow-sm]="meetInMiddle()"
+            [class.rotate-[0.5deg]]="meetInMiddle()">
+            <div class="size-10 shrink-0 border-2 border-espresso flex items-center justify-center"
+                [class.bg-primary]="meetInMiddle()" [class.bg-off-white]="!meetInMiddle()">
+                <span class="material-symbols-outlined text-base"
+                    [class.text-espresso]="meetInMiddle()" [class.text-espresso/30]="!meetInMiddle()">
+                    {{ meetInMiddle() ? 'location_on' : 'location_off' }}
+                </span>
+            </div>
+            <div class="flex-1 text-left">
+                <p class="font-zine font-bold text-sm uppercase text-espresso">Meet in the Middle</p>
+                <p class="font-zine text-[10px] text-espresso/50 mt-0.5">
+                    Find a fair spot between everyone's locations
+                </p>
+            </div>
+            <div class="w-10 h-6 rounded-full border-2 border-espresso transition-colors relative"
+                [class.bg-primary]="meetInMiddle()" [class.bg-espresso/10]="!meetInMiddle()">
+                <div class="absolute top-0.5 w-4 h-4 rounded-full bg-white border border-espresso shadow-sm transition-all"
+                    [class.left-4]="meetInMiddle()" [class.left-0.5]="!meetInMiddle()"></div>
+            </div>
+        </button>
+    </div>
+
     <!-- Roulette Button -->
-    <div class="px-6 pt-8">
+    <div class="px-6 pt-6">
         <button (click)="spinRoulette()" [disabled]="isSpinning() || sessionCafes().length === 0"
-            class="w-full py-3 bg-off-white text-espresso font-black font-zine text-lg italic uppercase zine-border zine-shadow hover:translate-x-1 hover:translate-y-1 hover:shadow-none active:translate-x-2 active:translate-y-2 active:shadow-none transition-all duration-200 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed">
+            class="w-full py-3 bg-off-white text-espresso font-black font-zine text-lg italic uppercase zine-border zine-shadow hover:translate-x-1 hover:translate-y-1 hover:shadow-none active:translate-x-2 active:translate-y-2  transition-all duration-200 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed">
             @if (isSpinning()) {
             <span class="material-symbols-outlined animate-spin">casino</span>
             Spinning...
@@ -142,7 +170,7 @@
     <!-- Start Voting Button -->
     <div class="px-6 pt-4 pb-28">
         <button (click)="startVoting()" [disabled]="!sessionId()"
-            class="w-full py-4 bg-primary text-espresso font-black font-zine text-2xl italic uppercase zine-border zine-shadow hover:translate-x-1 hover:translate-y-1 hover:shadow-none active:translate-x-2 active:translate-y-2 active:shadow-none transition-all duration-200 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed">
+            class="w-full py-4 bg-primary text-espresso font-black font-zine text-2xl italic uppercase zine-border zine-shadow hover:translate-x-1 hover:translate-y-1 hover:shadow-none active:translate-x-2 active:translate-y-2  transition-all duration-200 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed">
             <span class="material-symbols-outlined text-2xl">how_to_vote</span>
             @if (spinHighlight() >= 0 && sessionCafes()[spinHighlight()]) {
             CONFIRMED: {{ sessionCafes()[spinHighlight()].name }}

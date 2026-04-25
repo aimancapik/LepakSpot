@@ -33,16 +33,16 @@
             class="bg-white dark:bg-card-dark rounded-2xl p-5 border-2 border-primary/10 shadow-sm relative overflow-hidden">
             <div class="absolute -right-4 -top-4 w-20 h-20 bg-primary/20 rounded-full blur-2xl"></div>
             <h3
-                class="text-2xl font-black font-zine text-slate-800 dark:text-slate-100 uppercase tracking-tight mb-2 relative z-10">
+                class="text-2xl font-black font-zine text-espresso uppercase tracking-tight mb-2 relative z-10">
                 {{ currentList()!.title }}</h3>
             @if (currentList()!.description) {
-            <p class="text-sm text-slate-600 dark:text-slate-400 mb-4 font-medium relative z-10">{{
+            <p class="text-sm text-espresso/80 mb-4 font-medium relative z-10">{{
                 currentList()!.description }}</p>
             }
             <div class="flex items-center gap-3 mt-4 relative z-10">
                 <div class="flex-1 flex items-center gap-2">
                     <span class="material-symbols-outlined text-primary/70 text-sm">group</span>
-                    <span class="text-xs font-bold text-slate-500 uppercase tracking-wide">
+                    <span class="text-xs font-bold text-espresso/60 uppercase tracking-wide">
                         {{ currentList()!.collaboratorIds.length + 1 }} Member(s)
                     </span>
                 </div>
@@ -62,7 +62,7 @@
 
         <div class="space-y-4">
             <div class="flex items-center justify-between mb-2">
-                <h3 class="font-zine text-lg text-slate-800 dark:text-slate-200 uppercase tracking-wide">
+                <h3 class="font-zine text-lg text-espresso uppercase tracking-wide">
                     Saved Cafes ({{ cafes().length }})
                 </h3>
             </div>
@@ -71,8 +71,8 @@
             <div
                 class="bg-primary/5 border border-primary/20 rounded-2xl p-8 flex flex-col items-center justify-center text-center">
                 <span class="material-symbols-outlined text-4xl text-primary/40 mb-3">coffee</span>
-                <h4 class="font-bold text-slate-700 dark:text-slate-300 mb-1">No Cafes Yet</h4>
-                <p class="text-sm text-slate-500">Start exploring and save some spots to this list!</p>
+                <h4 class="font-bold text-espresso mb-1">No Cafes Yet</h4>
+                <p class="text-sm text-espresso/60">Start exploring and save some spots to this list!</p>
                 <button (click)="goBack()"
                     class="mt-4 px-4 py-2 bg-white dark:bg-card-dark text-primary font-bold rounded-lg shadow-sm border border-primary/10 text-sm">
                     Explore Cafes
@@ -89,7 +89,7 @@
                     @if (isOwner()) {
                     <button (click)="$event.stopPropagation(); $event.preventDefault(); removeFromList(cafe.id!)"
                         title="Remove from List"
-                        class="absolute top-2 left-2 bg-red-500/90 hover:bg-red-600 text-white w-8 h-8 rounded-full flex items-center justify-center shadow-lg backdrop-blur-md opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                        class="absolute top-2 left-2 bg-espresso/90 hover:bg-espresso text-primary w-8 h-8 rounded-full flex items-center justify-center shadow-lg backdrop-blur-md opacity-0 group-hover:opacity-100 transition-opacity z-10 border-2 border-primary">
                         <span class="material-symbols-outlined text-sm">close</span>
                     </button>
                     }
@@ -101,10 +101,10 @@
     </div>
     } @else {
     <div class="flex-1 flex flex-col items-center justify-center p-8 text-center">
-        <span class="material-symbols-outlined text-5xl text-red-400 mb-4 drop-shadow-sm">error</span>
-        <h3 class="font-zine text-xl text-slate-800 dark:text-slate-200 uppercase tracking-wide mb-2">List Not Found
+        <span class="material-symbols-outlined text-5xl text-primary mb-4 drop-shadow-sm">error</span>
+        <h3 class="font-zine text-xl text-espresso uppercase tracking-wide mb-2">List Not Found
         </h3>
-        <p class="text-slate-500 mb-6">This list might have been deleted or you don't have access.</p>
+        <p class="text-espresso/60 mb-6">This list might have been deleted or you don't have access.</p>
         <button (click)="goBack()"
             class="px-6 py-3 bg-primary text-white font-bold rounded-xl shadow-md uppercase tracking-wider text-sm transition-transform active:scale-95">Go
             Back</button>

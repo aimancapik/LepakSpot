@@ -1,5 +1,10 @@
 export type SessionStatus = 'waiting' | 'voting' | 'done';
 
+export interface MemberLocation {
+    lat: number;
+    lng: number;
+}
+
 export interface Session {
     id: string;
     code: string;
@@ -10,4 +15,6 @@ export interface Session {
     status: SessionStatus;
     winnerId: string | null;
     createdAt: string;
+    meetInMiddle?: boolean;
+    memberLocations?: Record<string, MemberLocation>;
 }

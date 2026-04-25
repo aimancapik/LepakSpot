@@ -169,20 +169,17 @@
             <div class="grid gap-4">
                 @for (list of cafeListService.myLists(); track list.id) {
                 <a [routerLink]="['/list', list.id]"
-                    class="block bg-off-white zine-border p-4 zine-shadow hover:translate-x-1 hover:-translate-y-1 hover:shadow-none transition-all group overflow-hidden relative">
-                    <div
-                        class="absolute -right-4 -top-4 w-16 h-16 bg-sage rounded-full mix-blend-multiply opacity-50 group-hover:scale-150 transition-transform duration-500">
-                    </div>
-                    <div class="relative z-10 flex justify-between items-start">
-                        <div>
-                            <h4
-                                class="font-zine text-xl font-bold italic uppercase tracking-tight text-espresso line-clamp-1 break-all">
+                    class="block bg-off-white zine-border p-4 zine-shadow hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all group">
+                    <div class="flex items-center justify-between gap-3">
+                        <div class="flex-1 min-w-0">
+                            <h4 class="font-zine text-xl font-bold italic uppercase tracking-tight text-espresso truncate">
                                 {{ list.title }}</h4>
                             <p class="text-[10px] sm:text-xs text-espresso/60 font-bold uppercase mt-1 tracking-wider">
                                 {{ list.cafeIds.length }} spots • {{ list.isPublic ? 'Public' : 'Private' }}</p>
                         </div>
-                        <span
-                            class="material-symbols-outlined text-espresso/30 group-hover:text-primary transition-colors">arrow_forward</span>
+                        <div class="shrink-0 w-9 h-9 rounded-full bg-primary border-2 border-espresso flex items-center justify-center group-hover:bg-espresso transition-colors">
+                            <span class="material-symbols-outlined text-espresso text-base group-hover:text-primary transition-colors">arrow_forward</span>
+                        </div>
                     </div>
                 </a>
                 }
@@ -191,18 +188,18 @@
                 <h4 class="font-marker text-sm text-espresso/60 uppercase mt-4 mb-2">Shared With Me</h4>
                 @for (list of cafeListService.sharedLists(); track list.id) {
                 <a [routerLink]="['/list', list.id]"
-                    class="block bg-sage/30 border-2 border-espresso/20 p-4 shadow-sm hover:translate-x-1 hover:-translate-y-1 hover:border-espresso transition-all group rounded-lg">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <h4
-                                class="font-zine text-lg font-bold italic uppercase tracking-tight text-espresso flex items-center gap-2">
-                                <span class="material-symbols-outlined text-sm">group</span> {{ list.title }}
+                    class="block bg-sage/20 zine-border p-4 zine-shadow hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all group">
+                    <div class="flex items-center justify-between gap-3">
+                        <div class="flex-1 min-w-0">
+                            <h4 class="font-zine text-xl font-bold italic uppercase tracking-tight text-espresso flex items-center gap-2 truncate">
+                                <span class="material-symbols-outlined text-sm shrink-0">group</span>
+                                <span class="truncate">{{ list.title }}</span>
                             </h4>
-                            <p class="text-xs text-espresso/60 font-bold uppercase mt-1 tracking-wider">{{
-                                list.cafeIds.length }} spots</p>
+                            <p class="text-xs text-espresso/60 font-bold uppercase mt-1 tracking-wider">{{ list.cafeIds.length }} spots</p>
                         </div>
-                        <span
-                            class="material-symbols-outlined text-espresso/30 group-hover:text-primary transition-colors">arrow_forward</span>
+                        <div class="shrink-0 w-9 h-9 rounded-full bg-sage border-2 border-espresso flex items-center justify-center group-hover:bg-espresso transition-colors">
+                            <span class="material-symbols-outlined text-espresso text-base group-hover:text-primary transition-colors">arrow_forward</span>
+                        </div>
                     </div>
                 </a>
                 }

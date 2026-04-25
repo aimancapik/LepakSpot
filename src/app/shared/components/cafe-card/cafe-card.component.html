@@ -1,58 +1,65 @@
-<div
-    class="group flex flex-col rounded-2xl overflow-hidden bg-white dark:bg-card-dark shadow-md shadow-primary/5 hover:shadow-2xl hover:shadow-primary/20 transition-all duration-300 hover:-translate-y-1 cursor-pointer border border-primary/5">
+<div class="flex flex-col overflow-hidden rounded-2xl border-2 border-espresso zine-shadow cursor-pointer active:scale-[0.98] active:shadow-none transition-all duration-150">
     <!-- Image -->
     <div class="relative w-full aspect-[16/9] overflow-hidden">
-        <div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
+        <div class="absolute inset-0 bg-cover bg-center"
             [style.background-image]="'url(' + (cafe().photos[0] || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=600&h=400&fit=crop') + ')'">
         </div>
-        <!-- Rating badge & Save Button -->
-        <div class="absolute top-3 right-3 flex flex-col gap-2 items-end">
-            <div
-                class="bg-white/90 dark:bg-background-dark/90 backdrop-blur-md rounded-full px-2.5 py-1 flex items-center gap-1 shadow-md shadow-black/10 border border-primary/5">
-                <span class="material-symbols-outlined text-primary text-sm fill-1">star</span>
-                <span class="text-xs font-bold text-slate-800 dark:text-slate-200">{{ cafe().rating }}</span>
-            </div>
 
-            <button (click)="openSaveModal($event)"
-                class="bg-white/90 dark:bg-background-dark/90 hover:bg-primary/20 dark:hover:bg-primary/20 backdrop-blur-md rounded-full w-8 h-8 flex items-center justify-center shadow-md shadow-black/10 border border-primary/10 transition-colors">
-                <span class="material-symbols-outlined text-primary text-[18px]">bookmark_add</span>
-            </button>
+        <!-- Rating badge -->
+        <div class="absolute top-3 left-3 bg-primary border-2 border-espresso rounded-full px-2.5 py-1 flex items-center gap-1 zine-shadow-sm -rotate-1">
+            <span class="material-symbols-outlined text-espresso text-sm fill-1">star</span>
+            <span class="text-xs font-bold text-espresso">{{ cafe().rating }}</span>
         </div>
 
-        <!-- Vibe & Crowd Indicators -->
-        <div class="absolute bottom-2 left-2 flex gap-1.5 flex-wrap max-w-[90%]">
+        <!-- Save button -->
+        <button (click)="openSaveModal($event)"
+            class="absolute top-3 right-3 bg-white/80 backdrop-blur-sm border-2 border-espresso rounded-full w-9 h-9 flex items-center justify-center zine-shadow-sm active:scale-90 transition-transform rotate-2">
+            <span class="material-symbols-outlined text-primary text-[18px]">bookmark_add</span>
+        </button>
+
+        <!-- Crowd + Noise badges — always visible -->
+        <div class="absolute bottom-0 left-0 right-0 px-2 pb-2 flex gap-1.5 flex-wrap"
+            style="background: linear-gradient(to top, rgba(44,24,16,0.55) 0%, transparent 100%)">
             @if (cafe().crowdLevel) {
-            <div
-                class="bg-white/95 text-slate-800 px-2 py-1 font-bold text-[10px] rounded flex items-center gap-1 shadow-sm">
-                <span class="material-symbols-outlined text-[12px]">groups</span>
+            <div class="bg-white/20 backdrop-blur-md border border-white/40 text-white px-2 py-0.5 rounded-full font-bold text-[10px] flex items-center gap-1">
+                <span class="material-symbols-outlined text-[11px]">groups</span>
                 {{ cafe().crowdLevel }}
             </div>
             }
             @if (cafe().noiseLevel) {
-            <div
-                class="bg-primary/95 text-slate-800 px-2 py-1 font-bold text-[10px] rounded flex items-center gap-1 shadow-sm">
-                <span class="material-symbols-outlined text-[12px]">volume_up</span>
+            <div class="bg-primary/80 backdrop-blur-md border border-primary text-espresso px-2 py-0.5 rounded-full font-bold text-[10px] flex items-center gap-1">
+                <span class="material-symbols-outlined text-[11px]">volume_up</span>
                 {{ cafe().noiseLevel }}
+            </div>
+            }
+            @if (cafe().tags.includes('wifi')) {
+            <div class="bg-white/20 backdrop-blur-md border border-white/40 text-white px-2 py-0.5 rounded-full font-bold text-[10px] flex items-center gap-1">
+                <span class="material-symbols-outlined text-[11px]">wifi</span>
+                WiFi
             </div>
             }
         </div>
     </div>
+
     <!-- Details -->
-    <div class="px-4 py-3">
-        <h3 class="text-base font-bold text-slate-900 dark:text-slate-100 leading-tight">{{ cafe().name }}</h3>
-        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1">
-            <span class="material-symbols-outlined text-xs">location_on</span>
-            {{ cafe().address }}
+    <div class="px-4 py-3 bg-off-white flex-1 flex flex-col justify-center">
+        <div class="flex items-start justify-between gap-2">
+            <h3 class="font-zine text-base font-bold text-espresso leading-tight uppercase flex-1 truncate">{{ cafe().name }}</h3>
+        </div>
+        <p class="font-zine text-xs text-espresso/60 mt-0.5 flex items-center gap-1 truncate">
+            <span class="material-symbols-outlined text-xs shrink-0">location_on</span>
+            <span class="truncate">{{ cafe().address }}</span>
         </p>
         <!-- Tags -->
-        <div class="flex gap-1.5 mt-2.5 flex-wrap">
-            @for (tag of cafe().tags; track tag) {
-            <span
-                class="px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest">
+        @if (cafe().tags.length) {
+        <div class="flex gap-1.5 mt-2 flex-wrap">
+            @for (tag of cafe().tags.slice(0, 3); track tag) {
+            <span class="px-2 py-0.5 rounded-full bg-primary/15 border border-primary/30 text-espresso text-[10px] font-bold uppercase tracking-widest">
                 {{ tag }}
             </span>
             }
         </div>
+        }
     </div>
 </div>
 

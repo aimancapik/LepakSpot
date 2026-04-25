@@ -29,6 +29,7 @@ export class CreateSessionComponent implements OnInit, OnDestroy {
   creating = signal(false);
   isSpinning = signal(false);
   spinHighlight = signal(-1);
+  meetInMiddle = signal(true);
 
   memberCount = computed(() => this.sessionService.activeSession()?.members.length ?? (this.sessionId() ? 1 : 0));
   memberAvatarRange = computed(() => Array.from({ length: Math.min(this.memberCount(), 5) }, (_, i) => i));
@@ -63,7 +64,7 @@ export class CreateSessionComponent implements OnInit, OnDestroy {
     if (this.creating() || this.cafeIdsToUse.length === 0) return;
     this.creating.set(true);
     try {
-      const id = await this.sessionService.createSession(this.cafeIdsToUse);
+      const id = await this.sessionService.createSession(this.cafeIdsToUse, { meetInMiddle: this.meetInMiddle() });
       this.sessionId.set(id);
       const session = this.sessionService.activeSession();
       if (session) {

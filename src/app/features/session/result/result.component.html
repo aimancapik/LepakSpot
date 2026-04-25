@@ -15,15 +15,15 @@
     <!-- Top Nav -->
     <nav class="flex items-center justify-between px-6 pt-12 pb-4 bg-off-white/90 backdrop-blur-md sticky top-0 z-20 border-b-2 border-espresso shadow-sm">
         <a routerLink="/home"
-            class="flex size-10 items-center justify-center rounded-xl bg-white border-2 border-espresso shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-[2px] active:shadow-none transition-all rotate-2">
+            class="flex size-10 items-center justify-center rounded-xl bg-white border-2 border-espresso zine-shadow-sm zine-click-active  transition-all rotate-2">
             <span class="material-symbols-outlined text-espresso font-bold">arrow_back</span>
         </a>
         <div class="relative -rotate-1">
-            <h2 class="font-marker text-2xl tracking-wide text-espresso bg-latte px-2 py-0.5 border-2 border-espresso shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+            <h2 class="font-marker text-2xl tracking-wide text-espresso bg-latte px-2 py-0.5 border-2 border-espresso zine-shadow-sm">
                 The Verdict</h2>
         </div>
         <button (click)="share()"
-            class="flex size-10 items-center justify-center rounded-xl border-2 border-espresso shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-[2px] active:shadow-none transition-all -rotate-3"
+            class="flex size-10 items-center justify-center rounded-xl border-2 border-espresso zine-shadow-sm zine-click-active  transition-all -rotate-3"
             [class]="shareSuccess() ? 'bg-sage' : 'bg-primary'">
             <span class="material-symbols-outlined text-espresso font-bold">{{ shareSuccess() ? 'check' : 'share' }}</span>
         </button>
@@ -48,17 +48,17 @@
             <div class="inline-block relative rotate-1 mb-3">
                 <div class="absolute inset-0 bg-espresso border-2 border-espresso rounded-sm -rotate-3 -z-10 translate-x-1 translate-y-1"></div>
                 <h1 class="font-marker text-5xl text-white tracking-wider px-5 py-1.5 relative z-10 bg-primary border-2 border-espresso"
-                    style="text-shadow: 2px 2px 0 #453227, -1px -1px 0 #453227;">
+                    style="text-shadow: 2px 2px 0 var(--color-espresso), -1px -1px 0 var(--color-espresso);">
                     WINNER!</h1>
             </div>
-            <p class="font-bold text-espresso/80 mt-4 bg-white inline-block px-3 py-1 border-2 border-espresso rounded-md shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] -rotate-1 text-sm">
+            <p class="font-bold text-espresso/80 mt-4 bg-white inline-block px-3 py-1 border-2 border-espresso rounded-md zine-shadow-sm -rotate-1 text-sm">
                 The group has spoken. 🗳️
             </p>
 
             <!-- Vote tally pill -->
             @if (totalVoters() > 0) {
             <div class="flex items-center justify-center gap-2 mt-3">
-                <div class="bg-sage border-2 border-espresso px-4 py-1.5 rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex items-center gap-2 rotate-1">
+                <div class="bg-sage border-2 border-espresso px-4 py-1.5 rounded-full zine-shadow-sm flex items-center gap-2 rotate-1">
                     <span class="material-symbols-outlined text-sm">how_to_vote</span>
                     <span class="font-marker text-sm text-espresso">
                         {{ winnerVotes() }} / {{ totalVoters() }} votes
@@ -75,7 +75,7 @@
             <div class="absolute -top-3 right-12 w-14 h-6 bg-latte/60 border border-espresso/30 -rotate-6 z-30 shadow-sm"></div>
             <div class="absolute -bottom-3 left-12 w-14 h-6 bg-latte/60 border border-espresso/30 rotate-6 z-30 shadow-sm"></div>
 
-            <div class="bg-white rounded-2xl overflow-hidden border-2 border-espresso shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] relative z-10">
+            <div class="bg-white rounded-2xl overflow-hidden border-2 border-espresso zine-shadow relative z-10">
 
                 <!-- Cafe Photo -->
                 <div class="h-52 bg-center bg-no-repeat bg-cover relative border-b-2 border-espresso"
@@ -85,13 +85,13 @@
                     <div class="absolute inset-0 bg-gradient-to-t from-espresso/40 to-transparent"></div>
 
                     <!-- Rating Badge -->
-                    <div class="absolute top-3 right-3 bg-latte border-2 border-espresso px-2.5 py-1 rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex items-center gap-1 rotate-3">
+                    <div class="absolute top-3 right-3 bg-latte border-2 border-espresso px-2.5 py-1 rounded-full zine-shadow-sm flex items-center gap-1 rotate-3">
                         <span class="material-symbols-outlined text-espresso text-sm" style="font-variation-settings:'FILL' 1">star</span>
                         <span class="font-marker font-bold text-sm">{{ winnerCafe()!.rating }}</span>
                     </div>
 
                     <!-- Open Now sticker -->
-                    <div class="absolute bottom-3 left-3 bg-sage border-2 border-espresso px-3 py-1 rounded shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] -rotate-2 text-espresso">
+                    <div class="absolute bottom-3 left-3 bg-sage border-2 border-espresso px-3 py-1 rounded zine-shadow-sm -rotate-2 text-espresso">
                         <span class="font-marker text-sm uppercase tracking-wider font-bold">Open Now</span>
                     </div>
                 </div>
@@ -104,7 +104,7 @@
                             <span class="text-2xl">👑</span>
                             <h3 class="font-marker text-3xl leading-tight text-espresso">{{ winnerCafe()!.name }}</h3>
                         </div>
-                        <p class="text-espresso flex items-start gap-1.5 text-sm font-bold bg-white border border-espresso p-2 rounded-lg shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] rotate-[0.5deg]">
+                        <p class="text-espresso flex items-start gap-1.5 text-sm font-bold bg-white border border-espresso p-2 rounded-lg shadow-[1px_1px_0px_0px_var(--color-espresso)] rotate-[0.5deg]">
                             <span class="material-symbols-outlined text-sm mt-0.5 shrink-0">location_on</span>
                             <span>{{ winnerCafe()!.address }}</span>
                         </p>
@@ -127,7 +127,7 @@
                             <div class="absolute inset-0 bg-espresso rounded-xl translate-x-1 translate-y-1"></div>
                             <div class="absolute inset-0 bg-primary border-2 border-espresso rounded-xl group-active:translate-y-1 group-active:translate-x-0.5 transition-transform"></div>
                             <div class="relative z-10 py-3.5 flex items-center gap-2 font-marker text-lg text-white uppercase tracking-wider"
-                                style="text-shadow: 1px 1px 0 #453227;">
+                                style="text-shadow: 1px 1px 0 var(--color-espresso);">
                                 <span class="material-symbols-outlined font-bold">directions_walk</span>
                                 Let's Go!
                             </div>
@@ -179,19 +179,19 @@
                             <span class="font-marker text-espresso tracking-[0.6em] text-xs">- - - - - - - - - - -</span>
                         </div>
                         <div class="flex justify-around">
-                            <div class="flex flex-col items-center gap-1 -rotate-3 border-2 border-espresso bg-white w-14 h-14 justify-center rounded-xl shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                            <div class="flex flex-col items-center gap-1 -rotate-3 border-2 border-espresso bg-white w-14 h-14 justify-center rounded-xl zine-shadow-sm">
                                 <span class="material-symbols-outlined text-xl">wifi</span>
                                 <span class="text-[8px] font-bold uppercase font-marker">WiFi</span>
                             </div>
-                            <div class="flex flex-col items-center gap-1 rotate-2 border-2 border-espresso bg-latte w-14 h-14 justify-center rounded-xl shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                            <div class="flex flex-col items-center gap-1 rotate-2 border-2 border-espresso bg-latte w-14 h-14 justify-center rounded-xl zine-shadow-sm">
                                 <span class="material-symbols-outlined text-xl">local_parking</span>
                                 <span class="text-[8px] font-bold uppercase font-marker">Park</span>
                             </div>
-                            <div class="flex flex-col items-center gap-1 -rotate-1 border-2 border-espresso bg-primary w-14 h-14 justify-center rounded-xl shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                            <div class="flex flex-col items-center gap-1 -rotate-1 border-2 border-espresso bg-primary w-14 h-14 justify-center rounded-xl zine-shadow-sm">
                                 <span class="material-symbols-outlined text-xl">ev_station</span>
                                 <span class="text-[8px] font-bold uppercase font-marker">Charge</span>
                             </div>
-                            <div class="flex flex-col items-center gap-1 rotate-3 border-2 border-espresso bg-sage w-14 h-14 justify-center rounded-xl shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                            <div class="flex flex-col items-center gap-1 rotate-3 border-2 border-espresso bg-sage w-14 h-14 justify-center rounded-xl zine-shadow-sm">
                                 <span class="material-symbols-outlined text-xl">pets</span>
                                 <span class="text-[8px] font-bold uppercase font-marker">Pets</span>
                             </div>

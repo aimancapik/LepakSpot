@@ -6,18 +6,18 @@
     <div
         class="relative z-10 px-6 pt-12 pb-4 flex items-center justify-between border-b-2 border-espresso bg-white shadow-sm">
         <a routerLink="/home"
-            class="flex size-10 items-center justify-center rounded-xl bg-latte border-2 border-espresso shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-[2px] active:shadow-none transition-all -rotate-2">
+            class="flex size-10 items-center justify-center rounded-xl bg-latte border-2 border-espresso zine-shadow-sm zine-click-active  transition-all -rotate-2">
             <span class="material-symbols-outlined text-espresso font-bold">arrow_back</span>
         </a>
         <div class="flex flex-col items-center relative rotate-1">
             <h2 class="font-marker text-2xl tracking-wide text-espresso">Coffee Time</h2>
             <div
-                class="bg-primary border-2 border-espresso px-2 py-0.5 rounded shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] -mt-1 -rotate-2">
+                class="bg-primary border-2 border-espresso px-2 py-0.5 rounded shadow-[1px_1px_0px_0px_var(--color-espresso)] -mt-1 -rotate-2">
                 <p class="text-espresso text-[10px] font-bold uppercase tracking-wider">Group Vote</p>
             </div>
         </div>
         <div
-            class="flex size-10 items-center justify-center rounded-xl bg-sage border-2 border-espresso shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] rotate-2">
+            class="flex size-10 items-center justify-center rounded-xl bg-sage border-2 border-espresso zine-shadow-sm rotate-2">
             <span class="material-symbols-outlined text-espresso">group</span>
         </div>
     </div>
@@ -27,7 +27,7 @@
         <div class="flex justify-between items-center mb-2">
             <p class="font-marker text-base uppercase tracking-wider text-espresso rotate-1">Voting Progress</p>
             <div
-                class="flex items-center gap-1 bg-white border-2 border-espresso px-2 py-0.5 rounded shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] -rotate-1">
+                class="flex items-center gap-1 bg-white border-2 border-espresso px-2 py-0.5 rounded zine-shadow-sm -rotate-1">
                 <span class="text-espresso font-bold">{{ votedCount() }}/{{ totalMembers() }}</span>
                 <span class="text-espresso/70 text-xs font-bold uppercase tracking-wider">voted</span>
             </div>
@@ -54,24 +54,47 @@
                 class="absolute -top-4 left-1/2 -translate-x-1/2 w-20 h-8 bg-white/40 backdrop-blur-sm border border-white/60 rotate-2 z-20 shadow-sm mix-blend-overlay">
             </div>
 
-            <div class="bg-white rounded-xl border-2 border-espresso shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] overflow-hidden flex flex-col relative z-10 transition-transform duration-200"
+            <div class="bg-white rounded-xl border-2 border-espresso zine-shadow overflow-hidden flex flex-col relative z-10 transition-transform duration-200"
                 (touchstart)="onTouchStart($event)" (touchmove)="onTouchMove($event)" (touchend)="onTouchEnd()"
                 [style.transform]="'translate(' + swipeOffset().x + 'px, ' + swipeOffset().y + 'px) rotate(' + swipeRotation() + 'deg)'"
                 [style.opacity]="swipeOpacity()">
+
+                <!-- Glass swipe overlay — right (vote) -->
+                <div class="absolute inset-0 z-30 rounded-xl pointer-events-none flex items-center justify-center transition-opacity duration-75"
+                    [style.opacity]="swipeDirection() === 'right' ? swipeGlassOpacity() : 0"
+                    style="background: linear-gradient(135deg, rgba(134,239,172,0.25) 0%, rgba(74,222,128,0.15) 100%); backdrop-filter: blur(2px); border: 1.5px solid rgba(134,239,172,0.4);">
+                    <div class="flex flex-col items-center gap-1"
+                        [style.transform]="'scale(' + (0.7 + swipeGlassOpacity() * 0.5) + ')'">
+                        <span class="material-symbols-outlined text-5xl text-green-400 drop-shadow-lg" style="filter: drop-shadow(0 0 12px rgba(74,222,128,0.8))">thumb_up</span>
+                        <span class="font-marker text-green-300 text-xl tracking-wider" style="text-shadow: 0 0 10px rgba(74,222,128,0.9)">VOTE</span>
+                    </div>
+                </div>
+
+                <!-- Glass swipe overlay — left (skip) -->
+                <div class="absolute inset-0 z-30 rounded-xl pointer-events-none flex items-center justify-center transition-opacity duration-75"
+                    [style.opacity]="swipeDirection() === 'left' ? swipeGlassOpacity() : 0"
+                    style="background: linear-gradient(135deg, rgba(252,165,165,0.25) 0%, rgba(248,113,113,0.15) 100%); backdrop-filter: blur(2px); border: 1.5px solid rgba(252,165,165,0.4);">
+                    <div class="flex flex-col items-center gap-1"
+                        [style.transform]="'scale(' + (0.7 + swipeGlassOpacity() * 0.5) + ')'">
+                        <span class="material-symbols-outlined text-5xl text-red-400 drop-shadow-lg" style="filter: drop-shadow(0 0 12px rgba(248,113,113,0.8))">thumb_down</span>
+                        <span class="font-marker text-red-300 text-xl tracking-wider" style="text-shadow: 0 0 10px rgba(248,113,113,0.9)">SKIP</span>
+                    </div>
+                </div>
+
                 <!-- Image Section -->
                 <div class="w-full bg-center bg-no-repeat aspect-[4/3] bg-cover relative border-b-2 border-espresso"
                     [style.background-image]="'url(' + (currentCafe()!.photos[0] || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=600&h=400&fit=crop') + ')'">
 
                     <!-- Rating badge -->
                     <div
-                        class="absolute top-4 right-4 bg-latte border-2 border-espresso px-3 py-1 rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex items-center gap-1 rotate-3">
+                        class="absolute top-4 right-4 bg-latte border-2 border-espresso px-3 py-1 rounded-full zine-shadow-sm flex items-center gap-1 rotate-3">
                         <span class="material-symbols-outlined text-espresso text-sm fill-1">star</span>
                         <span class="font-marker font-bold text-sm">{{ currentCafe()!.rating }}</span>
                     </div>
 
                     <!-- Address badge -->
                     <div
-                        class="absolute bottom-4 left-4 bg-white border-2 border-espresso px-3 py-1.5 rounded shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] -rotate-1 max-w-[85%]">
+                        class="absolute bottom-4 left-4 bg-white border-2 border-espresso px-3 py-1.5 rounded zine-shadow-sm -rotate-1 max-w-[85%]">
                         <p class="text-xs font-bold text-espresso flex items-center gap-1 line-clamp-1">
                             <span class="material-symbols-outlined text-sm shrink-0">location_on</span>
                             <span class="truncate">{{ currentCafe()!.address }}</span>
@@ -83,7 +106,7 @@
                 <div class="flex w-full flex-col items-stretch justify-center gap-3 p-5 bg-off-white relative">
                     <!-- Index Badge -->
                     <div
-                        class="absolute -top-3 -left-2 bg-primary border-2 border-espresso px-2 py-0.5 rounded shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] -rotate-6 z-10">
+                        class="absolute -top-3 -left-2 bg-primary border-2 border-espresso px-2 py-0.5 rounded shadow-[1px_1px_0px_0px_var(--color-espresso)] -rotate-6 z-10">
                         <p class="text-[10px] font-bold uppercase font-marker">
                             #{{ currentIndex() + 1 }} of {{ cafes().length }}
                         </p>
@@ -95,7 +118,7 @@
                     <div class="flex gap-2 flex-wrap">
                         @for (tag of currentCafe()!.tags; track tag) {
                         <div
-                            class="bg-sage border border-espresso px-2 py-0.5 rounded shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] rotate-1">
+                            class="bg-sage border border-espresso px-2 py-0.5 rounded shadow-[1px_1px_0px_0px_var(--color-espresso)] rotate-1">
                             <p class="text-espresso text-[10px] font-bold uppercase tracking-wider">{{ tag }}</p>
                         </div>
                         }
@@ -110,7 +133,7 @@
             <button (click)="skip()" [disabled]="isActing()"
                 class="relative size-16 flex items-center justify-center group active:scale-95 transition-transform rotate-3 disabled:opacity-50 disabled:cursor-not-allowed">
                 <div
-                    class="absolute inset-0 bg-white border-2 border-espresso rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] group-active:translate-y-[4px] group-active:translate-x-[4px] group-active:shadow-none transition-all">
+                    class="absolute inset-0 bg-white border-2 border-espresso rounded-xl zine-shadow group-zine-click-active group- group- transition-all">
                 </div>
                 <span
                     class="material-symbols-outlined text-3xl text-espresso/80 group-hover:text-red-500 relative z-10 font-bold group-hover:-rotate-12 transition-transform">
@@ -122,7 +145,7 @@
             <button (click)="vote()" [disabled]="isActing()"
                 class="relative size-20 flex items-center justify-center group active:scale-95 transition-transform -rotate-2 disabled:opacity-50 disabled:cursor-not-allowed">
                 <div
-                    class="absolute inset-0 bg-primary border-2 border-espresso rounded-2xl shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] group-active:translate-y-[6px] group-active:translate-x-[6px] group-active:shadow-none transition-all">
+                    class="absolute inset-0 bg-primary border-2 border-espresso rounded-2xl zine-shadow group-zine-click-active group- group- transition-all">
                 </div>
                 <span
                     class="material-symbols-outlined text-4xl text-espresso relative z-10 font-bold group-hover:scale-110 transition-transform">
@@ -135,7 +158,7 @@
                 class="relative size-16 flex items-center justify-center group active:scale-95 transition-transform rotate-6"
                 [class.text-primary]="isFav()" [class.text-espresso]="!isFav()">
                 <div
-                    class="absolute inset-0 bg-white border-2 border-espresso rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] group-active:translate-y-[4px] group-active:translate-x-[4px] group-active:shadow-none transition-all">
+                    class="absolute inset-0 bg-white border-2 border-espresso rounded-xl zine-shadow group-zine-click-active group- group- transition-all">
                 </div>
                 <span
                     class="material-symbols-outlined text-3xl relative z-10 group-hover:rotate-12 transition-transform"
@@ -151,7 +174,7 @@
             </div>
 
             <div
-                class="bg-white rounded-xl p-8 border-2 border-espresso shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-center relative z-10 flex flex-col items-center">
+                class="bg-white rounded-xl p-8 border-2 border-espresso zine-shadow text-center relative z-10 flex flex-col items-center">
                 <div
                     class="w-20 h-20 bg-sage border-2 border-espresso rounded-full flex items-center justify-center shadow-[inset_2px_2px_0px_rgba(0,0,0,0.1)] mb-4 -rotate-6">
                     <span class="material-symbols-outlined text-5xl text-espresso font-bold">check_circle</span>

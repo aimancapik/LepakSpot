@@ -1,29 +1,51 @@
 <!-- Bottom Navigation -->
-<div class="fixed bottom-0 left-0 right-0 z-50 px-4 pb-4 max-w-md mx-auto pointer-events-none">
-    <div
-        class="flex items-center justify-around bg-espresso/80 backdrop-blur-md text-off-white py-3 rounded-full border border-primary/50 shadow-xl pointer-events-auto">
-        <a routerLink="/home" class="flex flex-col items-center justify-center transition-colors hover:text-primary"
-            [class.text-primary]="activeTab() === 'home'">
-            <span class="material-symbols-outlined">home</span>
-        </a>
-        <a routerLink="/session" class="flex flex-col items-center justify-center transition-colors hover:text-primary"
-            [class.text-primary]="activeTab() === 'sessions'">
-            <span class="material-symbols-outlined">groups</span>
+<div class="fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto px-3 pb-3 pointer-events-none">
+    <nav class="relative flex items-center justify-around bg-off-white border-3 border-espresso pointer-events-auto"
+        style="border-width:3px; border-radius:20px; box-shadow:4px 4px 0 #2C1810; padding:10px 8px;">
+
+        <!-- Home -->
+        <a routerLink="/home"
+            class="nav-item flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all zine-click-active"
+            [class.nav-active]="activeTab() === 'home'">
+            <span class="material-symbols-outlined nav-icon" [class.fill-1]="activeTab() === 'home'">home</span>
+            <span class="nav-label">Home</span>
         </a>
 
-        <!-- Center Action Button -->
+        <!-- Sessions -->
+        <a routerLink="/session"
+            class="nav-item flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all zine-click-active"
+            [class.nav-active]="activeTab() === 'sessions'">
+            <span class="material-symbols-outlined nav-icon" [class.fill-1]="activeTab() === 'sessions'">groups</span>
+            <span class="nav-label">Sessions</span>
+        </a>
+
+        <!-- Center FAB -->
         <a routerLink="/session/create"
-            class="flex flex-col items-center justify-center bg-primary text-espresso p-2 rounded-full -mt-10 border-4 border-off-white shadow-lg active:scale-95 transition-all">
-            <span class="material-symbols-outlined font-black">add</span>
+            class="flex items-center justify-center -mt-8 zine-click-active transition-all"
+            style="
+                width:56px; height:56px; border-radius:50%;
+                background:var(--color-primary);
+                border:3px solid #2C1810;
+                box-shadow:3px 3px 0 #2C1810;
+                flex-shrink:0;
+            ">
+            <span class="material-symbols-outlined text-espresso" style="font-size:28px;font-weight:700;">add</span>
         </a>
 
-        <a routerLink="/map" class="flex flex-col items-center justify-center transition-colors hover:text-primary"
-            [class.text-primary]="activeTab() === 'map'">
-            <span class="material-symbols-outlined">location_on</span>
+        <!-- Map -->
+        <a routerLink="/map"
+            class="nav-item flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all zine-click-active"
+            [class.nav-active]="activeTab() === 'map'">
+            <span class="material-symbols-outlined nav-icon" [class.fill-1]="activeTab() === 'map'">map</span>
+            <span class="nav-label">Map</span>
         </a>
-        <a routerLink="/profile" class="flex flex-col items-center justify-center transition-colors hover:text-primary"
-            [class.text-primary]="activeTab() === 'profile'">
-            <span class="material-symbols-outlined">person</span>
+
+        <!-- Profile -->
+        <a routerLink="/profile"
+            class="nav-item flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all zine-click-active"
+            [class.nav-active]="activeTab() === 'profile'">
+            <span class="material-symbols-outlined nav-icon" [class.fill-1]="activeTab() === 'profile'">person</span>
+            <span class="nav-label">Profile</span>
         </a>
-    </div>
+    </nav>
 </div>

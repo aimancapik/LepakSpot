@@ -1,26 +1,49 @@
 <div
-    class="map-screen relative w-full h-[100dvh] max-w-md mx-auto grain-overlay bg-latte overflow-hidden border-x-4 border-espresso font-display text-espresso selection:bg-primary selection:text-white">
+    class="map-screen relative w-full h-[100dvh] max-w-md mx-auto overflow-hidden border-x-4 border-espresso font-display text-espresso selection:bg-primary selection:text-white">
     <!-- Leaflet map container -->
     <div #mapContainer class="leaflet-map"></div>
 
-    <!-- Top Header -->
-    <div class="map-header">
-        <div class="map-logo">
-            <span class="material-symbols-outlined">location_on</span>
-            <span>LepakSpot</span>
+    <!-- Top Nav -->
+    <div class="map-nav" [class.search-mode]="searchOpen()">
+
+        @if (!searchOpen()) {
+        <!-- Default nav -->
+        <div class="map-nav-title">Discover</div>
+        <button class="nav-icon-btn" (click)="toggleSearch()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
+            </svg>
+        </button>
+        } @else {
+        <!-- Search expanded -->
+        <div class="search-bar">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;opacity:0.5;">
+                <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
+            </svg>
+            <input
+                #searchInput
+                class="search-input"
+                type="text"
+                placeholder="Search cafes..."
+                [ngModel]="searchQuery()"
+                (ngModelChange)="onSearchInput($event)"
+                autofocus />
         </div>
-        <div class="map-legend">
-            <span class="legend-dot chill"></span><span class="legend-label">Chill</span>
-            <span class="legend-dot moderate"></span><span class="legend-label">Moderate</span>
-            <span class="legend-dot busy"></span><span class="legend-label">Busy</span>
-        </div>
+        <button class="nav-icon-btn" (click)="toggleSearch()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 6 6 18M6 6l12 12"/>
+            </svg>
+        </button>
+        }
     </div>
 
-    <!-- Live Badge -->
-    <div class="live-badge">
-        <span class="live-dot"></span>
-        <span>LIVE</span>
-    </div>
+    <!-- City Name (hide when searching) -->
+    @if (!searchOpen()) {
+    <div class="city-name">KUALA LUMPUR</div>
+    }
 
     <!-- Location Detail Drawer -->
     <div class="drawer-backdrop" [class.open]="isDrawerOpen()" (click)="closeDrawer()"></div>

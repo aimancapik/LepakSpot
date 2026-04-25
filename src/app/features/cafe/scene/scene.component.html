@@ -26,9 +26,9 @@
 
             <!-- Header Text -->
             <div class="relative rotate-1">
-                <div class="absolute -inset-1 bg-white border-2 border-espresso z-0 translate-x-1 translate-y-1"></div>
+                <div class="absolute -inset-1 bg-white border-2 border-espresso z-0 translate-x-1 translate-y-1 rounded-2xl"></div>
                 <div
-                    class="relative z-10 bg-sage border-2 border-espresso p-4 shadow-[4px_4px_0_var(--color-espresso)]">
+                    class="relative z-10 bg-sage border-2 border-espresso p-4 shadow-[4px_4px_0_var(--color-espresso)] rounded-2xl">
                     <p class="font-zine text-sm font-bold uppercase tracking-wider text-espresso">Vibe Check at</p>
                     <h1 class="font-marker text-3xl font-black text-espresso leading-none mt-1">{{ cafe()!.name }}</h1>
                 </div>
@@ -79,7 +79,7 @@
 
         <!-- Opening Hours -->
         @if (cafe()!.openingHours) {
-        <div class="bg-primary/20 border-2 border-espresso p-3 flex items-center gap-3 -mt-2">
+        <div class="bg-primary/20 border-2 border-espresso p-3 flex items-center gap-3 -mt-2 rounded-2xl">
             <span class="material-symbols-outlined text-espresso shrink-0">schedule</span>
             <div>
                 <p class="font-zine font-bold text-xs uppercase tracking-widest text-espresso/70">Opening Hours</p>
@@ -209,7 +209,7 @@
             <!-- Message input -->
             <textarea [ngModel]="broadcastMessage()" (ngModelChange)="broadcastMessage.set($event)" rows="3"
                 placeholder="e.g. Heading to {{ cafe()!.name }}! Come join 🙌"
-                class="w-full bg-white border-2 border-espresso/40 focus:border-espresso p-3 text-sm font-marker text-espresso resize-none outline-none transition-colors rounded-none mb-4">
+                class="w-full bg-white border-2 border-espresso/40 focus:border-espresso p-3 text-sm font-marker text-espresso resize-none outline-none transition-colors rounded-xl mb-4">
             </textarea>
 
             <!-- Duration picker -->
@@ -222,7 +222,7 @@
                     <button (click)="broadcastDuration.set(opt.val)"
                         [class.bg-primary]="broadcastDuration() === opt.val"
                         [class.bg-white]="broadcastDuration() !== opt.val"
-                        class="font-marker text-xs uppercase px-3 py-1.5 border-2 border-espresso text-espresso shadow-[2px_2px_0_var(--color-espresso)] hover:translate-x-px hover:translate-y-px hover:shadow-none transition-all">
+                        class="font-marker text-xs uppercase px-3 py-1.5 border-2 border-espresso text-espresso rounded-full shadow-[2px_2px_0_var(--color-espresso)] hover:translate-x-px hover:translate-y-px hover:shadow-none transition-all">
                         {{ opt.label }}
                     </button>
                     }
@@ -246,7 +246,7 @@
             </div>
 
             <div
-                class="bg-espresso text-off-white p-5 rounded-sm border-2 border-dashed border-off-white shadow-[6px_6px_0_var(--color-primary)] rotate-1 relative overflow-hidden">
+                class="bg-espresso text-off-white p-5 rounded-2xl border-2 border-dashed border-off-white shadow-[6px_6px_0_var(--color-primary)] rotate-1 relative overflow-hidden">
 
                 <div class="flex items-center gap-2 mb-4 border-b-2 border-off-white/30 pb-2">
                     <span class="material-symbols-outlined text-primary text-3xl animate-bounce">star</span>
@@ -340,13 +340,13 @@
                         <p class="font-zine text-xs uppercase tracking-widest text-espresso/60 mb-1">Your Thoughts</p>
                         <textarea [ngModel]="reviewText()" (ngModelChange)="reviewText.set($event)" rows="3"
                             placeholder="Spill the tea... what's the vibe like?"
-                            class="w-full bg-white border-2 border-espresso/40 focus:border-espresso p-3 text-sm font-marker text-espresso resize-none outline-none transition-colors rounded-none">
+                            class="w-full bg-white border-2 border-espresso/40 focus:border-espresso p-3 text-sm font-marker text-espresso resize-none outline-none transition-colors rounded-xl">
                         </textarea>
                     </div>
                     <!-- Actions -->
                     <div class="flex gap-3">
                         <button (click)="showReviewForm.set(false)"
-                            class="flex-1 font-marker text-sm uppercase py-2 border-2 border-espresso/30 text-espresso/60 hover:border-espresso hover:text-espresso transition-all">
+                            class="flex-1 font-marker text-sm uppercase py-2 border-2 border-espresso/30 text-espresso/60 hover:border-espresso hover:text-espresso transition-all rounded-xl">
                             Cancel
                         </button>
                         <button (click)="submitReview()" [disabled]="pendingRating() === 0 || submittingReview()"
@@ -382,7 +382,7 @@
                 </div>
                 <div class="space-y-4">
                     @for (review of reviews().slice(0,5); track review.id) {
-                    <div class="bg-off-white border-2 border-espresso/20 p-3 space-y-2">
+                    <div class="bg-off-white border-2 border-espresso/20 p-3 space-y-2 rounded-xl">
                         <!-- Reviewer header -->
                         <div class="flex items-center gap-2">
                             @if (review.photoURL) {
@@ -431,7 +431,7 @@
                     class="absolute -top-4 -left-3 w-16 h-6 bg-white/70 backdrop-blur-sm border-2 border-espresso rotate-[15deg] z-20 shadow-sm mix-blend-overlay">
                 </div>
 
-                <div class="relative zine-border p-2 bg-off-white zine-shadow rounded-sm aspect-square">
+                <div class="relative zine-border p-2 bg-off-white zine-shadow rounded-2xl aspect-square">
                     <div class="w-full h-full overflow-hidden border-2 border-espresso bg-espresso">
                         <img [src]="cafe()!.photos[1] || cafe()!.photos[0] || 'https://images.unsplash.com/photo-1497935586351-b67a49e012bf?w=800&fit=crop'"
                             class="w-full h-full object-cover grayscale contrast-125 hover:grayscale-0 transition-all duration-500"
@@ -440,7 +440,7 @@
                 </div>
                 <!-- Label -->
                 <div
-                    class="absolute -bottom-4 right-4 bg-primary border-2 border-espresso px-4 py-1.5 rotate-3 z-10 shadow-[2px_2px_0px_0px_rgba(69,50,39,1)]">
+                    class="absolute -bottom-4 right-4 bg-primary border-2 border-espresso px-4 py-1.5 rotate-3 z-10 shadow-[2px_2px_0px_0px_rgba(69,50,39,1)] rounded-full">
                     <span class="font-marker font-bold text-espresso text-sm uppercase tracking-wider">Cozy
                         Corner</span>
                 </div>
@@ -459,13 +459,13 @@
                 </div>
 
                 <div
-                    class="relative zine-border p-3 bg-espresso z-10 shadow-[8px_8px_0_var(--color-primary)] rounded-sm aspect-[4/5] overflow-hidden">
+                    class="relative zine-border p-3 bg-espresso z-10 shadow-[8px_8px_0_var(--color-primary)] rounded-2xl aspect-[4/5] overflow-hidden">
                     <img [src]="cafe()!.photos[2] || cafe()!.photos[1] || cafe()!.photos[0] || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800&fit=crop'"
                         class="w-full h-full object-cover sepia-[.4] contrast-125" alt="Art Vibes" />
                 </div>
                 <!-- Label -->
                 <div
-                    class="absolute -bottom-5 left-2 bg-latte border-2 border-espresso px-4 py-1.5 -rotate-2 z-20 shadow-[2px_2px_0px_0px_rgba(69,50,39,1)]">
+                    class="absolute -bottom-5 left-2 bg-latte border-2 border-espresso px-4 py-1.5 -rotate-2 z-20 shadow-[2px_2px_0px_0px_rgba(69,50,39,1)] rounded-full">
                     <span class="font-marker font-bold text-espresso text-sm uppercase tracking-wider">Art Vibes</span>
                 </div>
             </div>
@@ -477,7 +477,7 @@
 
             <!-- Scene 3 -->
             <div class="relative w-full -rotate-1">
-                <div class="relative zine-border p-2 bg-off-white zine-shadow rounded-sm aspect-[5/4]">
+                <div class="relative zine-border p-2 bg-off-white zine-shadow rounded-2xl aspect-[5/4]">
                     <div class="w-full h-full overflow-hidden border-2 border-espresso bg-espresso">
                         <img [src]="cafe()!.photos[3] || cafe()!.photos[2] || cafe()!.photos[1] || cafe()!.photos[0] || 'https://images.unsplash.com/photo-1525610553991-2bede1a236e2?w=800&fit=crop'"
                             class="w-full h-full object-cover grayscale contrast-125 hover:grayscale-0 transition-all duration-500"
@@ -486,7 +486,7 @@
                 </div>
                 <!-- Label -->
                 <div
-                    class="absolute top-2 -right-3 bg-sage border-2 border-espresso px-3 py-1 rotate-[6deg] z-10 shadow-[2px_2px_0px_0px_rgba(69,50,39,1)]">
+                    class="absolute top-2 -right-3 bg-sage border-2 border-espresso px-3 py-1 rotate-[6deg] z-10 shadow-[2px_2px_0px_0px_rgba(69,50,39,1)] rounded-full">
                     <span class="font-marker font-bold text-espresso text-xs uppercase tracking-wider">Late Night</span>
                 </div>
             </div>

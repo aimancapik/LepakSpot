@@ -3,6 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { SessionService } from '../../../core/services/session.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { SupabaseService } from '../../../core/services/supabase.service';
 
 @Component({
   selector: 'app-lobby',
@@ -17,12 +18,14 @@ export class LobbyComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private sessionService = inject(SessionService);
   private authService = inject(AuthService);
+  private supabase = inject(SupabaseService);
 
   codeSlots = [0, 1, 2, 3, 4, 5];
   codeChars = signal<string[]>(['', '', '', '', '', '']);
   error = signal('');
   joining = signal(false);
   joined = signal(false);
+  locationStatus = signal<'pending' | 'granted' | 'denied'>('pending');
 
   isOwner = computed(() => {
     const session = this.sessionService.activeSession();
@@ -31,6 +34,12 @@ export class LobbyComponent implements OnInit, OnDestroy {
   memberCount = computed(() => this.sessionService.activeSession()?.members.length ?? 0);
   sessionCode = computed(() => this.sessionService.activeSession()?.code ?? '');
 
+  /** Count of members who have shared their location */
+  locationCount = computed(() => {
+    const session = this.sessionService.activeSession();
+    return Object.keys(session?.memberLocations ?? {}).length;
+  });
+
   constructor() {
     // Reactively navigate when session status changes — no polling needed
     effect(() => {
@@ -38,7 +47,12 @@ export class LobbyComponent implements OnInit, OnDestroy {
       if (session?.status === 'voting') {
         this.router.navigate(['/session', session.id, 'voting']);
       } else if (session?.status === 'done') {
-        this.router.navigate(['/session', session.id, 'result']);
+        // If meetInMiddle is enabled, go to meetpoint first
+        if (session.meetInMiddle) {
+          this.router.navigate(['/session', session.id, 'meetpoint']);
+        } else {
+          this.router.navigate(['/session', session.id, 'result']);
+        }
       }
     });
   }
@@ -47,11 +61,13 @@ export class LobbyComponent implements OnInit, OnDestroy {
     const sessionId = this.route.snapshot.paramMap.get('id');
     if (sessionId) {
       this.joined.set(true);
-      this.sessionService.joinSessionById(sessionId).catch((err: unknown) => {
-        const msg = err instanceof Error ? err.message : 'Could not join session.';
-        this.error.set(msg);
-        this.joined.set(false);
-      });
+      this.sessionService.joinSessionById(sessionId)
+        .then(() => this.requestAndShareLocation())
+        .catch((err: unknown) => {
+          const msg = err instanceof Error ? err.message : 'Could not join session.';
+          this.error.set(msg);
+          this.joined.set(false);
+        });
     }
   }
 
@@ -98,7 +114,7 @@ export class LobbyComponent implements OnInit, OnDestroy {
       const sessionId = await this.sessionService.joinSession(code);
       if (sessionId) {
         this.joined.set(true);
-        // effect() in constructor handles navigation when status becomes 'voting'
+        this.requestAndShareLocation();
       } else {
         this.error.set('Session not found. Check the code and try again.');
       }
@@ -108,6 +124,35 @@ export class LobbyComponent implements OnInit, OnDestroy {
     } finally {
       this.joining.set(false);
     }
+  }
+
+  /** Request geolocation and save to session.memberLocations */
+  private requestAndShareLocation() {
+    if (!navigator.geolocation) {
+      this.locationStatus.set('denied');
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        this.locationStatus.set('granted');
+        const session = this.sessionService.activeSession();
+        const user = this.authService.currentUser();
+        if (!session || !user) return;
+
+        const locations = { ...(session.memberLocations ?? {}) };
+        locations[user.uid] = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+
+        await this.supabase.client
+          .from('sessions')
+          .update({ memberLocations: locations })
+          .eq('id', session.id);
+      },
+      () => {
+        this.locationStatus.set('denied');
+      },
+      { timeout: 8000 }
+    );
   }
 
   async leave() {

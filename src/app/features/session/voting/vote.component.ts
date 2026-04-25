@@ -38,6 +38,8 @@ export class VoteComponent implements OnInit, OnDestroy {
     return Math.max(0, 1 - x / 200);
   });
   swipeRotation = computed(() => (this.swipeOffset().x / 10));
+  swipeGlassOpacity = computed(() => Math.min(1, Math.abs(this.swipeOffset().x) / 80));
+  swipeDirection = computed(() => this.swipeOffset().x > 0 ? 'right' : 'left');
 
   currentCafe = computed(() => {
     const idx = this.currentIndex();
@@ -62,11 +64,15 @@ export class VoteComponent implements OnInit, OnDestroy {
   });
 
   constructor() {
-    // Watch for session completion
+    // Watch for session completion — route to meetpoint if enabled
     effect(() => {
       const session = this.sessionService.activeSession();
       if (session?.status === 'done') {
-        this.router.navigate(['/session', session.id, 'result']);
+        if (session.meetInMiddle) {
+          this.router.navigate(['/session', session.id, 'meetpoint']);
+        } else {
+          this.router.navigate(['/session', session.id, 'result']);
+        }
       }
     });
   }

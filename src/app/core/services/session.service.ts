@@ -20,7 +20,7 @@ export class SessionService {
         return code;
     }
 
-    async createSession(cafeIds: string[]): Promise<string> {
+    async createSession(cafeIds: string[], options?: { meetInMiddle?: boolean }): Promise<string> {
         const user = this.authService.currentUser();
         if (!user) throw new Error('Not authenticated');
 
@@ -35,6 +35,8 @@ export class SessionService {
             status: 'waiting',
             winnerId: null,
             createdAt: new Date().toISOString(),
+            meetInMiddle: options?.meetInMiddle ?? true,
+            memberLocations: {},
         };
 
         const { data, error } = await this.supabase.client

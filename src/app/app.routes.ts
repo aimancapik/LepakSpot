@@ -25,7 +25,7 @@ export const routes: Routes = [
         (m) => m.LobbyComponent
       ),
     canActivate: [authOnlyGuard],
-    data: { showBottomNavbar: false }
+    data: { showBottomNavbar: true, activeTab: 'sessions' }
   },
   {
     path: 'session/create',
@@ -50,6 +50,15 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/session/voting/vote.component').then(
         (m) => m.VoteComponent
+      ),
+    canActivate: [authOnlyGuard],
+    data: { showBottomNavbar: false }
+  },
+  {
+    path: 'session/:id/meetpoint',
+    loadComponent: () =>
+      import('./features/session/meetpoint/meetpoint.component').then(
+        (m) => m.MeetpointComponent
       ),
     canActivate: [authOnlyGuard],
     data: { showBottomNavbar: false }

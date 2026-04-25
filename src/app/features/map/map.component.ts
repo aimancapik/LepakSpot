@@ -12,6 +12,7 @@ import {
     NgZone,
 } from '@angular/core';
 import * as L from 'leaflet';
+import { FormsModule } from '@angular/forms';
 import { CafeService } from '../../core/services/cafe.service';
 import { CheckInService, CafeDensity } from '../../core/services/checkin.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -28,18 +29,81 @@ const DENSITY_CONFIG: Record<DensityLevel, { label: string; color: string; bg: s
     packed: { label: 'Packed!', color: '#ef4444', bg: 'rgba(239,68,68,0.15)', fill: 100 },
 };
 
-function createMarkerIcon(color: string, size = 14): L.DivIcon {
+// Month abbreviations for date badge
+const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+
+// Pseudo-random tilt per cafe id (stable across renders)
+function stableRotation(id: string): number {
+    let h = 0;
+    for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) & 0xffffffff;
+    return ((h % 13) - 6); // -6..+6 degrees
+}
+
+function createPolaroidIcon(cafe: Cafe, density: { color: string; count: number }, isSelected: boolean): L.DivIcon {
+    const photo = cafe.photos?.[0] ?? '';
+    const rotation = stableRotation(cafe.id);
+    const nameUpper = cafe.name.toUpperCase();
+    const now = new Date();
+    const month = MONTHS[now.getMonth()];
+    const day = now.getDate();
+    const densityDot = density.count > 0
+        ? `<div style="position:absolute;top:-4px;right:-4px;width:10px;height:10px;border-radius:50%;background:${density.color};border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.3);z-index:3;"></div>`
+        : '';
+    const selectedRing = isSelected
+        ? `box-shadow:0 0 0 3px #7C3AED, 0 6px 24px rgba(124,58,237,0.4), 0 2px 8px rgba(0,0,0,0.2);`
+        : `box-shadow:0 4px 20px rgba(0,0,0,0.22),0 1px 4px rgba(0,0,0,0.12);`;
+
+    // Break long names across two lines if needed
+    const words = nameUpper.split(' ');
+    const label = words.length > 1
+        ? `${words.slice(0, Math.ceil(words.length / 2)).join(' ')}<br/>${words.slice(Math.ceil(words.length / 2)).join(' ')}`
+        : nameUpper;
+
+    const photoHtml = photo
+        ? `<img src="${photo}" style="width:100%;height:100%;object-fit:cover;border-radius:3px;display:block;" />`
+        : `<div style="width:100%;height:100%;background:#C8B8A8;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:22px;">☕</div>`;
+
     return L.divIcon({
         className: '',
-        html: `<div style="
-            width:${size}px; height:${size}px;
-            border-radius:50%;
-            background:${color};
-            border:2.5px solid white;
-            box-shadow:0 2px 8px rgba(0,0,0,0.5);
-        "></div>`,
-        iconSize: [size, size],
-        iconAnchor: [size / 2, size / 2],
+        html: `
+            <div class="polaroid-marker" style="
+                position:relative;
+                background:white;
+                border-radius:6px;
+                padding:5px 5px 28px;
+                width:110px;
+                ${selectedRing}
+                transform:rotate(${rotation}deg);
+                cursor:pointer;
+                transition:transform 0.2s, box-shadow 0.2s;
+            ">
+                ${densityDot}
+                <!-- date badge -->
+                <div style="position:absolute;top:-5px;left:-5px;background:white;border-radius:6px;
+                    box-shadow:0 2px 8px rgba(0,0,0,0.18);padding:2px 5px;z-index:10;text-align:center;min-width:30px;">
+                    <div style="font-size:6px;font-weight:800;color:#EF4444;text-transform:uppercase;letter-spacing:0.5px;line-height:1.3;">${month}</div>
+                    <div style="font-size:13px;font-weight:800;color:#1A1A1A;line-height:1.1;">${day}</div>
+                </div>
+                <!-- photo -->
+                <div style="width:100%;height:82px;border-radius:3px;overflow:hidden;position:relative;">
+                    ${photoHtml}
+                    <!-- name overlay -->
+                    <div style="position:absolute;bottom:3px;left:4px;right:4px;
+                        font-family:'Bebas Neue',sans-serif;font-size:11px;letter-spacing:1px;
+                        color:white;line-height:1.1;
+                        text-shadow:-1px -1px 0 #1A1A1A,1px -1px 0 #1A1A1A,-1px 1px 0 #1A1A1A,1px 1px 0 #1A1A1A,0 2px 6px rgba(0,0,0,0.5);">
+                        ${label}
+                    </div>
+                </div>
+                <!-- pin stem -->
+                <div style="position:absolute;bottom:-10px;left:50%;transform:translateX(-50%);
+                    width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;
+                    border-top:10px solid white;filter:drop-shadow(0 2px 2px rgba(0,0,0,0.2));"></div>
+            </div>
+        `,
+        iconSize: [120, 130],
+        iconAnchor: [60, 130], // tip of pin stem anchors to coord
+        popupAnchor: [0, -130],
     });
 }
 
@@ -47,7 +111,7 @@ function createMarkerIcon(color: string, size = 14): L.DivIcon {
     selector: 'app-map',
     standalone: true,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [],
+    imports: [FormsModule],
     templateUrl: './map.component.html',
     styleUrl: './map.component.scss',
 })
@@ -68,8 +132,9 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     isCheckingIn = signal(false);
     isCheckingOut = signal(false);
     checkInSuccess = signal(false);
-    /** loading→resolving status | ready→can check in | already→present now | was-here→checked in today but left */
     checkInStatus = signal<'loading' | 'ready' | 'already' | 'was-here'>('loading');
+    searchOpen = signal(false);
+    searchQuery = this.cafeService.searchQuery;
 
     activePeople = this.checkInService.activePeopleAtCafe;
 
@@ -89,7 +154,6 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     async ngAfterViewInit() {
-        // Init map outside Angular zone for performance
         this.ngZone.runOutsideAngular(() => {
             this.map = L.map(this.mapContainer.nativeElement, {
                 center: [3.139, 101.6869],
@@ -97,22 +161,18 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
                 zoomControl: false,
             });
 
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
                 attribution: '© <a href="https://carto.com/">CARTO</a>',
                 subdomains: 'abcd',
                 maxZoom: 19,
             }).addTo(this.map);
 
-            L.control.zoom({ position: 'bottomright' }).addTo(this.map);
         });
 
-        // Wait for cafes to load before adding markers (prevents empty map on fresh load)
         await this.cafeService.getNearby();
 
         setTimeout(() => {
-            if (this.map) {
-                this.map.invalidateSize();
-            }
+            if (this.map) this.map.invalidateSize();
             this.addCafeMarkers();
             this.getUserLocation();
         }, 100);
@@ -129,10 +189,10 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
         cafes.forEach(cafe => {
             const density = this.checkInService.getDensityForCafe(cafe.id);
             const config = DENSITY_CONFIG[density.level as DensityLevel];
-            const size = density.count > 0 ? 14 + density.count * 2 : 14;
-            const icon = createMarkerIcon(config.color, Math.min(size, 28));
+            const isSelected = this.selectedCafe()?.id === cafe.id;
+            const icon = createPolaroidIcon(cafe, { color: config.color, count: density.count }, isSelected);
 
-            const marker = L.marker([cafe.lat, cafe.lng], { icon })
+            const marker = L.marker([cafe.lat, cafe.lng], { icon, zIndexOffset: isSelected ? 1000 : 0 })
                 .addTo(this.map)
                 .on('click', () => {
                     this.ngZone.run(() => this.onMarkerClick(cafe));
@@ -140,6 +200,18 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
 
             this.markers.set(cafe.id, marker);
         });
+    }
+
+    private refreshMarkerIcon(cafeId: string) {
+        const cafes = this.cafeService.filteredCafes();
+        const cafe = cafes.find(c => c.id === cafeId);
+        const marker = this.markers.get(cafeId);
+        if (!cafe || !marker) return;
+        const density = this.checkInService.getDensityForCafe(cafeId);
+        const config = DENSITY_CONFIG[density.level as DensityLevel];
+        const isSelected = this.selectedCafe()?.id === cafeId;
+        marker.setIcon(createPolaroidIcon(cafe, { color: config.color, count: density.count }, isSelected));
+        marker.setZIndexOffset(isSelected ? 1000 : 0);
     }
 
     private getUserLocation() {
@@ -150,12 +222,13 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
                         this.map.setView([pos.coords.latitude, pos.coords.longitude], 14);
                     });
                 },
-                () => { } // Keep default KL center on denial
+                () => {}
             );
         }
     }
 
     async onMarkerClick(cafe: Cafe) {
+        const prevId = this.selectedCafe()?.id;
         this.checkInSuccess.set(false);
         this.checkInStatus.set('loading');
         this.unsubscribeCafe?.();
@@ -164,7 +237,10 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
         this.map.panTo([cafe.lat - 0.003, cafe.lng]);
         this.unsubscribeCafe = this.checkInService.watchCafe(cafe.id);
 
-        // Resolve both: are they currently present AND have they checked in today?
+        // Refresh icons: deselect previous, select new
+        if (prevId) this.refreshMarkerIcon(prevId);
+        this.refreshMarkerIcon(cafe.id);
+
         const [isPresent, alreadyIn] = await Promise.all([
             this.checkInService.isCurrentlyPresent(cafe.id),
             this.checkInService.hasCheckedInToday(cafe.id),
@@ -178,11 +254,46 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
         }
     }
 
+    toggleSearch() {
+        const opening = !this.searchOpen();
+        this.searchOpen.set(opening);
+        if (!opening) {
+            this.cafeService.searchQuery.set('');
+            this.refreshAllMarkers();
+        }
+    }
+
+    onSearchInput(query: string) {
+        this.cafeService.searchQuery.set(query);
+        this.refreshAllMarkers();
+        // Pan to first result
+        const results = this.cafeService.filteredCafes();
+        if (results.length > 0) {
+            this.map.panTo([results[0].lat, results[0].lng], { animate: true });
+        }
+    }
+
+    private refreshAllMarkers() {
+        const cafes = this.cafeService.filteredCafes();
+        this.markers.forEach((marker, id) => {
+            const cafe = cafes.find(c => c.id === id);
+            if (cafe) {
+                marker.setOpacity(1);
+            } else {
+                marker.setOpacity(0.2);
+            }
+        });
+    }
+
     closeDrawer() {
+        const prevId = this.selectedCafe()?.id;
         this.isDrawerOpen.set(false);
         this.unsubscribeCafe?.();
         this.checkInService.activePeopleAtCafe.set([]);
-        setTimeout(() => this.selectedCafe.set(null), 350);
+        setTimeout(() => {
+            this.selectedCafe.set(null);
+            if (prevId) this.refreshMarkerIcon(prevId);
+        }, 350);
     }
 
     async handleCheckIn() {

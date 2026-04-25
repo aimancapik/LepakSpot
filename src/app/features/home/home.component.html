@@ -1,36 +1,33 @@
 <div
     class="relative min-h-screen max-w-md mx-auto grain-overlay bg-latte overflow-x-hidden border-x-4 border-espresso font-display text-espresso selection:bg-primary selection:text-white">
-    <!-- Header Section -->
-    <header class="p-6 pt-10">
-        <div class="flex justify-between items-start mb-8">
-            <div class="relative flex items-center gap-4">
-                <div class="absolute -top-4 -left-2 w-16 h-16 bg-sage rounded-full -z-10 opacity-60"></div>
-                <img src="logo.svg" alt="LS" class="w-12 h-12 rotate-[-4deg] zine-border shadow-sm" />
-                <div>
-                    <p class="font-marker text-lg text-primary rotate-[-2deg]">{{ greeting }}</p>
-                    <h1
-                        class="text-4xl font-black italic tracking-tighter leading-none uppercase text-espresso drop-shadow-sm">
-                        Hi {{ authService.currentUser()?.displayName?.split(' ')?.[0] || 'there' }},<br />Find a Spot
-                    </h1>
-                </div>
+
+    <!-- Header -->
+    <header class="px-5 pt-10 pb-4">
+        <div class="flex justify-between items-center mb-5">
+            <div>
+                <p class="font-marker text-base text-primary">{{ greeting }}</p>
+                <h1 class="text-3xl font-black italic tracking-tight leading-none uppercase text-espresso">
+                    Hi {{ authService.currentUser()?.displayName?.split(' ')?.[0] || 'there' }} —<br />Find a Spot
+                </h1>
             </div>
             <button (click)="showNotifications()"
-                class="w-12 h-12 zine-border zine-shadow bg-off-white flex items-center justify-center rounded-lg hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all">
-                <span class="material-symbols-outlined text-espresso">notifications</span>
+                class="w-10 h-10 zine-border zine-shadow bg-off-white flex items-center justify-center hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all">
+                <span class="material-symbols-outlined text-espresso text-xl">notifications</span>
             </button>
         </div>
 
         <!-- Search Bar -->
-        <div class="relative group mt-6">
+        <div class="relative">
             <div class="absolute inset-0 bg-espresso translate-x-1 translate-y-1 rounded-xl"></div>
-            <div class="relative flex items-center bg-off-white zine-border rounded-xl p-1">
-                <span class="material-symbols-outlined px-3 text-espresso">search</span>
-                <input id="home-search"
-                    class="w-full bg-transparent border-none focus:ring-0 font-zine font-bold text-sm uppercase placeholder:text-espresso/40 py-3"
-                    placeholder="CRUSHING ON A CAFE?" type="text" [value]="cafeService.searchQuery()"
+            <div class="relative flex items-center bg-off-white zine-border rounded-xl px-1">
+                <span class="material-symbols-outlined px-3 text-espresso text-xl">search</span>
+                <input
+                    class="w-full bg-transparent border-none focus:ring-0 font-zine font-bold text-sm uppercase placeholder:text-espresso/30 py-3"
+                    placeholder="Search cafes..." type="text"
+                    [value]="cafeService.searchQuery()"
                     (input)="onSearch($any($event.target).value)" />
                 @if (cafeService.searchQuery()) {
-                <button (click)="clearSearch()" class="px-3 text-espresso/50 hover:text-espresso transition-colors">
+                <button (click)="clearSearch()" class="px-3 text-espresso/40 hover:text-espresso transition-colors">
                     <span class="material-symbols-outlined text-lg">close</span>
                 </button>
                 }
@@ -39,107 +36,163 @@
 
         <!-- Recent Searches -->
         @if (!cafeService.searchQuery() && recentSearches().length > 0) {
-        <div class="mt-3 flex flex-wrap gap-2 items-center">
+        <div class="mt-2 flex flex-wrap gap-2 items-center">
             <span class="font-marker text-[10px] uppercase text-espresso/40">Recent:</span>
             @for (q of recentSearches(); track q) {
             <button (click)="applyRecentSearch(q)"
-                class="px-3 py-1 bg-off-white zine-border font-marker text-xs hover:bg-primary transition-colors">
+                class="px-2 py-0.5 bg-off-white zine-border font-marker text-xs hover:bg-primary transition-colors">
                 {{ q }}
             </button>
             }
-            <button (click)="clearRecentSearches()" class="font-marker text-[10px] text-espresso/30 ml-1 underline">
-                clear
-            </button>
+            <button (click)="clearRecentSearches()" class="font-marker text-[10px] text-espresso/30 underline">clear</button>
         </div>
         }
     </header>
 
-    <!-- Filter Chips Row -->
-    <div class="flex gap-3 px-6 overflow-x-auto pb-4 no-scrollbar items-center">
-        <!-- Open Now Filter -->
-        <button id="filter-open-now" (click)="cafeService.toggleOpenNow()"
-            class="shrink-0 px-3 py-1.5 zine-border rounded-full font-marker text-sm transition-all duration-300 flex items-center gap-1 border-2"
-            [class]="cafeService.showOpenNowOnly() ? 'bg-green-700 border-green-500 text-green-100 rotate-[1deg] zine-shadow-sm' : 'bg-off-white text-espresso border-espresso rotate-[1deg] hover:bg-gray-200'">
+    <!-- Single filter + sort row -->
+    <div class="flex gap-2 px-5 pb-4 overflow-x-auto no-scrollbar items-center">
+
+        <!-- Sort pills first -->
+        @for (sort of [{id:'default',icon:'sort',label:'All'},{id:'rating',icon:'star',label:'Top Rated'},{id:'nearest',icon:'near_me',label:'Nearest'}]; track sort.id) {
+        <button (click)="cafeService.sortBy.set($any(sort.id))"
+            class="shrink-0 flex items-center gap-1.5 px-3 py-1.5 border-2 border-espresso rounded-full font-marker text-xs transition-all zine-click-active"
+            [class]="cafeService.sortBy() === sort.id
+                ? 'bg-espresso text-off-white shadow-none translate-x-0.5 translate-y-0.5'
+                : 'bg-off-white text-espresso zine-shadow-sm'">
+            <span class="material-symbols-outlined text-sm">{{ sort.icon }}</span>
+            {{ sort.label }}
+        </button>
+        }
+
+        <!-- Divider -->
+        <div class="w-px h-5 bg-espresso/20 shrink-0 mx-1"></div>
+
+        <!-- Filter pills -->
+        <button (click)="cafeService.toggleOpenNow()"
+            class="shrink-0 flex items-center gap-1.5 px-3 py-1.5 border-2 border-espresso rounded-full font-marker text-xs transition-all zine-click-active"
+            [class]="cafeService.showOpenNowOnly()
+                ? 'bg-sage text-espresso shadow-none translate-x-0.5 translate-y-0.5'
+                : 'bg-off-white text-espresso zine-shadow-sm'">
             <span class="material-symbols-outlined text-sm">schedule</span>
-            OPEN NOW
+            Open Now
         </button>
 
-        <!-- Late Night Filter -->
-        <button id="filter-late-night" (click)="cafeService.toggleLateNight()"
-            class="shrink-0 px-3 py-1.5 zine-border rounded-full font-marker text-sm transition-all duration-300 flex items-center gap-1 border-2"
-            [class]="cafeService.showLateNightOnly() ? 'bg-purple-900 border-purple-500 text-purple-200 rotate-[2deg] zine-shadow-sm' : 'bg-off-white text-espresso border-espresso rotate-[-1deg] hover:bg-gray-200'">
+        <button (click)="cafeService.toggleLateNight()"
+            class="shrink-0 flex items-center gap-1.5 px-3 py-1.5 border-2 border-espresso rounded-full font-marker text-xs transition-all zine-click-active"
+            [class]="cafeService.showLateNightOnly()
+                ? 'bg-primary text-espresso shadow-none translate-x-0.5 translate-y-0.5'
+                : 'bg-off-white text-espresso zine-shadow-sm'">
             <span class="material-symbols-outlined text-sm">dark_mode</span>
-            LATE NIGHT
+            Late Night
         </button>
-
-        <div class="w-[2px] h-6 bg-espresso/20 mx-1 shrink-0"></div>
 
         @for (chip of chips; track chip.tag) {
         <button (click)="cafeService.toggleTag(chip.tag)"
-            class="shrink-0 px-3 py-1.5 zine-border rounded-full font-marker text-sm transition-all duration-300"
-            [class]="isTagActive(chip.tag) ? 'bg-primary text-espresso rotate-[-1deg] zine-shadow-sm' : 'bg-off-white text-espresso/70 rotate-[1deg] hover:rotate-0 hover:bg-white'">
+            class="shrink-0 px-3 py-1.5 border-2 border-espresso rounded-full font-marker text-xs transition-all zine-click-active"
+            [class]="isTagActive(chip.tag)
+                ? 'bg-primary text-espresso shadow-none translate-x-0.5 translate-y-0.5'
+                : 'bg-off-white text-espresso/70 zine-shadow-sm'">
             {{ chip.label }}
         </button>
         }
     </div>
 
-    <!-- Sort Chips -->
-    <div class="flex gap-3 px-6 pb-4 items-center">
-        <span class="font-marker text-[10px] uppercase text-espresso/40 shrink-0">Sort:</span>
-        @for (sort of [{id:'default',label:'Default'},{id:'rating',label:'⭐ Rated'},{id:'nearest',label:'📍 Nearest'}];
-        track sort.id) {
-        <button (click)="cafeService.sortBy.set($any(sort.id))"
-            class="shrink-0 px-3 py-1 font-marker text-xs border-2 border-espresso rounded-full transition-all"
-            [class]="cafeService.sortBy() === sort.id ? 'bg-espresso text-off-white' : 'bg-off-white text-espresso hover:bg-gray-100'">
-            {{ sort.label }}
-        </button>
-        }
+    <!-- For You -->
+    @if (suggestedCafes().length > 0 && !cafeService.searchQuery()) {
+    <div class="px-5 mb-3">
+        <div class="flex items-baseline gap-2">
+            <h2 class="font-zine font-black italic uppercase text-lg text-espresso">For You</h2>
+            <span class="font-marker text-[10px] text-espresso/40 uppercase">based on time &amp; vibe</span>
+        </div>
     </div>
-
-    <!-- Active Broadcasts -->
-    @if (broadcastService.activeBroadcasts().length > 0) {
-    <div class="px-6 py-2 mt-2">
-        <h2
-            class="inline-block bg-primary text-espresso px-4 py-1 font-zine font-bold italic uppercase tracking-widest rotate-1 shadow-[2px_2px_0_var(--color-espresso)] zine-border">
-            <span class="material-symbols-outlined align-bottom text-sm mr-1 pb-0.5">satellite_alt</span>
-            Who's Down Right Now
-        </h2>
-    </div>
-    <div class="flex gap-4 px-6 overflow-x-auto pb-6 no-scrollbar snap-x">
-        @for (broadcast of broadcastService.activeBroadcasts(); track broadcast.id) {
-        <div
-            class="shrink-0 w-64 bg-off-white zine-border p-3 shadow-[4px_4px_0_var(--color-sage)] rotate-[-1deg] snap-center">
-            <div class="flex justify-between items-start mb-2 border-b border-espresso/20 pb-2">
-                <div>
-                    <h3 class="font-marker text-lg text-espresso leading-none">{{ broadcast.hostName }}</h3>
-                    <p class="font-zine text-[10px] font-bold uppercase text-espresso/60 mt-1">
-                        @ {{ broadcast.cafeName }}
-                    </p>
+    <div class="flex gap-3 px-5 overflow-x-auto pb-5 no-scrollbar snap-x">
+        @for (cafe of suggestedCafes(); track cafe.id; let i = $index) {
+        <a [routerLink]="['/cafe', cafe.id]"
+            class="shrink-0 w-44 bg-off-white zine-border p-2 snap-center zine-shadow zine-click-active"
+            [class]="i % 2 === 0 ? 'rotate-[-1deg]' : 'rotate-[1deg]'">
+            <div class="overflow-hidden zine-border aspect-[4/3] bg-latte relative">
+                <img [src]="cafe.photos[0] || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=400&h=300&fit=crop'"
+                    [alt]="cafe.name" class="w-full h-full object-cover" />
+                @if (cafe.tags && cafe.tags.length > 0) {
+                <div class="absolute top-1.5 right-1.5 bg-primary text-espresso px-1.5 py-0.5 font-marker text-[9px] zine-border uppercase">
+                    {{ cafe.tags[0] }}
                 </div>
-                <div
-                    class="bg-espresso text-primary px-2 py-0.5 font-zine text-[10px] font-bold uppercase rotate-2 shadow-sm border border-primary animate-pulse">
-                    Live
+                }
+            </div>
+            <div class="pt-2">
+                <h3 class="font-zine text-sm font-black italic uppercase text-espresso leading-tight truncate">{{ cafe.name }}</h3>
+                <div class="flex justify-between items-center mt-0.5">
+                    <p class="font-marker text-[9px] text-espresso/50 truncate flex-1">{{ cafe.address }}</p>
+                    <span class="font-marker text-primary text-xs ml-1 shrink-0">{{ cafe.rating }}/5</span>
                 </div>
             </div>
+        </a>
+        }
+    </div>
+    }
+
+    <!-- Nearby Right Now -->
+    @if (liveCafes().length > 0 && !cafeService.searchQuery()) {
+    <div class="px-5 mb-3">
+        <h2 class="font-zine font-black italic uppercase text-lg text-espresso flex items-center gap-2">
+            <span class="inline-block w-2 h-2 rounded-full bg-sage border border-espresso animate-pulse"></span>
+            Nearby Right Now
+        </h2>
+    </div>
+    <div class="flex gap-3 px-5 overflow-x-auto pb-5 no-scrollbar snap-x">
+        @for (item of liveCafes(); track item.cafe.id; let i = $index) {
+        <a [routerLink]="['/cafe', item.cafe.id]"
+            class="shrink-0 w-44 bg-off-white zine-border p-2 snap-center zine-shadow zine-click-active"
+            [class]="i % 2 === 0 ? 'rotate-[-0.5deg]' : 'rotate-[0.5deg]'">
+            <div class="overflow-hidden zine-border aspect-[4/3] bg-latte relative">
+                <img [src]="item.cafe.photos[0] || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=400&h=300&fit=crop'"
+                    [alt]="item.cafe.name" class="w-full h-full object-cover" />
+                <div class="absolute top-1.5 left-1.5 bg-espresso text-primary border border-primary px-2 py-0.5 font-zine font-bold text-[9px] flex items-center gap-1 animate-pulse">
+                    <span class="material-symbols-outlined text-[10px]">sensors</span>
+                    {{ item.count }} here
+                </div>
+            </div>
+            <div class="pt-2">
+                <h3 class="font-zine text-sm font-black italic uppercase text-espresso leading-tight truncate">{{ item.cafe.name }}</h3>
+                <p class="font-marker text-[9px] text-espresso/50 truncate mt-0.5">{{ item.cafe.address }}</p>
+            </div>
+        </a>
+        }
+    </div>
+    }
+
+    <!-- Who's Down -->
+    @if (broadcastService.activeBroadcasts().length > 0) {
+    <div class="px-5 mb-3">
+        <h2 class="font-zine font-black italic uppercase text-lg text-espresso">Who's Down</h2>
+    </div>
+    <div class="flex gap-3 px-5 overflow-x-auto pb-5 no-scrollbar snap-x">
+        @for (broadcast of broadcastService.activeBroadcasts(); track broadcast.id) {
+        <div class="shrink-0 w-60 bg-off-white zine-border p-3 zine-shadow snap-center rotate-[-0.5deg]">
+            <div class="flex justify-between items-start mb-2 pb-2 border-b border-espresso/15">
+                <div>
+                    <h3 class="font-marker text-base text-espresso leading-none">{{ broadcast.hostName }}</h3>
+                    <p class="font-zine text-[10px] font-bold uppercase text-espresso/50 mt-0.5">@ {{ broadcast.cafeName }}</p>
+                </div>
+                <div class="bg-espresso text-primary px-2 py-0.5 font-zine text-[9px] font-bold uppercase border border-primary animate-pulse">Live</div>
+            </div>
             @if (broadcast.message) {
-            <p class="font-sans text-sm text-espresso/80 line-clamp-2 mb-3">"{{ broadcast.message }}"</p>
+            <p class="font-sans text-xs text-espresso/70 line-clamp-2 mb-3">"{{ broadcast.message }}"</p>
             }
-            <div class="flex justify-between items-center mt-2">
+            <div class="flex justify-between items-center">
                 <div class="flex -space-x-2">
-                    <div
-                        class="w-6 h-6 rounded-full bg-sage border border-espresso flex items-center justify-center font-zine text-[10px] font-bold">
-                        <span class="material-symbols-outlined text-[14px]">person</span>
+                    <div class="w-6 h-6 rounded-full bg-sage border border-espresso flex items-center justify-center">
+                        <span class="material-symbols-outlined text-[13px]">person</span>
                     </div>
                     @if (broadcast.attendees.length > 1) {
-                    <div
-                        class="w-6 h-6 rounded-full bg-primary border border-espresso flex items-center justify-center font-zine text-[8px] font-bold">
+                    <div class="w-6 h-6 rounded-full bg-primary border border-espresso flex items-center justify-center font-zine text-[9px] font-bold">
                         +{{ broadcast.attendees.length - 1 }}
                     </div>
                     }
                 </div>
                 <a [routerLink]="['/cafe', broadcast.cafeId]"
-                    class="font-marker text-[10px] bg-primary text-espresso px-3 py-1.5 rounded-full zine-border border-2 zine-shadow-sm hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all flex items-center gap-1">
-                    JOIN 'EM
+                    class="font-marker text-[10px] bg-primary text-espresso px-3 py-1.5 zine-border zine-shadow-sm hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all flex items-center gap-1">
+                    JOIN
                     <span class="material-symbols-outlined text-[12px]">arrow_forward</span>
                 </a>
             </div>
@@ -148,101 +201,66 @@
     </div>
     }
 
-    <!-- Section Title -->
-    <div class="px-6 py-4">
-        <h2
-            class="inline-block bg-espresso text-off-white px-4 py-1 font-zine font-bold italic uppercase tracking-widest -rotate-1">
-            Top Malaysian Picks
-        </h2>
+    <!-- Main list -->
+    <div class="px-5 mb-4">
+        <h2 class="font-zine font-black italic uppercase text-lg text-espresso">Top Picks</h2>
     </div>
 
-    <!-- Listing Cards - Zine Style -->
-    <main class="px-6 space-y-12 pb-32">
+    <main class="px-5 space-y-8 pb-32">
         @for (cafe of cafeService.filteredCafes(); track cafe.id; let i = $index) {
         <div class="relative">
-            <!-- Alternating background blob colors and rotations -->
-            <div
-                [class]="'absolute inset-0 translate-x-3 translate-y-3 rounded-xl ' + 
-                 (i % 3 === 0 ? 'bg-sage/40 -rotate-1' : i % 3 === 1 ? 'bg-primary/30 rotate-2' : 'bg-espresso/10 -rotate-2')">
-            </div>
+            <div class="absolute inset-0 translate-x-2.5 translate-y-2.5"
+                [class]="i % 3 === 0 ? 'bg-sage/30' : i % 3 === 1 ? 'bg-primary/25' : 'bg-espresso/8'"></div>
+            <div class="relative bg-off-white zine-border p-2.5 zine-shadow"
+                [class]="i % 2 === 0 ? 'rotate-[0.5deg]' : 'rotate-[-0.5deg]'">
 
-            <div class="relative block bg-off-white zine-border p-3 rounded-sm zine-shadow"
-                [class]="i % 2 === 0 ? 'rotate-1' : '-rotate-1'">
-
-                <!-- Card image area -->
-                <div class="tape-effect overflow-hidden zine-border aspect-[4/3] bg-espresso relative">
+                <!-- Image -->
+                <div class="tape-effect overflow-hidden zine-border aspect-[4/3] bg-latte relative">
                     <a [routerLink]="['/cafe', cafe.id]" class="block w-full h-full">
                         <img [src]="cafe.photos[0] || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=600&h=400&fit=crop'"
-                            [alt]="cafe.name"
-                            class="w-full h-full object-cover grayscale contrast-125 opacity-90 transition-all hover:grayscale-0 hover:opacity-100" />
+                            [alt]="cafe.name" class="w-full h-full object-cover" />
                     </a>
 
-                    <!-- 🟢 Live count badge -->
                     @if (liveCount(cafe.id) > 0) {
-                    <div
-                        class="absolute top-2 left-2 bg-green-500 text-white px-2 py-0.5 font-zine font-bold text-[10px] flex items-center gap-1 border border-white shadow-sm animate-pulse rounded-full">
-                        <span class="w-1.5 h-1.5 bg-white rounded-full inline-block"></span>
+                    <div class="absolute top-2 left-2 bg-espresso text-primary border border-primary px-2 py-0.5 font-zine font-bold text-[9px] flex items-center gap-1 animate-pulse">
+                        <span class="material-symbols-outlined text-[10px]">sensors</span>
                         {{ liveCount(cafe.id) }} here now
                     </div>
                     }
 
-                    <!-- Tags badge -->
                     @if (cafe.tags && cafe.tags.length > 0) {
-                    <div class="absolute top-2 right-2 flex flex-col items-end gap-1">
-                        <div
-                            class="bg-primary text-espresso px-2 py-0.5 font-marker text-xs rotate-3 zine-border uppercase shadow-sm">
-                            {{ cafe.tags[0] }}
-                        </div>
+                    <div class="absolute top-2 right-2 bg-primary text-espresso px-2 py-0.5 font-marker text-[10px] rotate-2 zine-border uppercase">
+                        {{ cafe.tags[0] }}
                     </div>
                     }
 
-                    <!-- Open/Closed indicator -->
-                    <div class="absolute bottom-2 left-2 flex gap-1.5 flex-wrap max-w-[80%]">
-                        <div
-                            [class]="cafeService.isOpenNow(cafe)
-                            ? 'bg-green-100 text-green-800 border-green-400 px-2 py-0.5 font-zine font-bold text-[10px] zine-border flex items-center gap-1'
-                            : 'bg-red-100 text-red-700 border-red-400 px-2 py-0.5 font-zine font-bold text-[10px] zine-border flex items-center gap-1'">
+                    <div class="absolute bottom-2 left-2 flex gap-1.5">
+                        <div [class]="cafeService.isOpenNow(cafe)
+                            ? 'bg-sage text-espresso px-2 py-0.5 font-zine font-bold text-[9px] zine-border flex items-center gap-1'
+                            : 'bg-latte/80 text-espresso/50 px-2 py-0.5 font-zine font-bold text-[9px] border border-espresso/20 flex items-center gap-1'">
                             <span class="material-symbols-outlined text-[10px]">schedule</span>
                             {{ cafeService.isOpenNow(cafe) ? 'Open' : 'Closed' }}
                         </div>
-                        @if (cafe.crowdLevel) {
-                        <div
-                            class="bg-white/95 text-espresso px-2 py-1 font-zine font-bold text-[10px] -rotate-2 zine-border flex items-center gap-1 shadow-sm">
-                            <span class="material-symbols-outlined text-[12px]">groups</span>
-                            {{ cafe.crowdLevel }}
-                        </div>
-                        }
                     </div>
                 </div>
 
-                <!-- Card footer -->
-                <div class="pt-4 pb-1">
-                    <div class="flex justify-between items-start">
+                <!-- Footer -->
+                <div class="pt-3 pb-1 px-0.5">
+                    <div class="flex justify-between items-start gap-2">
                         <a [routerLink]="['/cafe', cafe.id]" class="flex-1 min-w-0">
-                            <h3
-                                class="text-2xl font-black italic uppercase font-zine leading-none text-espresso truncate">
-                                {{ cafe.name }}
-                            </h3>
-                            <p
-                                class="font-zine text-xs font-bold mt-1 uppercase text-espresso/70 tracking-tighter truncate">
-                                {{ cafe.address }}
-                            </p>
-                            <!-- Distance label -->
+                            <h3 class="text-xl font-black italic uppercase font-zine leading-tight text-espresso truncate">{{ cafe.name }}</h3>
+                            <p class="font-zine text-xs font-bold mt-0.5 uppercase text-espresso/60 truncate">{{ cafe.address }}</p>
                             @if (cafeService.distanceLabel(cafe)) {
                             <p class="font-marker text-[10px] text-primary mt-1 flex items-center gap-0.5">
-                                <span class="material-symbols-outlined text-[12px]">near_me</span>
+                                <span class="material-symbols-outlined text-[11px]">near_me</span>
                                 {{ cafeService.distanceLabel(cafe) }}
                             </p>
                             }
                         </a>
-                        <div class="flex flex-col items-end gap-2 ml-3 shrink-0">
-                            <div class="font-marker text-primary text-lg"
-                                [class]="i % 2 === 0 ? 'rotate-[-5deg]' : 'rotate-[5deg]'">
-                                {{ cafe.rating }}/5
-                            </div>
-                            <!-- Bookmark button -->
+                        <div class="flex flex-col items-end gap-2 shrink-0">
+                            <div class="font-marker text-primary text-base">{{ cafe.rating }}/5</div>
                             <button (click)="openBookmark($event, cafe)" id="bookmark-{{cafe.id}}"
-                                class="w-8 h-8 bg-off-white zine-border flex items-center justify-center hover:bg-primary hover:translate-y-[-2px] transition-all">
+                                class="w-8 h-8 bg-off-white zine-border flex items-center justify-center hover:bg-primary transition-all zine-click-active">
                                 <span class="material-symbols-outlined text-espresso text-base">bookmark_add</span>
                             </button>
                         </div>
@@ -254,18 +272,18 @@
 
         @empty {
         <div class="text-center py-16">
-            <span class="material-symbols-outlined text-6xl text-espresso/20 mb-3 rotate-12">search_off</span>
-            <p class="font-marker text-xl text-espresso/40">No spots found in the zine...</p>
+            <span class="material-symbols-outlined text-5xl text-espresso/20 mb-3">search_off</span>
+            <p class="font-marker text-xl text-espresso/40">No spots found...</p>
         </div>
         }
     </main>
 
-    <!-- Floating Action Button -->
-    <div class="fixed bottom-24 right-6 z-40 max-w-md flex flex-col items-end gap-3">
+    <!-- FAB -->
+    <div class="fixed bottom-24 right-5 z-40 max-w-md">
         <a routerLink="/cafe/add"
-            class="bg-sage text-espresso font-marker text-sm px-4 py-3 rounded-full zine-border zine-shadow hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex items-center gap-2">
+            class="bg-sage text-espresso font-marker text-sm px-4 py-2.5 zine-border zine-shadow flex items-center gap-2 hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all">
             <span class="material-symbols-outlined text-base">add_location_alt</span>
-            SUGGEST A SPOT
+            Suggest a Spot
         </a>
     </div>
 

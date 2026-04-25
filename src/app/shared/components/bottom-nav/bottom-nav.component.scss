@@ -1,3 +1,28 @@
 :host {
     display: block;
 }
+
+.nav-icon {
+    font-size: 22px;
+    color: rgba(44, 24, 16, 0.45);
+    transition: color 0.15s, font-variation-settings 0.15s;
+}
+
+.nav-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: rgba(44, 24, 16, 0.4);
+    transition: color 0.15s;
+}
+
+.nav-active {
+    .nav-icon {
+        color: var(--color-primary);
+    }
+    .nav-label {
+        color: var(--color-primary);
+    }
+}

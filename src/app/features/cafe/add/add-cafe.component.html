@@ -169,10 +169,10 @@
                 <input [value]="name()" (input)="name.set($any($event.target).value)"
                     placeholder="e.g. Uncle Bob's Brew"
                     class="relative w-full bg-off-white border-2 border-espresso p-3 font-marker text-espresso placeholder:text-espresso/30 focus:outline-none focus:ring-2 focus:ring-primary"
-                    [class.border-red-500]="nameErr" />
+                    [class.border-primary]="nameErr" [class.border-4]="nameErr" />
             </div>
             @if (nameErr) {
-            <p class="text-red-600 text-xs font-zine font-bold uppercase">⚠ {{ nameErr }}</p>
+            <p class="text-off-white bg-espresso px-2 py-1 inline-block text-[10px] font-zine font-bold uppercase zine-border border-primary rotate-1 zine-shadow-sm mt-1">⚠ {{ nameErr }}</p>
             }
         </div>
 
@@ -184,10 +184,10 @@
                 <textarea [value]="address()" (input)="address.set($any($event.target).value)" rows="2"
                     placeholder="e.g. Jalan Mesui, Bukit Bintang, KL"
                     class="relative w-full bg-off-white border-2 border-espresso p-3 font-marker text-espresso placeholder:text-espresso/30 focus:outline-none focus:ring-2 focus:ring-primary resize-none"
-                    [class.border-red-500]="addressErr"></textarea>
+                    [class.border-primary]="addressErr" [class.border-4]="addressErr"></textarea>
             </div>
             @if (addressErr) {
-            <p class="text-red-600 text-xs font-zine font-bold uppercase">⚠ {{ addressErr }}</p>
+            <p class="text-off-white bg-espresso px-2 py-1 inline-block text-[10px] font-zine font-bold uppercase zine-border border-primary -rotate-1 zine-shadow-sm mt-1">⚠ {{ addressErr }}</p>
             }
         </div>
 

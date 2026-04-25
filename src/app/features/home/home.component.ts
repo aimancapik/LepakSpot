@@ -1,7 +1,8 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit, signal, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, OnDestroy, signal, computed } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { CafeService } from '../../core/services/cafe.service';
+import { CheckInService } from '../../core/services/checkin.service';
 import { BroadcastService } from '../../core/services/broadcast.service';
 import { ToastService } from '../../shared/components/toast/toast.service';
 import { CafeTag, Cafe } from '../../core/models/cafe.model';
@@ -15,9 +16,10 @@ import { SaveToListModalComponent } from '../../shared/components/save-to-list-m
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent implements OnInit, OnDestroy {
   authService = inject(AuthService);
   cafeService = inject(CafeService);
+  checkInService = inject(CheckInService);
   broadcastService = inject(BroadcastService);
   private toastService = inject(ToastService);
 
@@ -35,10 +37,64 @@ export class HomeComponent implements OnInit {
   // Search history
   recentSearches = signal<string[]>(this.loadRecentSearches());
 
+  private unsubscribeDensity?: () => void;
+
+  /** Smart "For You" suggestions based on time of day */
+  suggestedCafes = computed(() => {
+    const allCafes = this.cafeService.nearbyCafes().filter(c => !c.pendingApproval);
+    const hour = new Date().getHours();
+    const isWeekend = [0, 6].includes(new Date().getDay());
+
+    let preferredTags: CafeTag[];
+    if (hour >= 5 && hour < 12) {
+      preferredTags = ['wifi', 'study']; // morning = work mode
+    } else if (hour >= 12 && hour < 17) {
+      preferredTags = ['chill', 'halal']; // afternoon = lunch/chill
+    } else {
+      preferredTags = ['aesthetic', 'chill']; // evening = hangout
+    }
+
+    if (isWeekend) {
+      preferredTags = ['aesthetic', 'chill']; // weekend = explore
+    }
+
+    // Score cafes by tag match + rating
+    const scored = allCafes.map(cafe => {
+      const tagScore = cafe.tags.filter(t => preferredTags.includes(t)).length;
+      const ratingScore = (cafe.rating ?? 0) / 5;
+      return { cafe, score: tagScore * 2 + ratingScore };
+    });
+
+    return scored
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 5)
+      .map(s => s.cafe);
+  });
+
+  /** Cafes with people checked in right now */
+  liveCafes = computed(() => {
+    const densityMap = this.checkInService.densityMap();
+    const allCafes = this.cafeService.nearbyCafes();
+    const active: { cafe: Cafe; count: number }[] = [];
+
+    densityMap.forEach((density) => {
+      if (density.count > 0) {
+        const cafe = allCafes.find(c => c.id === density.cafeId);
+        if (cafe) active.push({ cafe, count: density.count });
+      }
+    });
+
+    return active.sort((a, b) => b.count - a.count).slice(0, 6);
+  });
+
   async ngOnInit() {
     this.cafeService.getNearby();
-    // Request location silently in background
     this.cafeService.requestUserLocation();
+    this.unsubscribeDensity = this.checkInService.watchAllDensity();
+  }
+
+  ngOnDestroy() {
+    this.unsubscribeDensity?.();
   }
 
   get greeting(): string {

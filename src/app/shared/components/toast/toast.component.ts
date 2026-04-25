@@ -33,7 +33,7 @@ export class ToastComponent {
     toastClass(type: string): string {
         switch (type) {
             case 'success': return 'bg-sage text-espresso';
-            case 'error': return 'bg-red-100 text-red-900';
+            case 'error': return 'bg-espresso text-primary';
             default: return 'bg-off-white text-espresso';
         }
     }
