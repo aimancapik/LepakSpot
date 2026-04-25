@@ -22,6 +22,7 @@ export class SceneComponent implements OnInit {
     private route = inject(ActivatedRoute);
     private location = inject(Location);
     private cafeService = inject(CafeService);
+    private authService = inject(AuthService);
     private checkInService = inject(CheckInService);
     private reviewService = inject(ReviewService);
     private toastService = inject(ToastService);
@@ -35,13 +36,19 @@ export class SceneComponent implements OnInit {
 
     // Review state
     reviews = this.reviewService.cafeReviews;
+    likedReviewIds = this.reviewService.likedReviewIds;
+    userReview = this.reviewService.userReview;
     hasReviewed = signal(false);
     showReviewForm = signal(false);
+    isEditingReview = signal(false);
     submittingReview = signal(false);
     reviewSubmitted = signal(false);
+    showAllReviews = signal(false);
     pendingRating = signal(0);
     hoverRating = signal(0);
     reviewText = signal('');
+    reviewImageFile = signal<File | null>(null);
+    reviewImagePreview = signal<string | null>(null);
 
     ngOnInit() {
         const cafeId = this.route.snapshot.paramMap.get('id');
@@ -120,15 +127,58 @@ export class SceneComponent implements OnInit {
         return index <= display;
     }
 
+    startEditReview() {
+        const existing = this.userReview();
+        if (!existing) return;
+        this.pendingRating.set(existing.rating);
+        this.reviewText.set(existing.text);
+        this.reviewImagePreview.set(existing.imageUrl ?? null);
+        this.reviewImageFile.set(null);
+        this.isEditingReview.set(true);
+        this.showReviewForm.set(true);
+    }
+
+    onReviewImagePicked(event: Event) {
+        const file = (event.target as HTMLInputElement).files?.[0];
+        if (!file) return;
+        this.reviewImageFile.set(file);
+        const reader = new FileReader();
+        reader.onload = (e) => this.reviewImagePreview.set(e.target?.result as string);
+        reader.readAsDataURL(file);
+    }
+
+    removeReviewImage() {
+        this.reviewImageFile.set(null);
+        this.reviewImagePreview.set(null);
+    }
+
     async submitReview() {
         const cafe = this.cafe();
         if (!cafe || this.pendingRating() === 0 || this.submittingReview()) return;
         this.submittingReview.set(true);
         try {
-            await this.reviewService.addReview(cafe.id, this.pendingRating(), this.reviewText());
+            const user = this.authService.currentUser();
+            let imageUrl: string | undefined;
+            const imageFile = this.reviewImageFile();
+            if (imageFile && user) {
+                imageUrl = await this.reviewService.uploadReviewImage(imageFile, user.uid);
+            } else if (this.isEditingReview()) {
+                imageUrl = this.reviewImagePreview() ?? undefined;
+            }
+
+            if (this.isEditingReview() && this.userReview()) {
+                await this.reviewService.updateReview(this.userReview()!.id, cafe.id, this.pendingRating(), this.reviewText(), imageUrl);
+                this.toastService.show('Review updated!', 'success');
+            } else {
+                await this.reviewService.addReview(cafe.id, this.pendingRating(), this.reviewText(), imageUrl);
+                this.reviewSubmitted.set(true);
+            }
+
             this.hasReviewed.set(true);
+            this.isEditingReview.set(false);
             this.showReviewForm.set(false);
-            this.reviewSubmitted.set(true);
+            this.reviewImageFile.set(null);
+            this.reviewImagePreview.set(null);
         } catch (error) {
             console.error('Failed to submit review', error);
             this.toastService.show('Could not submit review. Are you logged in?', 'error');
@@ -136,6 +186,25 @@ export class SceneComponent implements OnInit {
             this.submittingReview.set(false);
         }
     }
+
+    async toggleLike(reviewId: string) {
+        try {
+            await this.reviewService.toggleLike(reviewId);
+        } catch {
+            this.toastService.show('Log in to like reviews.', 'error');
+        }
+    }
+
+    // Lightbox for review images
+    lightboxReviews = signal<{ reviews: import('../../../core/models/review.model').Review[], startIndex: number } | null>(null);
+
+    openReviewLightbox(reviews: import('../../../core/models/review.model').Review[], startIndex: number) {
+        const withImages = reviews.filter(r => r.imageUrl);
+        const adjustedIndex = withImages.indexOf(reviews[startIndex]);
+        this.lightboxReviews.set({ reviews: withImages, startIndex: adjustedIndex >= 0 ? adjustedIndex : 0 });
+    }
+
+    closeReviewLightbox() { this.lightboxReviews.set(null); }
 
     formatDate(ts: any): string {
         if (!ts) return '';

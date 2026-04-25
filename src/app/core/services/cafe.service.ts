@@ -253,21 +253,21 @@ export class CafeService {
     }
 
     async getCafeById(id: string): Promise<Cafe | null> {
+        if (!id.startsWith('mock-')) {
+            try {
+                const { data } = await this.supabase.client
+                    .from('cafes')
+                    .select('*')
+                    .eq('id', id)
+                    .single();
+                if (data) return data as Cafe;
+            } catch { }
+        }
+
         const cached = this.nearbyCafes().find(c => c.id === id);
         if (cached) return cached;
 
-        const mock = MOCK_CAFES.find(c => c.id === id);
-        if (mock) return mock;
-
-        try {
-            const { data } = await this.supabase.client
-                .from('cafes')
-                .select('*')
-                .eq('id', id)
-                .single();
-            if (data) return data as Cafe;
-        } catch { }
-        return null;
+        return MOCK_CAFES.find(c => c.id === id) ?? null;
     }
 
     async getCafesByIds(ids: string[]): Promise<Cafe[]> {
@@ -302,7 +302,7 @@ export class CafeService {
             addedBy: user.uid,
             submittedBy: user.uid,
             createdAt: new Date().toISOString(),
-            pendingApproval: false,
+            pendingApproval: true,
             openingHours: data.openingHours,
             wifiSpeed: data.wifiSpeed,
             outletAvailability: data.outletAvailability,
@@ -321,18 +321,50 @@ export class CafeService {
         if (error) throw error;
         const newId = inserted!.id;
 
-        const { error: rpcError } = await this.supabase.client
-            .rpc('increment_points', { user_uid: user.uid, amount: 100 });
-        if (rpcError) {
-            await this.supabase.client
-                .from('users')
-                .update({ points: (user.points || 0) + 100 })
-                .eq('uid', user.uid);
-        }
+        await this.supabase.client
+            .from('users')
+            .update({ points: (user.points || 0) + 100 })
+            .eq('uid', user.uid);
 
         await this.authService.refreshCurrentUser();
         this.nearbyCafes.update(cafes => [...cafes, { ...cafe, id: newId } as Cafe]);
         return newId;
+    }
+
+    async updateCafe(id: string, data: Partial<Cafe>): Promise<void> {
+        const user = this.authService.currentUser();
+        if (!user) throw new Error('Not authenticated');
+        const { error } = await this.supabase.client
+            .from('cafes')
+            .update(data)
+            .eq('id', id)
+            .eq('submittedBy', user.uid);
+        if (error) throw error;
+        this.nearbyCafes.update(cafes =>
+            cafes.map(c => c.id === id ? { ...c, ...data } : c)
+        );
+    }
+
+    async getMySubmissions(): Promise<Cafe[]> {
+        const user = this.authService.currentUser();
+        if (!user) return [];
+        const { data } = await this.supabase.client
+            .from('cafes')
+            .select('*')
+            .eq('submittedBy', user.uid)
+            .order('createdAt', { ascending: false });
+        return (data || []) as Cafe[];
+    }
+
+    async getNewThisWeek(): Promise<Cafe[]> {
+        const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+        const { data } = await this.supabase.client
+            .from('cafes')
+            .select('*')
+            .eq('pendingApproval', false)
+            .gte('approvedAt', weekAgo)
+            .order('approvedAt', { ascending: false });
+        return (data || []) as Cafe[];
     }
 
     async updateVibeData(id: string, updates: { crowdLevel?: string; noiseLevel?: string }): Promise<void> {

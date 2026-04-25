@@ -26,9 +26,8 @@
 
             <!-- Header Text -->
             <div class="relative rotate-1">
-                <div class="absolute -inset-1 bg-off-white border-2 border-espresso z-0 translate-x-1 translate-y-1 rounded-2xl"></div>
                 <div
-                    class="relative z-10 bg-sage border-2 border-espresso p-4 shadow-[4px_4px_0_var(--color-espresso)] rounded-2xl">
+                    class="bg-sage border-2 border-espresso p-4 shadow-[4px_4px_0_var(--color-espresso)] rounded-2xl">
                     <p class="font-zine text-sm font-bold uppercase tracking-wider text-espresso">THE SCENE &#64;</p>
                     <h1 class="font-marker text-3xl font-black text-espresso leading-none mt-1">{{ cafe()!.name }}</h1>
                 </div>
@@ -147,20 +146,67 @@
         </div>
         }
 
-        <!-- ── Leave a Review ── -->
+        <!-- Horizontal Scene Carousel -->
+        <div class="relative -mt-4 mb-8">
+            <div class="flex items-center gap-3 px-6 mb-4">
+                <h3 class="bg-espresso text-off-white px-3 py-1 font-zine font-bold italic uppercase tracking-widest -rotate-2">
+                    SCENE SNAPS
+                </h3>
+                <div class="h-0.5 flex-1 bg-espresso/10"></div>
+            </div>
+
+            <!-- Horizontal Scroll Container -->
+            <div class="flex overflow-x-auto gap-8 px-8 pb-4 snap-x snap-mandatory no-scrollbar">
+                @if (cafe()!.sceneSnaps?.length) {
+                    @for (snap of cafe()!.sceneSnaps; track $index; let i = $index) {
+                    <!-- Dynamic Scene Snap -->
+                    <div class="flex-none w-[85%] snap-center relative" [class.pt-4]="i % 2 !== 0">
+                        <!-- Tape Decoration -->
+                        <div class="absolute w-16 h-6 bg-white/70 backdrop-blur-sm border-2 border-espresso z-20 shadow-sm mix-blend-overlay"
+                             [class]="i % 2 === 0 ? '-top-4 -left-3 rotate-[15deg]' : '-top-3 right-6 -rotate-[8deg] bg-white/50 border-white'"></div>
+
+                        <!-- Photo Frame -->
+                        <div class="relative zine-border p-2 bg-off-white zine-shadow rounded-2xl"
+                             [class]="i % 2 === 0 ? 'aspect-square rotate-[-2deg]' : 'aspect-[4/5] bg-espresso rotate-[2deg] shadow-[8px_8px_0_var(--color-primary)] p-3 z-10'">
+                            <div class="w-full h-full overflow-hidden border-2 border-espresso bg-espresso">
+                                <img [src]="snap.url"
+                                     class="w-full h-full object-cover transition-all duration-500"
+                                     [alt]="snap.tag" />
+                            </div>
+
+                            <!-- Tag inside frame so bottom is relative to photo -->
+                            <div class="absolute border-2 border-espresso px-4 py-1.5 z-30 shadow-[2px_2px_0px_0px_rgba(69,50,39,1)] rounded-full"
+                                 [class]="i % 3 === 0 ? '-bottom-3 right-3 bg-primary rotate-3' : (i % 3 === 1 ? '-bottom-3 left-3 bg-latte -rotate-2' : 'top-2 -right-3 bg-sage rotate-[6deg]')">
+                                <span class="font-marker font-bold text-espresso text-sm uppercase tracking-wider">{{ snap.tag }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    }
+                } @else {
+                    <div class="flex-1 flex flex-col items-center justify-center p-8 bg-off-white/50 border-2 border-dashed border-espresso/30 rounded-2xl">
+                        <span class="material-symbols-outlined text-4xl text-espresso/20 mb-2">no_photography</span>
+                        <p class="font-marker text-espresso/40 uppercase text-sm">No scene snaps yet</p>
+                    </div>
+                }
+            </div>
+
+            <!-- Hint -->
+            <div class="flex justify-center gap-1 opacity-30 mt-2">
+                <div class="w-1.5 h-1.5 rounded-full bg-espresso"></div>
+                <div class="w-1.5 h-1.5 rounded-full bg-espresso"></div>
+                <div class="w-1.5 h-1.5 rounded-full bg-espresso"></div>
+            </div>
+        </div>
+
+        <!-- ── Leave / Edit a Review ── -->
         @if (!hasReviewed() && !reviewSubmitted()) {
         <div class="relative mt-2">
-            <!-- tape decoration -->
-            <div
-                class="absolute -top-3 left-8 w-20 h-5 bg-white/60 backdrop-blur-sm border border-espresso rotate-2 z-20">
-            </div>
-            <div
-                class="bg-off-white zine-border p-5 shadow-[4px_4px_0_var(--color-espresso)] -rotate-1 relative overflow-hidden">
+            <div class="absolute -top-3 left-8 w-20 h-5 bg-white/60 backdrop-blur-sm border border-espresso rotate-2 z-20"></div>
+            <div class="bg-off-white zine-border p-5 shadow-[4px_4px_0_var(--color-espresso)] -rotate-1 relative overflow-hidden">
                 <div class="flex items-center gap-2 mb-4 border-b-2 border-espresso/20 pb-2">
                     <span class="material-symbols-outlined text-espresso text-2xl">rate_review</span>
                     <h3 class="font-marker text-xl tracking-widest uppercase text-espresso">Leave a Review</h3>
                 </div>
-
                 @if (!showReviewForm()) {
                 <button (click)="showReviewForm.set(true)"
                     class="w-full font-marker text-sm uppercase tracking-wide py-2 px-4 bg-primary zine-border shadow-[3px_3px_0_var(--color-espresso)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all text-espresso">
@@ -193,6 +239,25 @@
                             class="w-full bg-white border-2 border-espresso/40 focus:border-espresso p-3 text-sm font-marker text-espresso resize-none outline-none transition-colors rounded-xl">
                         </textarea>
                     </div>
+                    <!-- Image Upload -->
+                    <div>
+                        <p class="font-zine text-xs uppercase tracking-widest text-espresso/60 mb-2">Add a Photo <span class="normal-case text-espresso/40">(optional)</span></p>
+                        @if (reviewImagePreview()) {
+                        <div class="relative inline-block">
+                            <img [src]="reviewImagePreview()" class="w-full max-h-48 object-cover zine-border rounded-xl" />
+                            <button (click)="removeReviewImage()"
+                                class="absolute top-2 right-2 size-7 bg-espresso text-off-white rounded-full flex items-center justify-center border-2 border-off-white shadow-md">
+                                <span class="material-symbols-outlined text-sm">close</span>
+                            </button>
+                        </div>
+                        } @else {
+                        <label class="flex items-center gap-2 cursor-pointer w-full py-3 px-4 border-2 border-dashed border-espresso/40 hover:border-espresso rounded-xl transition-colors group">
+                            <span class="material-symbols-outlined text-espresso/50 group-hover:text-espresso transition-colors">add_photo_alternate</span>
+                            <span class="font-marker text-sm text-espresso/50 group-hover:text-espresso transition-colors uppercase">Tap to add photo</span>
+                            <input type="file" accept="image/*" class="hidden" (change)="onReviewImagePicked($event)" />
+                        </label>
+                        }
+                    </div>
                     <!-- Actions -->
                     <div class="flex gap-3">
                         <button (click)="showReviewForm.set(false)"
@@ -201,20 +266,90 @@
                         </button>
                         <button (click)="submitReview()" [disabled]="pendingRating() === 0 || submittingReview()"
                             class="flex-1 font-marker text-sm uppercase py-2 bg-espresso text-off-white zine-border shadow-[3px_3px_0_var(--color-primary)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all disabled:opacity-40 disabled:translate-y-0.5 disabled:translate-x-0.5 disabled:shadow-none">
-                            {{ submittingReview() ? 'Posting...' : 'Post Review' }}
+                            {{ submittingReview() ? (isEditingReview() ? 'Saving...' : 'Posting...') : (isEditingReview() ? 'Save Changes' : 'Post Review') }}
                         </button>
                     </div>
                 </div>
                 }
             </div>
         </div>
-        } @else if (reviewSubmitted()) {
-        <div class="bg-sage zine-border p-4 shadow-[4px_4px_0_var(--color-espresso)] rotate-1 flex items-center gap-3">
-            <span class="material-symbols-outlined text-3xl text-espresso">favorite</span>
-            <div>
-                <p class="font-marker text-sm text-espresso uppercase tracking-wide">Review Posted!</p>
-                <p class="font-zine text-xs text-espresso/70">Thanks for keeping the zine alive 🌿</p>
+        } @else if (reviewSubmitted() || hasReviewed()) {
+        <div class="space-y-3">
+            <div class="bg-sage zine-border p-4 shadow-[4px_4px_0_var(--color-espresso)] rotate-1 flex items-center gap-3">
+                <span class="material-symbols-outlined text-3xl text-espresso">favorite</span>
+                <div class="flex-1">
+                    <p class="font-marker text-sm text-espresso uppercase tracking-wide">
+                        {{ reviewSubmitted() ? 'Review Posted!' : 'You reviewed this cafe' }}
+                    </p>
+                    <p class="font-zine text-xs text-espresso/70">Thanks for keeping the zine alive 🌿</p>
+                </div>
+                @if (!showReviewForm()) {
+                <button (click)="startEditReview()"
+                    class="flex items-center gap-1 px-3 py-1.5 bg-espresso text-off-white font-marker text-xs uppercase zine-border zine-shadow-sm hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all">
+                    <span class="material-symbols-outlined text-sm">edit</span>
+                    Edit
+                </button>
+                }
             </div>
+            <!-- Edit form -->
+            @if (showReviewForm() && isEditingReview()) {
+            <div class="bg-off-white zine-border p-5 shadow-[4px_4px_0_var(--color-espresso)] relative overflow-hidden">
+                <div class="flex items-center gap-2 mb-4 border-b-2 border-espresso/20 pb-2">
+                    <span class="material-symbols-outlined text-espresso text-2xl">edit</span>
+                    <h3 class="font-marker text-xl tracking-widest uppercase text-espresso">Edit Review</h3>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <p class="font-zine text-xs uppercase tracking-widest text-espresso/60 mb-2">Your Rating</p>
+                        <div class="flex gap-1">
+                            @for (star of [1,2,3,4,5]; track star) {
+                            <button (click)="setRating(star)" (mouseenter)="setHover(star)" (mouseleave)="clearHover()"
+                                class="text-3xl transition-transform hover:scale-125 focus:outline-none">
+                                <span class="material-symbols-outlined"
+                                    [class.text-primary]="starFilled(star)"
+                                    [class.text-espresso/20]="!starFilled(star)"
+                                    style="font-variation-settings:'FILL' 1">star</span>
+                            </button>
+                            }
+                        </div>
+                    </div>
+                    <div>
+                        <p class="font-zine text-xs uppercase tracking-widest text-espresso/60 mb-1">Your Thoughts</p>
+                        <textarea [ngModel]="reviewText()" (ngModelChange)="reviewText.set($event)" rows="3"
+                            placeholder="Spill the tea... what's the vibe like?"
+                            class="w-full bg-white border-2 border-espresso/40 focus:border-espresso p-3 text-sm font-marker text-espresso resize-none outline-none transition-colors rounded-xl"></textarea>
+                    </div>
+                    <div>
+                        <p class="font-zine text-xs uppercase tracking-widest text-espresso/60 mb-2">Photo <span class="normal-case text-espresso/40">(optional)</span></p>
+                        @if (reviewImagePreview()) {
+                        <div class="relative inline-block w-full">
+                            <img [src]="reviewImagePreview()" class="w-full max-h-48 object-cover zine-border rounded-xl" />
+                            <button (click)="removeReviewImage()"
+                                class="absolute top-2 right-2 size-7 bg-espresso text-off-white rounded-full flex items-center justify-center border-2 border-off-white shadow-md">
+                                <span class="material-symbols-outlined text-sm">close</span>
+                            </button>
+                        </div>
+                        } @else {
+                        <label class="flex items-center gap-2 cursor-pointer w-full py-3 px-4 border-2 border-dashed border-espresso/40 hover:border-espresso rounded-xl transition-colors group">
+                            <span class="material-symbols-outlined text-espresso/50 group-hover:text-espresso transition-colors">add_photo_alternate</span>
+                            <span class="font-marker text-sm text-espresso/50 group-hover:text-espresso transition-colors uppercase">Tap to add photo</span>
+                            <input type="file" accept="image/*" class="hidden" (change)="onReviewImagePicked($event)" />
+                        </label>
+                        }
+                    </div>
+                    <div class="flex gap-3">
+                        <button (click)="showReviewForm.set(false); isEditingReview.set(false)"
+                            class="flex-1 font-marker text-sm uppercase py-2 border-2 border-espresso/30 text-espresso/60 hover:border-espresso hover:text-espresso transition-all rounded-xl">
+                            Cancel
+                        </button>
+                        <button (click)="submitReview()" [disabled]="pendingRating() === 0 || submittingReview()"
+                            class="flex-1 font-marker text-sm uppercase py-2 bg-espresso text-off-white zine-border shadow-[3px_3px_0_var(--color-primary)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all disabled:opacity-40">
+                            {{ submittingReview() ? 'Saving...' : 'Save Changes' }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+            }
         </div>
         }
 
@@ -224,14 +359,14 @@
             <!-- tape decoration -->
             <div class="absolute -top-3 right-8 w-20 h-5 bg-primary/60 border border-espresso -rotate-3 z-20">
             </div>
-            <div
-                class="bg-latte zine-border p-5 shadow-[4px_4px_0_var(--color-espresso)] rotate-1 relative overflow-hidden">
+            <div class="bg-latte zine-border p-5 shadow-[4px_4px_0_var(--color-espresso)] rotate-1 relative overflow-hidden">
                 <div class="flex items-center gap-2 mb-4 border-b-2 border-espresso/20 pb-2">
                     <span class="material-symbols-outlined text-espresso text-2xl">forum</span>
                     <h3 class="font-marker text-xl tracking-widest uppercase text-espresso">What Locals Say</h3>
+                    <span class="ml-auto font-zine text-xs text-espresso/40 uppercase tracking-widest">{{ reviews().length }} vibes</span>
                 </div>
                 <div class="space-y-4">
-                    @for (review of reviews().slice(0,5); track review.id) {
+                    @for (review of (showAllReviews() ? reviews() : reviews().slice(0,3)); track review.id; let idx = $index) {
                     <div class="bg-off-white border-2 border-espresso/20 p-3 space-y-2 rounded-xl">
                         <!-- Reviewer header -->
                         <div class="flex items-center gap-2">
@@ -239,16 +374,13 @@
                             <img [src]="review.photoURL" [alt]="review.displayName"
                                 class="w-8 h-8 rounded-full border-2 border-espresso object-cover" />
                             } @else {
-                            <div
-                                class="w-8 h-8 rounded-full border-2 border-espresso bg-sage flex items-center justify-center">
-                                <span class="font-marker text-sm text-espresso uppercase">{{ review.displayName[0]
-                                    }}</span>
+                            <div class="w-8 h-8 rounded-full border-2 border-espresso bg-sage flex items-center justify-center">
+                                <span class="font-marker text-sm text-espresso uppercase">{{ review.displayName[0] }}</span>
                             </div>
                             }
                             <div class="flex-1 min-w-0">
                                 <p class="font-marker text-sm text-espresso truncate">{{ review.displayName }}</p>
-                                <p class="font-zine text-[10px] text-espresso/50 uppercase tracking-wider">{{
-                                    formatDate(review.createdAt) }}</p>
+                                <p class="font-zine text-[10px] text-espresso/50 uppercase tracking-wider">{{ formatDate(review.createdAt) }}</p>
                             </div>
                             <!-- Stars -->
                             <div class="flex gap-0.5 shrink-0">
@@ -264,65 +396,89 @@
                         @if (review.text) {
                         <p class="font-marker text-sm text-espresso/80 leading-relaxed">"{{ review.text }}"</p>
                         }
+                        <!-- Review image -->
+                        @if (review.imageUrl) {
+                        <div class="mt-2 cursor-zoom-in" (click)="openReviewLightbox(reviews(), idx)">
+                            <img [src]="review.imageUrl" [alt]="review.displayName + ' photo'"
+                                class="w-full max-h-48 object-cover zine-border rounded-xl hover:opacity-90 transition-opacity" />
+                        </div>
+                        }
+                        <!-- Like button -->
+                        <div class="flex justify-end pt-2 border-t border-espresso/10 mt-1">
+                            @if (likedReviewIds().has(review.id)) {
+                            <button (click)="toggleLike(review.id)"
+                                class="flex items-center gap-1.5 px-3 py-1 rounded-full border-2 border-primary bg-primary transition-all">
+                                <span class="material-symbols-outlined text-sm text-espresso" style="font-variation-settings:'FILL' 1">favorite</span>
+                                <span class="font-zine text-xs font-bold text-espresso">{{ review.likeCount || 0 }}</span>
+                            </button>
+                            } @else {
+                            <button (click)="toggleLike(review.id)"
+                                class="flex items-center gap-1.5 px-3 py-1 rounded-full border-2 border-espresso/20 bg-transparent transition-all hover:border-primary">
+                                <span class="material-symbols-outlined text-sm text-espresso/40" style="font-variation-settings:'FILL' 0">favorite</span>
+                                <span class="font-zine text-xs font-bold text-espresso/40">{{ review.likeCount || 0 }}</span>
+                            </button>
+                            }
+                        </div>
                     </div>
                     }
                 </div>
+                <!-- Show more / less -->
+                @if (reviews().length > 3) {
+                <button (click)="showAllReviews.set(!showAllReviews())"
+                    class="w-full mt-4 py-2 font-marker text-sm uppercase tracking-wide text-espresso/60 hover:text-espresso border-t-2 border-espresso/10 hover:border-espresso/30 transition-all">
+                    {{ showAllReviews() ? '▲ Show less' : '▼ Show all ' + reviews().length + ' reviews' }}
+                </button>
+                }
+            </div>
+        </div>
+        }
+
+        <!-- Review Image Lightbox (rendered outside main flow) -->
+        @if (lightboxReviews(); as lb) {
+        <div class="fixed inset-0 z-[100] bg-espresso/95 backdrop-blur-md flex flex-col"
+             (click)="closeReviewLightbox()">
+            <div class="flex justify-end p-4" (click)="$event.stopPropagation()">
+                <button (click)="closeReviewLightbox()"
+                    class="size-10 bg-off-white border-2 border-espresso zine-shadow-sm flex items-center justify-center zine-click-active">
+                    <span class="material-symbols-outlined font-black">close</span>
+                </button>
+            </div>
+            <!-- Vertical swipe: all reviews with images -->
+            <div class="flex-1 overflow-y-auto snap-y snap-mandatory no-scrollbar" (click)="$event.stopPropagation()">
+                @for (r of lb.reviews; track r.id; let i = $index) {
+                <div class="h-full snap-start flex flex-col items-center justify-center p-6 gap-4"
+                     [id]="'lb-review-' + i">
+                    <img [src]="r.imageUrl" [alt]="r.displayName"
+                        class="max-w-full max-h-[65vh] object-contain zine-border shadow-2xl rounded-xl" />
+                    <div class="flex items-center gap-3">
+                        @if (r.photoURL) {
+                        <img [src]="r.photoURL" class="size-8 rounded-full zine-border" />
+                        }
+                        <div>
+                            <p class="font-marker text-off-white text-sm uppercase">{{ r.displayName }}</p>
+                            @if (r.text) {
+                            <p class="font-marker text-off-white/60 text-xs">"{{ r.text }}"</p>
+                            }
+                        </div>
+                        <div class="flex gap-0.5 ml-auto shrink-0">
+                            @for (s of [1,2,3,4,5]; track s) {
+                            <span class="material-symbols-outlined text-xs"
+                                [class.text-primary]="s <= r.rating"
+                                [class.text-off-white/20]="s > r.rating"
+                                style="font-variation-settings: 'FILL' 1">star</span>
+                            }
+                        </div>
+                    </div>
+                    @if (lb.reviews.length > 1) {
+                    <p class="font-zine text-xs text-off-white/30 uppercase tracking-widest">{{ i + 1 }} / {{ lb.reviews.length }} · swipe up/down</p>
+                    }
+                </div>
+                }
             </div>
         </div>
         }
 
 
-        <!-- Horizontal Scene Carousel -->
-        <div class="relative -mt-4 mb-8">
-            <div class="flex items-center gap-3 px-6 mb-4">
-                <h3 class="bg-espresso text-off-white px-3 py-1 font-zine font-bold italic uppercase tracking-widest -rotate-2">
-                    SCENE SNAPS
-                </h3>
-                <div class="h-0.5 flex-1 bg-espresso/10"></div>
-            </div>
-
-            <!-- Horizontal Scroll Container -->
-            <div class="flex overflow-x-auto gap-8 px-8 pb-12 snap-x snap-mandatory no-scrollbar">
-                @if (cafe()!.sceneSnaps?.length) {
-                    @for (snap of cafe()!.sceneSnaps; track $index; let i = $index) {
-                    <!-- Dynamic Scene Snap -->
-                    <div class="flex-none w-[85%] snap-center relative" [class.pt-4]="i % 2 !== 0">
-                        <!-- Tape Decoration -->
-                        <div class="absolute w-16 h-6 bg-white/70 backdrop-blur-sm border-2 border-espresso z-20 shadow-sm mix-blend-overlay"
-                             [class]="i % 2 === 0 ? '-top-4 -left-3 rotate-[15deg]' : '-top-3 right-6 -rotate-[8deg] bg-white/50 border-white'"></div>
-                        
-                        <!-- Photo Frame -->
-                        <div class="relative zine-border p-2 bg-off-white zine-shadow rounded-2xl overflow-hidden"
-                             [class]="i % 2 === 0 ? 'aspect-square rotate-[-2deg]' : 'aspect-[4/5] bg-espresso rotate-[2deg] shadow-[8px_8px_0_var(--color-primary)] p-3 z-10'">
-                            <div class="w-full h-full overflow-hidden border-2 border-espresso bg-espresso">
-                                <img [src]="snap.url"
-                                     class="w-full h-full object-cover grayscale contrast-125 hover:grayscale-0 transition-all duration-500"
-                                     [alt]="snap.tag" />
-                            </div>
-                        </div>
-                        
-                        <!-- Dynamic Tag -->
-                        <div class="absolute border-2 border-espresso px-4 py-1.5 z-30 shadow-[2px_2px_0px_0px_rgba(69,50,39,1)] rounded-full"
-                             [class]="i % 3 === 0 ? '-bottom-4 right-4 bg-primary rotate-3' : (i % 3 === 1 ? '-bottom-5 left-2 bg-latte -rotate-2 z-20' : 'top-2 -right-3 bg-sage rotate-[6deg]')">
-                            <span class="font-marker font-bold text-espresso text-sm uppercase tracking-wider">{{ snap.tag }}</span>
-                        </div>
-                    </div>
-                    }
-                } @else {
-                    <div class="flex-1 flex flex-col items-center justify-center p-8 bg-off-white/50 border-2 border-dashed border-espresso/30 rounded-2xl">
-                        <span class="material-symbols-outlined text-4xl text-espresso/20 mb-2">no_photography</span>
-                        <p class="font-marker text-espresso/40 uppercase text-sm">No scene snaps yet</p>
-                    </div>
-                }
-            </div>
-
-            <!-- Hint -->
-            <div class="flex justify-center gap-1 opacity-30 mt-2">
-                <div class="w-1.5 h-1.5 rounded-full bg-espresso"></div>
-                <div class="w-1.5 h-1.5 rounded-full bg-espresso"></div>
-                <div class="w-1.5 h-1.5 rounded-full bg-espresso"></div>
-            </div>
-        </div>
     </main>
     } @else {
     <div class="flex-1 flex items-center justify-center p-12">

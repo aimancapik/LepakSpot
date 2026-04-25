@@ -9,20 +9,36 @@ export class ReviewService {
     private authService = inject(AuthService);
 
     cafeReviews = signal<Review[]>([]);
+    likedReviewIds = signal<Set<string>>(new Set());
+    userReview = signal<Review | null>(null);
 
-    async addReview(cafeId: string, rating: number, text: string): Promise<void> {
+    async uploadReviewImage(file: File, userId: string): Promise<string> {
+        const path = `${userId}/review-${Date.now()}-${file.name}`;
+        const { data, error } = await this.supabase.client.storage
+            .from('cafe-photos')
+            .upload(path, file, { upsert: true });
+        if (error) throw error;
+        const { data: urlData } = this.supabase.client.storage
+            .from('cafe-photos')
+            .getPublicUrl(data.path);
+        return urlData.publicUrl;
+    }
+
+    async addReview(cafeId: string, rating: number, text: string, imageUrl?: string): Promise<void> {
         const user = this.authService.currentUser();
         if (!user) throw new Error('Not authenticated');
 
-        const review = {
+        const review: any = {
             cafeId,
             userId: user.uid,
             displayName: user.displayName || 'Anonymous',
             photoURL: user.photoURL || '',
             rating,
             text,
+            likeCount: 0,
             createdAt: new Date().toISOString(),
         };
+        if (imageUrl) review['imageUrl'] = imageUrl;
         await this.supabase.client.from('reviews').insert(review);
 
         await this.recalculateCafeRating(cafeId);
@@ -34,10 +50,103 @@ export class ReviewService {
             .from('reviews')
             .select('*')
             .eq('cafeId', cafeId)
+            .order('likeCount', { ascending: false })
             .order('createdAt', { ascending: false })
-            .limit(20);
+            .limit(50);
 
-        this.cafeReviews.set((data || []) as Review[]);
+        const reviews = (data || []).map(r => ({ ...r, likeCount: r.likeCount ?? 0 })) as Review[];
+        this.cafeReviews.set(reviews);
+
+        const user = this.authService.currentUser();
+        if (user) {
+            this.userReview.set(reviews.find(r => r.userId === user.uid) ?? null);
+        }
+
+        await this.loadUserLikes(reviews.map(r => r.id));
+    }
+
+    private async loadUserLikes(reviewIds: string[]): Promise<void> {
+        const user = this.authService.currentUser();
+        if (!user || reviewIds.length === 0) {
+            this.likedReviewIds.set(new Set());
+            return;
+        }
+        const { data } = await this.supabase.client
+            .from('review_likes')
+            .select('reviewId')
+            .eq('userId', user.uid)
+            .in('reviewId', reviewIds);
+
+        this.likedReviewIds.set(new Set((data || []).map(d => d['reviewId'])));
+    }
+
+    async toggleLike(reviewId: string): Promise<void> {
+        const user = this.authService.currentUser();
+        if (!user) throw new Error('Not authenticated');
+
+        const liked = this.likedReviewIds();
+        const isLiked = liked.has(reviewId);
+
+        // Optimistic update
+        const next = new Set(liked);
+        if (isLiked) {
+            next.delete(reviewId);
+        } else {
+            next.add(reviewId);
+        }
+        this.likedReviewIds.set(next);
+
+        this.cafeReviews.update(reviews =>
+            reviews.map(r => r.id === reviewId
+                ? { ...r, likeCount: Math.max(0, r.likeCount + (isLiked ? -1 : 1)) }
+                : r
+            )
+        );
+
+        if (isLiked) {
+            await this.supabase.client
+                .from('review_likes')
+                .delete()
+                .eq('reviewId', reviewId)
+                .eq('userId', user.uid);
+        } else {
+            await this.supabase.client
+                .from('review_likes')
+                .insert({ reviewId, userId: user.uid });
+        }
+
+        // Sync real count from DB
+        const { data } = await this.supabase.client
+            .from('review_likes')
+            .select('id', { count: 'exact' })
+            .eq('reviewId', reviewId);
+        const realCount = data?.length ?? 0;
+
+        await this.supabase.client
+            .from('reviews')
+            .update({ likeCount: realCount })
+            .eq('id', reviewId);
+
+        this.cafeReviews.update(reviews =>
+            reviews.map(r => r.id === reviewId ? { ...r, likeCount: realCount } : r)
+        );
+    }
+
+    async updateReview(reviewId: string, cafeId: string, rating: number, text: string, imageUrl?: string): Promise<void> {
+        const user = this.authService.currentUser();
+        if (!user) throw new Error('Not authenticated');
+
+        const updates: any = { rating, text };
+        if (imageUrl !== undefined) updates['imageUrl'] = imageUrl;
+
+        await this.supabase.client
+            .from('reviews')
+            .update(updates)
+            .eq('id', reviewId)
+            .eq('userId', user.uid);
+
+        await this.recalculateCafeRating(cafeId);
+        await this.loadReviewsForCafe(cafeId);
     }
 
     async hasReviewedCafe(cafeId: string): Promise<boolean> {

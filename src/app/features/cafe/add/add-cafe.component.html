@@ -10,7 +10,7 @@
         </button>
         <h2
             class="text-2xl font-black italic tracking-tighter uppercase font-zine text-espresso drop-shadow-sm -rotate-1 flex-1 text-center px-2">
-            {{ isPreview() ? 'Preview' : 'Suggest a Spot' }}
+            {{ isPreview() ? 'Preview' : (isEditMode() ? 'Edit Spot' : 'Suggest a Spot') }}
         </h2>
         <button (click)="isPreview.set(!isPreview())"
             class="px-3 py-1 bg-primary text-espresso font-marker text-xs zine-border zine-shadow hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all">
@@ -20,25 +20,53 @@
 
     @if (submitted()) {
     <!-- ── SUCCESS SCREEN ── -->
-    <div class="flex flex-col items-center justify-center min-h-[80vh] px-6 text-center gap-6">
+    <div class="flex flex-col items-center justify-center min-h-[80vh] px-8 text-center gap-8 py-12">
+
+        <!-- Polaroid-style photo card -->
         <div class="relative">
-            <div class="absolute -inset-4 bg-primary/30 rounded-full blur-xl animate-pulse"></div>
-            <div class="relative w-32 h-32 bg-sage zine-border flex items-center justify-center rotate-3 zine-shadow">
-                <span class="material-symbols-outlined text-6xl text-espresso">add_location_alt</span>
+            <div class="absolute -inset-2 bg-espresso translate-x-2 translate-y-2 rotate-3"></div>
+            <div class="relative bg-white zine-border p-3 pb-8 rotate-[-2deg] w-52">
+                <div class="w-full aspect-square zine-border overflow-hidden bg-latte">
+                    @if (photoPreviews()[0]) {
+                    <img [src]="photoPreviews()[0]" class="w-full h-full object-cover" alt="your spot" />
+                    } @else {
+                    <div class="w-full h-full bg-sage flex items-center justify-center">
+                        <span class="material-symbols-outlined text-5xl text-espresso">add_location_alt</span>
+                    </div>
+                    }
+                </div>
+                <p class="font-marker text-xs uppercase text-espresso/50 text-center mt-2">your spot</p>
+                <div class="absolute -bottom-3 -right-3 bg-primary text-espresso px-3 py-1 zine-border rotate-6 font-zine font-black text-[10px] uppercase tracking-widest shadow-[2px_2px_0_var(--color-espresso)]">
+                    Under Review
+                </div>
             </div>
         </div>
+
+        <!-- Title + subtitle -->
         <div class="space-y-2">
-            <h2 class="text-4xl font-black italic uppercase font-zine text-espresso -rotate-1">Spot Added!</h2>
-            <p class="font-marker text-lg text-espresso/70">You just made the zine richer ☀️</p>
+            <h2 class="text-4xl font-black italic uppercase font-zine text-espresso">Spot Submitted!</h2>
+            <p class="font-marker text-base text-espresso/70">We'll review your spot soon!</p>
         </div>
-        <div
-            class="bg-espresso text-off-white px-8 py-4 zine-border shadow-[6px_6px_0_var(--color-primary)] rotate-2 space-y-1">
+
+        <!-- Review notice -->
+        <div class="w-full bg-white zine-border p-4 zine-shadow-sm flex gap-3 items-start text-left">
+            <span class="material-symbols-outlined text-primary text-2xl shrink-0 mt-0.5">pending_actions</span>
+            <div>
+                <p class="font-zine font-bold text-xs uppercase tracking-widest text-espresso">Pending Approval</p>
+                <p class="font-marker text-sm text-espresso/70 mt-1">Your spot will go live once reviewed. Check status in your profile.</p>
+            </div>
+        </div>
+
+        <!-- Points -->
+        <div class="bg-espresso text-off-white px-8 py-4 zine-border shadow-[5px_5px_0_var(--color-primary)] rotate-1 space-y-1 w-full">
             <p class="font-zine font-bold text-xs uppercase tracking-widest text-primary">Points Earned</p>
             <p class="font-marker text-5xl">+{{ pointsEarned() }}</p>
-            <p class="font-zine text-xs uppercase text-off-white/70">Thanks for contributing!</p>
+            <p class="font-zine text-xs uppercase text-off-white/50">For contributing to the community</p>
         </div>
+
+        <!-- CTA -->
         <button (click)="goHome()"
-            class="mt-4 bg-primary text-espresso font-marker text-lg px-8 py-4 rounded-full zine-border zine-shadow hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex items-center gap-2">
+            class="w-full bg-primary text-espresso font-marker text-lg py-4 zine-border zine-shadow hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex items-center justify-center gap-2">
             <span class="material-symbols-outlined">home</span>
             Back to Home
         </button>
@@ -388,6 +416,55 @@
             }
         </div>
 
+        <!-- ─── SOCIAL LINKS ──────────────────────────────────── -->
+        <div class="space-y-4">
+            <label class="font-zine font-bold text-xs uppercase tracking-widest text-espresso/70">
+                Social Links
+                <span class="text-[10px] normal-case">(optional — shown on cafe page)</span>
+            </label>
+
+            <div class="space-y-3">
+                <!-- TikTok -->
+                <div class="relative flex items-center gap-3">
+                    <div class="shrink-0 w-9 h-9 bg-[#FE2C55] border-2 border-espresso flex items-center justify-center">
+                        <img src="/icons/logo/tik-tok.png" class="w-4 h-4" alt="TikTok" />
+                    </div>
+                    <div class="relative flex-1">
+                        <div class="absolute inset-0 bg-espresso translate-x-1 translate-y-1"></div>
+                        <input [value]="tiktokUrl()" (input)="tiktokUrl.set($any($event.target).value)"
+                            placeholder="https://www.tiktok.com/@yourcafe"
+                            class="relative w-full bg-off-white border-2 border-espresso p-3 font-marker text-sm text-espresso placeholder:text-espresso/30 focus:outline-none focus:ring-2 focus:ring-primary" />
+                    </div>
+                </div>
+
+                <!-- Facebook -->
+                <div class="relative flex items-center gap-3">
+                    <div class="shrink-0 w-9 h-9 bg-[#1877F2] border-2 border-espresso flex items-center justify-center">
+                        <img src="/icons/logo/facebook.png" class="w-4 h-4" alt="Facebook" />
+                    </div>
+                    <div class="relative flex-1">
+                        <div class="absolute inset-0 bg-espresso translate-x-1 translate-y-1"></div>
+                        <input [value]="facebookUrl()" (input)="facebookUrl.set($any($event.target).value)"
+                            placeholder="https://www.facebook.com/yourcafe"
+                            class="relative w-full bg-off-white border-2 border-espresso p-3 font-marker text-sm text-espresso placeholder:text-espresso/30 focus:outline-none focus:ring-2 focus:ring-primary" />
+                    </div>
+                </div>
+
+                <!-- Other -->
+                <div class="relative flex items-center gap-3">
+                    <div class="shrink-0 w-9 h-9 bg-sage border-2 border-espresso flex items-center justify-center">
+                        <span class="material-symbols-outlined text-espresso text-base">link</span>
+                    </div>
+                    <div class="relative flex-1">
+                        <div class="absolute inset-0 bg-espresso translate-x-1 translate-y-1"></div>
+                        <input [value]="otherUrl()" (input)="otherUrl.set($any($event.target).value)"
+                            placeholder="Instagram, website, etc."
+                            class="relative w-full bg-off-white border-2 border-espresso p-3 font-marker text-sm text-espresso placeholder:text-espresso/30 focus:outline-none focus:ring-2 focus:ring-primary" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- ─── SUBMIT ─────────────────────────────────────────── -->
         <button (click)="submit()" [disabled]="submitting()"
             class="w-full bg-espresso text-off-white font-marker text-lg px-6 py-4 zine-border shadow-[6px_6px_0_var(--color-primary)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:translate-x-0 disabled:translate-y-0 disabled:shadow-[6px_6px_0_var(--color-primary)]">
@@ -398,8 +475,8 @@
             <span class="material-symbols-outlined animate-spin">autorenew</span>
             Submitting...
             } @else {
-            <span class="material-symbols-outlined">add_location_alt</span>
-            Submit Spot (+100 pts)
+            <span class="material-symbols-outlined">{{ isEditMode() ? 'save' : 'add_location_alt' }}</span>
+            {{ isEditMode() ? 'Save Changes' : 'Submit Spot (+100 pts)' }}
             }
         </button>
 

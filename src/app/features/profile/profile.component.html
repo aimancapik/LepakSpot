@@ -206,6 +206,34 @@
                 }
             </div>
             }
+        <!-- My Submissions -->
+        @if (mySubmissions().length > 0) {
+        <div class="mt-6 border-t-4 border-espresso pt-6">
+            <div class="flex items-baseline gap-2 mb-4">
+                <h3 class="font-zine font-black italic uppercase text-lg text-espresso">My Submissions</h3>
+                <span class="font-marker text-[10px] text-espresso/40 uppercase">{{ mySubmissions().length }} spot{{ mySubmissions().length > 1 ? 's' : '' }}</span>
+            </div>
+            <div class="space-y-3">
+                @for (cafe of mySubmissions(); track cafe.id) {
+                <a [routerLink]="['/cafe', cafe.id, 'edit']" class="bg-off-white zine-border p-4 zine-shadow-sm flex items-center gap-3 hover:bg-latte transition-colors">
+                    <div class="w-14 h-14 shrink-0 zine-border overflow-hidden bg-latte">
+                        <img [src]="cafe.photos[0] || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=100&fit=crop'"
+                            [alt]="cafe.name" class="w-full h-full object-cover" />
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="font-zine font-black italic uppercase text-espresso text-sm leading-tight truncate">{{ cafe.name }}</p>
+                        <p class="font-marker text-[10px] text-espresso/50 mt-0.5 truncate">{{ cafe.address }}</p>
+                    </div>
+                    @if (cafe.pendingApproval) {
+                    <span class="shrink-0 px-2 py-1 bg-primary/20 border border-primary font-zine text-[10px] font-bold uppercase text-espresso">Pending</span>
+                    } @else {
+                    <span class="shrink-0 px-2 py-1 bg-sage/40 border border-sage font-zine text-[10px] font-bold uppercase text-espresso">Live</span>
+                    }
+                </a>
+                }
+            </div>
+        </div>
+        }
         </div>
     </main>
 </div>

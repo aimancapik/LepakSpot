@@ -1,7 +1,9 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal, computed } from '@angular/core';
 import { AuthService } from '../../core/services/auth.service';
 import { CheckInService } from '../../core/services/checkin.service';
+import { CafeService } from '../../core/services/cafe.service';
 import { CheckIn } from '../../core/models/checkin.model';
+import { Cafe } from '../../core/models/cafe.model';
 import { DatePipe } from '@angular/common';
 import { CafeListService } from '../../core/services/cafe-list.service';
 import { RouterModule } from '@angular/router';
@@ -37,8 +39,11 @@ export class ProfileComponent implements OnInit {
   cafeListService = inject(CafeListService);
   private toastService = inject(ToastService);
 
+  private cafeService = inject(CafeService);
+
   recentCheckins = signal<CheckIn[]>([]);
   checkinsLoading = signal(true);
+  mySubmissions = signal<Cafe[]>([]);
   allBadges = ALL_BADGES;
 
   userTitle = computed(() => {
@@ -58,6 +63,7 @@ export class ProfileComponent implements OnInit {
     if (user) {
       this.cafeListService.loadMyLists();
       this.cafeListService.loadSharedLists();
+      this.cafeService.getMySubmissions().then(s => this.mySubmissions.set(s));
       try {
         const checkins = await this.checkinService.getUserCheckins(user.uid);
         this.recentCheckins.set(checkins);

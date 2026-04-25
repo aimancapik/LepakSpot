@@ -6,5 +6,7 @@ export interface Review {
     photoURL: string;
     rating: number; // 1–5
     text: string;
+    imageUrl?: string;
+    likeCount: number;
     createdAt: string;
 }

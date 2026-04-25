@@ -25,6 +25,8 @@ export interface Cafe {
     sceneSnaps?: { url: string; tag: string }[];
     openingHours?: string;
     googleMapsUrl?: string;
+    socialLinks?: { tiktok?: string; facebook?: string; other?: string };
     pendingApproval?: boolean;
+    approvedAt?: string;
     submittedBy?: string;
 }

@@ -4,7 +4,7 @@ import { CafeService } from '../../../core/services/cafe.service';
 import { ReviewService } from '../../../core/services/review.service';
 import { ToastService } from '../../../shared/components/toast/toast.service';
 import { Cafe } from '../../../core/models/cafe.model';
-import { Review } from '../../../core/models/review.model';
+
 import { CommonModule, Location } from '@angular/common';
 
 @Component({
@@ -24,12 +24,11 @@ export class CafeDetailComponent implements OnInit {
 
     cafe = signal<Cafe | null>(null);
     reviews = this.reviewService.cafeReviews;
-    
-    // Carousel state
-    currentSlideIndex = signal(0);
+    likedReviewIds = this.reviewService.likedReviewIds;
     
     // Lightbox state
-    activeLightboxImage = signal<string | null>(null);
+    lightboxIndex = signal<number | null>(null);
+    readonly Math = Math;
 
     async ngOnInit() {
         const id = this.route.snapshot.paramMap.get('id');
@@ -40,6 +39,14 @@ export class CafeDetailComponent implements OnInit {
                 // Load real reviews
                 await this.reviewService.loadReviewsForCafe(id);
             }
+        }
+    }
+
+    async toggleLike(reviewId: string) {
+        try {
+            await this.reviewService.toggleLike(reviewId);
+        } catch {
+            this.toastService.show('Log in to like reviews.', 'error');
         }
     }
 

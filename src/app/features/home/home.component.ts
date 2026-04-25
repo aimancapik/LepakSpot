@@ -34,6 +34,9 @@ export class HomeComponent implements OnInit, OnDestroy {
   // Bookmark modal
   bookmarkCafeId = signal<string | null>(null);
 
+  // New this week
+  newThisWeekCafes = signal<Cafe[]>([]);
+
   // Search history
   recentSearches = signal<string[]>(this.loadRecentSearches());
 
@@ -91,6 +94,8 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.cafeService.getNearby();
     this.cafeService.requestUserLocation();
     this.unsubscribeDensity = this.checkInService.watchAllDensity();
+    const newCafes = await this.cafeService.getNewThisWeek();
+    this.newThisWeekCafes.set(newCafes);
   }
 
   ngOnDestroy() {

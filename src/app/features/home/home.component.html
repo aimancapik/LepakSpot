@@ -97,6 +97,33 @@
         }
     </div>
 
+    <!-- New This Week -->
+    @if (newThisWeekCafes().length > 0 && !cafeService.searchQuery()) {
+    <div class="px-5 mb-3">
+        <div class="flex items-baseline gap-2">
+            <h2 class="font-zine font-black italic uppercase text-lg text-espresso">New This Week</h2>
+            <span class="font-marker text-[10px] text-espresso/40 uppercase">freshly approved</span>
+        </div>
+    </div>
+    <div class="flex gap-3 px-5 overflow-x-auto pb-5 no-scrollbar snap-x">
+        @for (cafe of newThisWeekCafes(); track cafe.id; let i = $index) {
+        <a [routerLink]="['/cafe', cafe.id]"
+            class="shrink-0 w-44 bg-off-white zine-border p-2 snap-center zine-shadow zine-click-active"
+            [class]="i % 2 === 0 ? 'rotate-[-1deg]' : 'rotate-[1deg]'">
+            <div class="overflow-hidden zine-border aspect-[4/3] bg-latte relative">
+                <img [src]="cafe.photos[0] || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=400&h=300&fit=crop'"
+                    [alt]="cafe.name" class="w-full h-full object-cover" />
+                <div class="absolute top-1.5 left-1.5 bg-sage text-espresso px-2 py-0.5 font-zine text-[9px] font-bold uppercase border border-espresso">NEW</div>
+            </div>
+            <div class="pt-2 pb-1 px-1">
+                <p class="font-zine font-black italic uppercase text-espresso text-xs leading-tight line-clamp-1">{{ cafe.name }}</p>
+                <p class="font-marker text-[10px] text-espresso/50 mt-0.5 line-clamp-1">{{ cafe.address }}</p>
+            </div>
+        </a>
+        }
+    </div>
+    }
+
     <!-- For You -->
     @if (suggestedCafes().length > 0 && !cafeService.searchQuery()) {
     <div class="px-5 mb-3">
