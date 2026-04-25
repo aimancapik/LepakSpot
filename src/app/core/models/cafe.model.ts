@@ -22,6 +22,7 @@ export interface Cafe {
     isLateNight?: boolean;
     perks?: string[];
     secretMenu?: string[];
+    sceneSnaps?: { url: string; tag: string }[];
     openingHours?: string;
     googleMapsUrl?: string;
     pendingApproval?: boolean;

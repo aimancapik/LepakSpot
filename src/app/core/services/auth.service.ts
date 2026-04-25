@@ -42,6 +42,10 @@ export class AuthService {
 
         onAuthStateChanged(this.auth, async (firebaseUser) => {
             if (firebaseUser) {
+                // If user logs in, they are definitely not a guest anymore
+                this.isGuest.set(false);
+                localStorage.removeItem('lepakspot_guest_mode');
+                
                 try {
                     await this.loadOrCreateUser(firebaseUser);
                 } catch (error) {

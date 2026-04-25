@@ -11,7 +11,7 @@ import { CafeList } from '../../core/models/cafe-list.model';
 @Component({
     selector: 'app-list-detail',
     standalone: true,
-    imports: [CommonModule, RouterModule, CafeCardComponent],
+    imports: [CommonModule, RouterModule],
     templateUrl: './list-detail.component.html',
 })
 export class ListDetailComponent implements OnInit {

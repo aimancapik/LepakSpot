@@ -24,6 +24,11 @@ const MOCK_CAFES: Cafe[] = [
         googleMapsUrl: 'https://maps.google.com/?q=3.1478,101.7125',
         perks: ['Free Croissant on 3rd Check-in', '10% off beans'],
         secretMenu: ['The Dirty Chai Volcano', 'Matcha Espresso Fusion'],
+        sceneSnaps: [
+            { url: 'https://images.unsplash.com/photo-1497935586351-b67a49e012bf?w=800&fit=crop', tag: 'Cozy Corner' },
+            { url: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800&fit=crop', tag: 'Art Vibes' },
+            { url: 'https://images.unsplash.com/photo-1525610553991-2bede1a236e2?w=800&fit=crop', tag: 'Late Night' }
+        ]
     },
     {
         id: 'mock-feeka',

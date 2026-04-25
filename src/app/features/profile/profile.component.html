@@ -154,102 +154,58 @@
         <div>
             <div class="flex items-center justify-between mb-6">
                 <h3
-                    class="inline-block bg-primary text-espresso px-4 py-1 font-zine font-bold italic uppercase tracking-widest -rotate-1 shadow-md border-2 border-espresso">
-                    My Curations
+                    class="inline-block bg-primary text-off-white px-4 py-1 font-zine font-bold italic uppercase tracking-widest -rotate-1 shadow-md border-2 border-espresso">
+                    Lepak Lists
                 </h3>
-                <span class="font-marker text-[10px] text-espresso/40 uppercase">
-                    {{ cafeListService.myLists().length + cafeListService.sharedLists().length }} lists
-                </span>
             </div>
 
             @if (cafeListService.myLists().length === 0 && cafeListService.sharedLists().length === 0) {
-            <div class="bg-off-white zine-border p-8 text-center rotate-[1deg] zine-shadow">
-                <span class="material-symbols-outlined text-5xl text-espresso/20 mb-3 block">bookmark</span>
+            <div class="bg-off-white zine-border p-6 text-center rotate-[1deg] zine-shadow">
+                <span class="material-symbols-outlined text-4xl text-espresso/40 mb-2">format_list_bulleted_add</span>
                 <p class="font-marker text-lg">No lists yet.</p>
                 <p class="font-zine text-sm font-bold uppercase text-espresso/60 mt-1">Save cafes to start building!</p>
             </div>
             } @else {
-            <div class="space-y-3">
-
-                <!-- Own lists -->
-                @for (list of cafeListService.myLists(); track list.id; let i = $index) {
-                <a [routerLink]="['/list', list.id]" class="group block">
-                    <div class="relative bg-off-white border-2 border-espresso zine-shadow group-hover:translate-x-1 group-hover:-translate-y-1 group-hover:shadow-none transition-all duration-200"
-                        [class]="i % 2 === 0 ? 'rotate-[0.4deg]' : 'rotate-[-0.4deg]'">
-
-                        <!-- Colour accent strip left -->
-                        <div class="absolute left-0 top-0 bottom-0 w-1.5"
-                            [class]="list.isPublic ? 'bg-sage' : 'bg-primary'"></div>
-
-                        <div class="pl-5 pr-4 py-4 flex items-center gap-4">
-                            <!-- Icon block -->
-                            <div class="shrink-0 w-12 h-12 border-2 border-espresso flex items-center justify-center"
-                                [class]="list.isPublic ? 'bg-sage' : 'bg-primary'">
-                                <span class="material-symbols-outlined text-espresso text-xl"
-                                    style="font-variation-settings: 'FILL' 1">
-                                    {{ list.isPublic ? 'public' : 'lock' }}
-                                </span>
-                            </div>
-
-                            <!-- Info -->
-                            <div class="flex-1 min-w-0">
-                                <h4 class="font-zine text-xl font-bold italic uppercase tracking-tight text-espresso truncate leading-tight">
-                                    {{ list.title }}
-                                </h4>
-                                <div class="flex items-center gap-2 mt-1 flex-wrap">
-                                    <span class="font-marker text-[9px] uppercase bg-espresso text-off-white px-1.5 py-0.5">
-                                        {{ list.cafeIds.length }} {{ list.cafeIds.length === 1 ? 'Spot' : 'Spots' }}
-                                    </span>
-                                    <span class="font-marker text-[9px] uppercase border border-espresso/30 px-1.5 py-0.5 text-espresso/60"
-                                        [class]="list.isPublic ? 'bg-sage/30' : 'bg-primary/20'">
-                                        {{ list.isPublic ? '🌐 Public' : '🔒 Private' }}
-                                    </span>
-                                </div>
-                            </div>
-
-                            <!-- Arrow -->
-                            <div class="shrink-0 w-8 h-8 rounded-full bg-espresso border-2 border-espresso flex items-center justify-center group-hover:bg-primary transition-colors">
-                                <span class="material-symbols-outlined text-off-white text-sm group-hover:text-espresso transition-colors">arrow_forward</span>
-                            </div>
+            <div class="grid gap-4">
+                @for (list of cafeListService.myLists(); track list.id) {
+                <a [routerLink]="['/list', list.id]"
+                    class="block bg-off-white zine-border p-4 zine-shadow hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all group">
+                    <div class="flex items-center justify-between gap-3">
+                        <div class="flex-1 min-w-0">
+                            <h4 class="font-zine text-xl font-bold italic uppercase tracking-tight text-espresso truncate">
+                                {{ list.title }}</h4>
+                            <p class="text-[10px] sm:text-xs text-espresso/60 font-bold uppercase mt-1 tracking-wider">
+                                {{ list.cafeIds.length }} spots • {{ list.isPublic ? 'Public' : 'Private' }}</p>
+                        </div>
+                        <div class="shrink-0 w-9 h-9 rounded-full bg-primary border-2 border-espresso flex items-center justify-center group-hover:bg-espresso transition-colors">
+                            <span class="material-symbols-outlined text-espresso text-base group-hover:text-primary transition-colors">arrow_forward</span>
                         </div>
                     </div>
                 </a>
                 }
 
-                <!-- Shared with me -->
                 @if (cafeListService.sharedLists().length > 0) {
-                <div class="pt-4">
-                    <p class="font-marker text-[10px] text-espresso/40 uppercase mb-3 flex items-center gap-1.5">
-                        <span class="material-symbols-outlined text-sm">group</span>
-                        Shared With Me
-                    </p>
-                    @for (list of cafeListService.sharedLists(); track list.id; let i = $index) {
-                    <a [routerLink]="['/list', list.id]" class="group block mb-3">
-                        <div class="relative bg-sage/10 border-2 border-espresso/50 border-dashed group-hover:border-espresso group-hover:bg-sage/20 transition-all duration-200">
-                            <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-espresso/30"></div>
-                            <div class="pl-5 pr-4 py-3.5 flex items-center gap-4">
-                                <div class="shrink-0 w-10 h-10 border-2 border-espresso/40 bg-off-white flex items-center justify-center">
-                                    <span class="material-symbols-outlined text-espresso text-lg"
-                                        style="font-variation-settings: 'FILL' 1">group</span>
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <h4 class="font-zine text-lg font-bold italic uppercase tracking-tight text-espresso flex items-center gap-2 truncate">
-                                        <span class="truncate">{{ list.title }}</span>
-                                    </h4>
-                                    <span class="font-marker text-[9px] uppercase bg-espresso/10 text-espresso px-1.5 py-0.5">
-                                        {{ list.cafeIds.length }} Spots
-                                    </span>
-                                </div>
-                                <span class="material-symbols-outlined text-espresso/40 text-base group-hover:text-espresso transition-colors">arrow_forward</span>
-                            </div>
+                <h4 class="font-marker text-sm text-espresso/60 uppercase mt-4 mb-2">Shared With Me</h4>
+                @for (list of cafeListService.sharedLists(); track list.id) {
+                <a [routerLink]="['/list', list.id]"
+                    class="block bg-sage/20 zine-border p-4 zine-shadow hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all group">
+                    <div class="flex items-center justify-between gap-3">
+                        <div class="flex-1 min-w-0">
+                            <h4 class="font-zine text-xl font-bold italic uppercase tracking-tight text-espresso flex items-center gap-2 truncate">
+                                <span class="material-symbols-outlined text-sm shrink-0">group</span>
+                                <span class="truncate">{{ list.title }}</span>
+                            </h4>
+                            <p class="text-xs text-espresso/60 font-bold uppercase mt-1 tracking-wider">{{ list.cafeIds.length }} spots</p>
                         </div>
-                    </a>
-                    }
-                </div>
+                        <div class="shrink-0 w-9 h-9 rounded-full bg-sage border-2 border-espresso flex items-center justify-center group-hover:bg-espresso transition-colors">
+                            <span class="material-symbols-outlined text-espresso text-base group-hover:text-primary transition-colors">arrow_forward</span>
+                        </div>
+                    </div>
+                </a>
+                }
                 }
             </div>
             }
         </div>
-
     </main>
 </div>

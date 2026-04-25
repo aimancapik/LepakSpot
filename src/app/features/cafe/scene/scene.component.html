@@ -26,60 +26,18 @@
 
             <!-- Header Text -->
             <div class="relative rotate-1">
-                <div class="absolute -inset-1 bg-white border-2 border-espresso z-0 translate-x-1 translate-y-1 rounded-2xl"></div>
+                <div class="absolute -inset-1 bg-off-white border-2 border-espresso z-0 translate-x-1 translate-y-1 rounded-2xl"></div>
                 <div
                     class="relative z-10 bg-sage border-2 border-espresso p-4 shadow-[4px_4px_0_var(--color-espresso)] rounded-2xl">
-                    <p class="font-zine text-sm font-bold uppercase tracking-wider text-espresso">Vibe Check at</p>
+                    <p class="font-zine text-sm font-bold uppercase tracking-wider text-espresso">THE SCENE &#64;</p>
                     <h1 class="font-marker text-3xl font-black text-espresso leading-none mt-1">{{ cafe()!.name }}</h1>
-                </div>
-            </div>
-        </div>
-
-        <!-- Intel Section -->
-        <div class="flex gap-4 -mt-2">
-            <!-- Vibe -->
-            <div class="flex-1 bg-off-white zine-border p-3 shadow-[4px_4px_0_var(--color-primary)] rotate-1">
-                <h3
-                    class="font-zine font-bold text-xs uppercase tracking-widest text-espresso/70 mb-2 border-b border-espresso/20 pb-1">
-                    Vibe Check</h3>
-                <div class="space-y-2">
-                    <div class="flex items-center gap-2">
-                        <span class="material-symbols-outlined text-lg text-espresso">groups</span>
-                        <span class="font-marker text-sm">{{ cafe()!.crowdLevel || 'Unknown Crowd' }}</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="material-symbols-outlined text-lg text-espresso">volume_up</span>
-                        <span class="font-marker text-sm">{{ cafe()!.noiseLevel || 'Unknown Noise' }}</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Plug & Play -->
-            <div
-                class="flex-1 bg-sage zine-border p-3 shadow-[4px_4px_0_var(--color-espresso)] -rotate-1 flex flex-col justify-between">
-                <div>
-                    <h3
-                        class="font-zine font-bold text-xs uppercase tracking-widest text-espresso/70 mb-2 border-b border-espresso/20 pb-1">
-                        Plug & Play</h3>
-                    <div class="space-y-2">
-                        <div class="flex items-center gap-2">
-                            <span class="material-symbols-outlined text-lg text-espresso">wifi</span>
-                            <span class="font-marker text-sm">{{ cafe()!.wifiSpeed || 'Unknown WiFi' }}</span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <span class="material-symbols-outlined text-lg text-espresso">power</span>
-                            <span class="font-marker text-sm outline-none">{{ cafe()!.outletAvailability || 'Unknown
-                                Outlets'
-                                }}</span>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Opening Hours -->
         @if (cafe()!.openingHours) {
-        <div class="bg-primary/20 border-2 border-espresso p-3 flex items-center gap-3 -mt-2 rounded-2xl">
+        <div class="bg-primary/20 border-2 border-espresso p-3 flex items-center gap-3 -mt-2 rounded-2xl relative z-10">
             <span class="material-symbols-outlined text-espresso shrink-0">schedule</span>
             <div>
                 <p class="font-zine font-bold text-xs uppercase tracking-widest text-espresso/70">Opening Hours</p>
@@ -94,7 +52,6 @@
             @if (isCheckedIn() && isPresent()) {
             <!-- Currently present — show I'm Leaving -->
             <button (click)="checkOut()" [disabled]="checkingOut()"
-                [class.hidden]="isUpdatingVibe() || isBroadcasting()"
                 class="flex-1 min-w-[120px] bg-sage text-espresso px-4 py-2 rounded-full zine-border shadow-[4px_4px_0_var(--color-espresso)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex justify-center items-center gap-2 group disabled:opacity-50 disabled:shadow-none disabled:translate-y-1 disabled:translate-x-1">
                 <span class="material-symbols-outlined text-lg transition-transform group-hover:scale-125">
                     {{ checkingOut() ? 'sync' : 'logout' }}
@@ -103,14 +60,14 @@
             </button>
             } @else if (isCheckedIn()) {
             <!-- Checked in today but already left — passive state -->
-            <button disabled [class.hidden]="isUpdatingVibe() || isBroadcasting()"
+            <button disabled
                 class="flex-1 min-w-[120px] bg-white text-espresso px-4 py-2 rounded-full zine-border flex justify-center items-center gap-2 opacity-50 cursor-not-allowed shadow-none translate-x-1 translate-y-1">
                 <span class="material-symbols-outlined text-lg text-primary">how_to_reg</span>
                 CHECKED IN TODAY
             </button>
             } @else {
             <!-- Not checked in — show Check In -->
-            <button (click)="checkIn()" [disabled]="checkingIn()" [class.hidden]="isUpdatingVibe() || isBroadcasting()"
+            <button (click)="checkIn()" [disabled]="checkingIn()"
                 class="flex-1 min-w-[120px] bg-white text-espresso px-4 py-2 rounded-full zine-border shadow-[4px_4px_0_var(--color-primary)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex justify-center items-center gap-2 group disabled:opacity-50 disabled:shadow-none disabled:translate-y-1 disabled:translate-x-1">
                 <span class="material-symbols-outlined text-lg transition-transform group-hover:scale-125">
                     {{ checkingIn() ? 'sync' : 'location_on' }}
@@ -119,123 +76,16 @@
             </button>
             }
 
-            <button (click)="toggleVibeForm()" [class.hidden]="isUpdatingVibe() || isBroadcasting()"
-                class="flex-1 min-w-[120px] bg-primary text-espresso px-4 py-2 rounded-full zine-border shadow-[4px_4px_0_var(--color-espresso)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex justify-center items-center gap-2">
-                <span class="material-symbols-outlined text-lg">edit_note</span>
-                SPILL TEA
-            </button>
-
-            <button (click)="toggleBroadcastForm()" [class.hidden]="isUpdatingVibe() || isBroadcasting()"
-                class="flex-1 min-w-[120px] bg-sage text-espresso px-4 py-2 rounded-full zine-border shadow-[4px_4px_0_var(--color-espresso)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex justify-center items-center gap-2">
-                <span class="material-symbols-outlined text-lg">campaign</span>
-                LEPAK?
-            </button>
 
             <!-- GET DIRECTIONS BUTTON -->
-            <button (click)="openDirections()" [class.hidden]="isUpdatingVibe() || isBroadcasting()"
+            <button (click)="openDirections()"
                 class="flex-1 min-w-[120px] bg-espresso text-off-white px-4 py-2 rounded-full zine-border shadow-[4px_4px_0_var(--color-primary)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex justify-center items-center gap-2">
                 <span class="material-symbols-outlined text-lg">directions</span>
                 DIRECTIONS
             </button>
         </div>
 
-        <!-- Vibe Update Form (shown when isUpdatingVibe is true) -->
-        @if (isUpdatingVibe()) {
-        <div
-            class="bg-off-white zine-border p-5 shadow-[4px_4px_0_var(--color-espresso)] -rotate-1 relative overflow-hidden">
-            <div class="flex items-center justify-between mb-4 border-b-2 border-espresso/20 pb-2">
-                <div class="flex items-center gap-2">
-                    <span class="material-symbols-outlined text-espresso text-2xl">edit_note</span>
-                    <h3 class="font-marker text-xl tracking-widest uppercase text-espresso">Spill the Tea</h3>
-                </div>
-                <button (click)="toggleVibeForm()" class="text-espresso/50 hover:text-espresso transition-colors">
-                    <span class="material-symbols-outlined">close</span>
-                </button>
-            </div>
 
-            <!-- Crowd Level -->
-            <div class="mb-4">
-                <p class="font-zine text-xs uppercase tracking-widest text-espresso/60 mb-2">Crowd Level</p>
-                <div class="flex flex-wrap gap-2">
-                    @for (level of ['Empty', 'Moderate', 'Packed']; track level) {
-                    <button (click)="selectedCrowdLevel.set($any(level))"
-                        [class.bg-primary]="selectedCrowdLevel() === level"
-                        [class.bg-white]="selectedCrowdLevel() !== level"
-                        class="font-marker text-sm px-3 py-1 zine-border text-espresso transition-colors">
-                        {{ level }}
-                    </button>
-                    }
-                </div>
-            </div>
-
-            <!-- Noise Level -->
-            <div class="mb-5">
-                <p class="font-zine text-xs uppercase tracking-widest text-espresso/60 mb-2">Noise Level</p>
-                <div class="flex flex-wrap gap-2">
-                    @for (level of ['Library Quiet', 'Chill Chatter', 'Loud']; track level) {
-                    <button (click)="selectedNoiseLevel.set($any(level))"
-                        [class.bg-primary]="selectedNoiseLevel() === level"
-                        [class.bg-white]="selectedNoiseLevel() !== level"
-                        class="font-marker text-sm px-3 py-1 zine-border text-espresso transition-colors">
-                        {{ level }}
-                    </button>
-                    }
-                </div>
-            </div>
-
-            <!-- Submit -->
-            <button (click)="submitVibeUpdate()" [disabled]="isSubmittingVibe()"
-                class="w-full font-marker text-sm uppercase py-2 bg-espresso text-off-white zine-border shadow-[3px_3px_0_var(--color-primary)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all disabled:opacity-40 disabled:translate-x-0.5 disabled:translate-y-0.5 disabled:shadow-none">
-                {{ isSubmittingVibe() ? 'Updating...' : 'Update Vibe' }}
-            </button>
-        </div>
-        }
-
-        <!-- Broadcast Form (shown when isBroadcasting is true) -->
-        @if (isBroadcasting()) {
-        <div class="bg-sage zine-border p-5 shadow-[4px_4px_0_var(--color-espresso)] rotate-1 relative overflow-hidden">
-            <div class="flex items-center justify-between mb-4 border-b-2 border-espresso/20 pb-2">
-                <div class="flex items-center gap-2">
-                    <span class="material-symbols-outlined text-espresso text-2xl">campaign</span>
-                    <h3 class="font-marker text-xl tracking-widest uppercase text-espresso">Lepak Alert</h3>
-                </div>
-                <button (click)="toggleBroadcastForm()" class="text-espresso/50 hover:text-espresso transition-colors">
-                    <span class="material-symbols-outlined">close</span>
-                </button>
-            </div>
-
-            <p class="font-zine text-xs uppercase tracking-widest text-espresso/60 mb-3">Tell your crew you're here!</p>
-
-            <!-- Message input -->
-            <textarea [ngModel]="broadcastMessage()" (ngModelChange)="broadcastMessage.set($event)" rows="3"
-                placeholder="e.g. Heading to {{ cafe()!.name }}! Come join 🙌"
-                class="w-full bg-white border-2 border-espresso/40 focus:border-espresso p-3 text-sm font-marker text-espresso resize-none outline-none transition-colors rounded-xl mb-4">
-            </textarea>
-
-            <!-- Duration picker -->
-            <div class="mb-4">
-                <p class="font-zine text-xs uppercase tracking-widest text-espresso/60 mb-2">How long will you be there?
-                </p>
-                <div class="flex gap-2 flex-wrap">
-                    @for (opt of [{label: '30 min', val: 0.5}, {label: '1 hr', val: 1}, {label: '2 hrs', val: 2},
-                    {label: '4 hrs', val: 4}]; track opt.val) {
-                    <button (click)="broadcastDuration.set(opt.val)"
-                        [class.bg-primary]="broadcastDuration() === opt.val"
-                        [class.bg-white]="broadcastDuration() !== opt.val"
-                        class="font-marker text-xs uppercase px-3 py-1.5 border-2 border-espresso text-espresso rounded-full shadow-[2px_2px_0_var(--color-espresso)] hover:translate-x-px hover:translate-y-px hover:shadow-none transition-all">
-                        {{ opt.label }}
-                    </button>
-                    }
-                </div>
-            </div>
-
-            <!-- Send button -->
-            <button (click)="createBroadcast()" [disabled]="!broadcastMessage().trim()"
-                class="w-full font-marker text-sm uppercase py-2 bg-espresso text-off-white zine-border shadow-[3px_3px_0_var(--color-primary)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all disabled:opacity-40 disabled:translate-x-0.5 disabled:translate-y-0.5 disabled:shadow-none">
-                Send Broadcast 📡 · {{ broadcastDuration() < 1 ? '30 min' : broadcastDuration() + 'h' }} </button>
-
-        </div>
-        }
 
         <!-- VIP Perks & Secret Menu -->
         @if (cafe()!.perks?.length || cafe()!.secretMenu?.length) {
@@ -256,9 +106,9 @@
                 @if (!isCheckedIn()) {
                 <div class="flex flex-col items-center justify-center py-6 text-center space-y-3">
                     <span class="material-symbols-outlined text-6xl text-off-white/40">lock</span>
-                    <p class="font-zine font-bold text-sm uppercase tracking-wider text-off-white/80">Check in to unlock
-                        the
-                        secret menu and exclusive perks!</p>
+                    <p class="font-zine font-bold text-sm uppercase tracking-wider text-off-white/80">
+                        Check in to unlock the secret menu and exclusive perks!
+                    </p>
                 </div>
                 } @else {
                 <div class="space-y-6 animate-[fadeIn_0.5s_ease-out]">
@@ -422,82 +272,69 @@
         }
 
 
-        <div class="grid grid-cols-1 gap-12 mt-2 relative">
+        <!-- Horizontal Scene Carousel -->
+        <div class="relative -mt-4 mb-8">
+            <div class="flex items-center gap-3 px-6 mb-4">
+                <h3 class="bg-espresso text-off-white px-3 py-1 font-zine font-bold italic uppercase tracking-widest -rotate-2">
+                    SCENE SNAPS
+                </h3>
+                <div class="h-0.5 flex-1 bg-espresso/10"></div>
+            </div>
 
-            <!-- Scene 1 -->
-            <div class="relative w-full -rotate-2">
-                <!-- Background tape -->
-                <div
-                    class="absolute -top-4 -left-3 w-16 h-6 bg-white/70 backdrop-blur-sm border-2 border-espresso rotate-[15deg] z-20 shadow-sm mix-blend-overlay">
-                </div>
-
-                <div class="relative zine-border p-2 bg-off-white zine-shadow rounded-2xl aspect-square">
-                    <div class="w-full h-full overflow-hidden border-2 border-espresso bg-espresso">
-                        <img [src]="cafe()!.photos[1] || cafe()!.photos[0] || 'https://images.unsplash.com/photo-1497935586351-b67a49e012bf?w=800&fit=crop'"
-                            class="w-full h-full object-cover grayscale contrast-125 hover:grayscale-0 transition-all duration-500"
-                            alt="Cozy Corner" />
+            <!-- Horizontal Scroll Container -->
+            <div class="flex overflow-x-auto gap-8 px-8 pb-12 snap-x snap-mandatory no-scrollbar">
+                @if (cafe()!.sceneSnaps?.length) {
+                    @for (snap of cafe()!.sceneSnaps; track $index; let i = $index) {
+                    <!-- Dynamic Scene Snap -->
+                    <div class="flex-none w-[85%] snap-center relative" [class.pt-4]="i % 2 !== 0">
+                        <!-- Tape Decoration -->
+                        <div class="absolute w-16 h-6 bg-white/70 backdrop-blur-sm border-2 border-espresso z-20 shadow-sm mix-blend-overlay"
+                             [class]="i % 2 === 0 ? '-top-4 -left-3 rotate-[15deg]' : '-top-3 right-6 -rotate-[8deg] bg-white/50 border-white'"></div>
+                        
+                        <!-- Photo Frame -->
+                        <div class="relative zine-border p-2 bg-off-white zine-shadow rounded-2xl overflow-hidden"
+                             [class]="i % 2 === 0 ? 'aspect-square rotate-[-2deg]' : 'aspect-[4/5] bg-espresso rotate-[2deg] shadow-[8px_8px_0_var(--color-primary)] p-3 z-10'">
+                            <div class="w-full h-full overflow-hidden border-2 border-espresso bg-espresso">
+                                <img [src]="snap.url"
+                                     class="w-full h-full object-cover grayscale contrast-125 hover:grayscale-0 transition-all duration-500"
+                                     [alt]="snap.tag" />
+                            </div>
+                        </div>
+                        
+                        <!-- Dynamic Tag -->
+                        <div class="absolute border-2 border-espresso px-4 py-1.5 z-30 shadow-[2px_2px_0px_0px_rgba(69,50,39,1)] rounded-full"
+                             [class]="i % 3 === 0 ? '-bottom-4 right-4 bg-primary rotate-3' : (i % 3 === 1 ? '-bottom-5 left-2 bg-latte -rotate-2 z-20' : 'top-2 -right-3 bg-sage rotate-[6deg]')">
+                            <span class="font-marker font-bold text-espresso text-sm uppercase tracking-wider">{{ snap.tag }}</span>
+                        </div>
                     </div>
-                </div>
-                <!-- Label -->
-                <div
-                    class="absolute -bottom-4 right-4 bg-primary border-2 border-espresso px-4 py-1.5 rotate-3 z-10 shadow-[2px_2px_0px_0px_rgba(69,50,39,1)] rounded-full">
-                    <span class="font-marker font-bold text-espresso text-sm uppercase tracking-wider">Cozy
-                        Corner</span>
-                </div>
-            </div>
-
-            <!-- Decorative doodle -->
-            <div class="flex justify-center -my-4 relative z-10">
-                <span class="font-marker text-4xl text-espresso/40 rotate-12">~*~</span>
-            </div>
-
-            <!-- Scene 2 -->
-            <div class="relative w-full rotate-2">
-                <!-- Background tape -->
-                <div
-                    class="absolute -top-3 right-6 w-14 h-5 bg-white/50 backdrop-blur-sm border border-white -rotate-[8deg] z-20 shadow-sm">
-                </div>
-
-                <div
-                    class="relative zine-border p-3 bg-espresso z-10 shadow-[8px_8px_0_var(--color-primary)] rounded-2xl aspect-[4/5] overflow-hidden">
-                    <img [src]="cafe()!.photos[2] || cafe()!.photos[1] || cafe()!.photos[0] || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800&fit=crop'"
-                        class="w-full h-full object-cover sepia-[.4] contrast-125" alt="Art Vibes" />
-                </div>
-                <!-- Label -->
-                <div
-                    class="absolute -bottom-5 left-2 bg-latte border-2 border-espresso px-4 py-1.5 -rotate-2 z-20 shadow-[2px_2px_0px_0px_rgba(69,50,39,1)] rounded-full">
-                    <span class="font-marker font-bold text-espresso text-sm uppercase tracking-wider">Art Vibes</span>
-                </div>
-            </div>
-
-            <!-- Decorative doodle -->
-            <div class="flex justify-center -my-2 relative z-10">
-                <span class="font-marker text-4xl text-sage rotate-[-15deg] font-bold">+++</span>
-            </div>
-
-            <!-- Scene 3 -->
-            <div class="relative w-full -rotate-1">
-                <div class="relative zine-border p-2 bg-off-white zine-shadow rounded-2xl aspect-[5/4]">
-                    <div class="w-full h-full overflow-hidden border-2 border-espresso bg-espresso">
-                        <img [src]="cafe()!.photos[3] || cafe()!.photos[2] || cafe()!.photos[1] || cafe()!.photos[0] || 'https://images.unsplash.com/photo-1525610553991-2bede1a236e2?w=800&fit=crop'"
-                            class="w-full h-full object-cover grayscale contrast-125 hover:grayscale-0 transition-all duration-500"
-                            alt="Late Night" />
+                    }
+                } @else {
+                    <div class="flex-1 flex flex-col items-center justify-center p-8 bg-off-white/50 border-2 border-dashed border-espresso/30 rounded-2xl">
+                        <span class="material-symbols-outlined text-4xl text-espresso/20 mb-2">no_photography</span>
+                        <p class="font-marker text-espresso/40 uppercase text-sm">No scene snaps yet</p>
                     </div>
-                </div>
-                <!-- Label -->
-                <div
-                    class="absolute top-2 -right-3 bg-sage border-2 border-espresso px-3 py-1 rotate-[6deg] z-10 shadow-[2px_2px_0px_0px_rgba(69,50,39,1)] rounded-full">
-                    <span class="font-marker font-bold text-espresso text-xs uppercase tracking-wider">Late Night</span>
-                </div>
+                }
             </div>
 
+            <!-- Hint -->
+            <div class="flex justify-center gap-1 opacity-30 mt-2">
+                <div class="w-1.5 h-1.5 rounded-full bg-espresso"></div>
+                <div class="w-1.5 h-1.5 rounded-full bg-espresso"></div>
+                <div class="w-1.5 h-1.5 rounded-full bg-espresso"></div>
+            </div>
         </div>
     </main>
     } @else {
-    <div class="flex-1 flex items-center justify-center">
-        <div class="animate-pulse flex flex-col items-center gap-4">
-            <span class="material-symbols-outlined text-6xl text-espresso/20 animate-spin">cyclone</span>
-            <p class="font-marker text-xl text-espresso/40">Developing film...</p>
+    <div class="flex-1 flex items-center justify-center p-12">
+        <div class="relative">
+            <!-- Pulsing Polaroid -->
+            <div class="w-32 h-32 bg-white zine-border zine-shadow flex items-center justify-center -rotate-6 animate-pulse p-4">
+                <span class="material-symbols-outlined text-4xl text-espresso/10">photo_library</span>
+            </div>
+            <!-- Sticker label -->
+            <div class="absolute -bottom-2 -right-6 bg-primary text-espresso px-4 py-1 zine-border zine-shadow rotate-12 font-zine font-bold text-xs uppercase tracking-widest animate-bounce">
+                Developing...
+            </div>
         </div>
     </div>
     }

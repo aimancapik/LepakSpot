@@ -5,13 +5,13 @@ import { ReviewService } from '../../../core/services/review.service';
 import { ToastService } from '../../../shared/components/toast/toast.service';
 import { Cafe } from '../../../core/models/cafe.model';
 import { Review } from '../../../core/models/review.model';
-import { Location } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 
 @Component({
     selector: 'app-cafe-detail',
     standalone: true,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [RouterLink],
+    imports: [RouterLink, CommonModule],
     templateUrl: './cafe-detail.component.html',
     styleUrl: './cafe-detail.component.scss',
 })
@@ -24,6 +24,12 @@ export class CafeDetailComponent implements OnInit {
 
     cafe = signal<Cafe | null>(null);
     reviews = this.reviewService.cafeReviews;
+    
+    // Carousel state
+    currentSlideIndex = signal(0);
+    
+    // Lightbox state
+    activeLightboxImage = signal<string | null>(null);
 
     async ngOnInit() {
         const id = this.route.snapshot.paramMap.get('id');

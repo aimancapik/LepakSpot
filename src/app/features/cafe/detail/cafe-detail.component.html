@@ -1,159 +1,170 @@
-<div
-    class="relative flex h-auto min-h-screen w-full flex-col grain-overlay bg-latte overflow-x-hidden border-x-4 border-espresso max-w-md mx-auto">
+<div class="flex flex-col h-full bg-latte max-w-md mx-auto w-full shadow-2xl relative overflow-hidden grain-overlay">
     <!-- Header -->
-    <header
-        class="flex items-center justify-between p-6 pt-10 sticky top-0 z-50 bg-latte/90 backdrop-blur-md border-b-4 border-espresso">
-        <button (click)="goBack()"
-            class="size-10 bg-off-white flex items-center justify-center border-2 border-espresso zine-shadow-sm hover:bg-sage zine-click-active">
-            <span class="material-symbols-outlined text-espresso">arrow_back</span>
+    <header class="flex items-center justify-between p-6 pt-10 sticky top-0 z-50 bg-latte/90 backdrop-blur-md border-b-4 border-espresso">
+        <button (click)="goBack()" class="size-10 bg-off-white flex items-center justify-center border-2 border-espresso zine-shadow-sm hover:bg-sage zine-click-active">
+            <span class="material-symbols-outlined text-espresso font-bold">arrow_back</span>
         </button>
-        <h2
-            class="text-2xl font-black italic tracking-tighter uppercase font-zine text-espresso drop-shadow-sm -rotate-1 line-clamp-1 flex-1 text-center px-2">
-            {{ cafe()?.name || 'Loading...' }}</h2>
-        <div class="flex items-center justify-end shrink-0">
-            <button (click)="shareThisCafe()"
-                class="size-10 bg-primary text-espresso flex items-center justify-center border-2 border-espresso zine-shadow-sm hover:bg-sage zine-click-active">
-                <span class="material-symbols-outlined">share</span>
-            </button>
-        </div>
+        <h2 class="text-2xl font-black italic tracking-tighter uppercase font-zine text-espresso drop-shadow-sm -rotate-1 line-clamp-1 flex-1 text-center px-4">
+            {{ cafe()?.name || 'Cafe Details' }}
+        </h2>
+        <button (click)="shareThisCafe()" class="size-10 bg-off-white flex items-center justify-center border-2 border-espresso zine-shadow-sm hover:bg-primary zine-click-active">
+            <span class="material-symbols-outlined text-espresso font-bold">share</span>
+        </button>
     </header>
 
-    @if (cafe()) {
-    <!-- Hero: The Zine Concept -->
-    <div class="px-4 pt-6 pb-2">
-        <div class="relative group">
-            <div class="absolute -inset-1 bg-espresso rounded-lg rotate-1 scale-[1.02] opacity-20"></div>
-            <div class="bg-cover bg-center flex flex-col justify-end overflow-hidden rounded-xl min-h-[400px] relative border-4 border-espresso"
-                [style.background-image]="'url(' + (cafe()!.photos[0] || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800&fit=crop') + ')'">
-
-                <div
-                    class="absolute top-4 left-4 bg-primary text-espresso px-3 py-1 font-black text-xs uppercase tracking-widest rotate-[-12deg] zine-border">
-                    ISSUE #01: KL GEMS
+    @if (cafe(); as cafeData) {
+    <div class="flex-1 overflow-y-auto overflow-x-hidden pb-32">
+        <!-- Image Carousel Section -->
+        <!-- Swipeable Image Carousel Section -->
+        <div class="relative w-full aspect-[4/3] bg-espresso border-b-4 border-espresso group overflow-hidden">
+            
+            <div class="flex w-full h-full overflow-x-auto snap-x snap-mandatory no-scrollbar">
+                <!-- Slides -->
+                @for (photo of cafeData.photos; track $index) {
+                <div class="flex-none w-full h-full snap-center relative cursor-zoom-in"
+                     (click)="activeLightboxImage.set(photo)">
+                    <img [src]="photo" class="w-full h-full object-cover" [alt]="cafeData.name" />
                 </div>
+                }
+                
+                <!-- Fallback if no photos -->
+                @if (cafeData.photos.length === 0) {
+                <div class="flex-none w-full h-full snap-center flex flex-col items-center justify-center text-primary bg-espresso/50 backdrop-blur-sm">
+                    <span class="material-symbols-outlined text-6xl">photo_library</span>
+                    <p class="font-marker mt-2 text-lg uppercase">No photos yet</p>
+                </div>
+                }
+            </div>
 
-                <div class="p-6 bg-gradient-to-t from-espresso via-espresso/40 to-transparent">
-                    <h1 class="text-off-white text-4xl font-black leading-none italic tracking-tighter uppercase font-zine">{{ cafe()!.name }}</h1>
-                    <a [href]="'https://maps.google.com/?q=' + cafe()!.lat + ',' + cafe()!.lng"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label="Open location in Google Maps"
-                        class="group text-off-white/80 text-xs font-marker uppercase mt-2 flex items-center gap-1.5 hover:text-off-white active:text-primary transition-all duration-200 w-fit underline underline-offset-2 decoration-off-white/30 hover:decoration-off-white">
-                        <span class="material-symbols-outlined text-[14px] text-primary group-hover:scale-125 transition-transform duration-200"
-                            style="font-variation-settings: 'FILL' 1">location_on</span>
-                        {{ cafe()!.address }}
-                        <span class="material-symbols-outlined text-[11px] opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all duration-200">open_in_new</span>
+            <!-- Swipe Hint (only show if multiple photos) -->
+            @if (cafeData.photos.length > 1) {
+            <div class="absolute inset-x-0 bottom-6 flex justify-center gap-1 z-20 pointer-events-none opacity-50">
+                <div class="w-1.5 h-1.5 rounded-full bg-white"></div>
+                <div class="w-1.5 h-1.5 rounded-full bg-white"></div>
+                <div class="w-1.5 h-1.5 rounded-full bg-white"></div>
+            </div>
+            
+            <div class="absolute top-4 right-4 bg-espresso/60 backdrop-blur-md text-white px-3 py-1 font-zine text-[10px] font-bold uppercase tracking-widest border border-white/20 rounded-full z-20 pointer-events-none flex items-center gap-1">
+                <span class="material-symbols-outlined text-xs">swipe</span>
+                Swipe
+            </div>
+            }
+
+            <!-- Floating Badges -->
+            <div class="absolute top-4 left-4 z-30 bg-primary text-espresso border-4 border-espresso px-4 py-1.5 font-black font-zine italic uppercase tracking-widest -rotate-2 zine-shadow-sm flex items-center gap-1">
+                <span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1">star</span>
+                {{ cafeData.rating }} / 5.0
+            </div>
+        </div>
+
+        <div class="mt-12 px-6 space-y-10">
+            <!-- Basic Info -->
+            <div>
+                <h1 class="text-4xl font-black italic tracking-tighter uppercase font-zine text-espresso leading-none drop-shadow-sm">
+                    {{ cafeData.name }}
+                </h1>
+                
+                <a [href]="'https://www.google.com/maps/search/?api=1&query=' + cafeData.lat + ',' + cafeData.lng" 
+                   target="_blank"
+                   class="inline-flex items-center gap-2 mt-4 font-marker text-espresso/70 hover:text-espresso group transition-colors">
+                    <span class="material-symbols-outlined text-xl group-hover:animate-bounce">location_on</span>
+                    <span class="underline decoration-primary/40 group-hover:decoration-primary decoration-2 underline-offset-4">{{ cafeData.address }}</span>
+                    <span class="material-symbols-outlined text-sm font-bold opacity-40 group-hover:opacity-100">open_in_new</span>
+                </a>
+            </div>
+
+            <!-- Tags Section -->
+            <div class="flex gap-3 flex-wrap">
+                @for (tag of cafeData.tags; track tag) {
+                <span class="px-4 py-1.5 bg-off-white border-2 border-espresso zine-shadow-sm font-marker text-sm font-bold uppercase rotate-[1deg] hover:rotate-0 transition-transform">
+                    #{{ tag }}
+                </span>
+                }
+            </div>
+
+            <!-- See on Socials Section -->
+            <div class="space-y-4">
+                <h3 class="inline-block bg-espresso text-off-white px-4 py-1 font-zine font-bold italic uppercase tracking-widest -rotate-1">
+                    SEE ON SOCIALS
+                </h3>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <a href="https://www.tiktok.com/search?q={{cafeData.name}}" target="_blank" class="flex items-center justify-center gap-3 py-4 bg-[#FE2C55] text-white zine-border zine-shadow-sm hover:translate-y-[-2px] hover:shadow-lg transition-all rotate-1">
+                        <span class="material-symbols-outlined">video_library</span>
+                        <span class="font-zine font-black italic uppercase text-sm tracking-tight">TikTok</span>
+                    </a>
+                    <a href="https://www.facebook.com/search/top?q={{cafeData.name}}" target="_blank" class="flex items-center justify-center gap-3 py-4 bg-[#1877F2] text-white zine-border zine-shadow-sm hover:translate-y-[-2px] hover:shadow-lg transition-all -rotate-1">
+                        <span class="material-symbols-outlined">facebook</span>
+                        <span class="font-zine font-black italic uppercase text-sm tracking-tight">Facebook</span>
                     </a>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Section: The Scene -->
-    <div class="mt-8 px-4">
-        <a [routerLink]="['/cafe', cafe()!.id, 'scene']"
-            class="flex justify-between items-end mb-4 group cursor-pointer block">
-            <h2
-                class="text-espresso text-3xl font-black italic uppercase tracking-tighter group-hover:text-primary transition-colors">
-                THE SCENE</h2>
-            <span
-                class="material-symbols-outlined text-primary mb-1 group-hover:translate-x-2 transition-transform">trending_flat</span>
-        </a>
-
-        <div class="grid grid-cols-2 gap-4">
-            <div class="flex flex-col gap-2">
-                <div class="bg-cover bg-center rounded-lg border-2 border-espresso aspect-square grayscale hover:grayscale-0 transition-all duration-500"
-                    [style.background-image]="'url(' + (cafe()!.photos[1] || cafe()!.photos[0] || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=400&fit=crop') + ')'">
+            <!-- Reviews Section -->
+            <div class="space-y-6 pb-10">
+                <div class="flex items-center justify-between">
+                    <h3 class="inline-block bg-sage text-espresso px-4 py-1 font-zine font-bold italic uppercase tracking-widest rotate-2 border-2 border-espresso">
+                        LATEST REVIEWS
+                    </h3>
+                    <span class="font-marker text-espresso/40 text-xs uppercase">{{ reviews().length }} vibes shared</span>
                 </div>
-                <p
-                    class="font-marker text-[10px] font-bold uppercase tracking-widest leading-none bg-sage/30 p-1 self-start">
-                    COZY CORNER</p>
-            </div>
-            <div class="flex flex-col gap-2 pt-8">
-                <div class="bg-cover bg-center rounded-lg border-2 border-espresso aspect-[3/4] rotate-3"
-                    [style.background-image]="'url(' + (cafe()!.photos[2] || cafe()!.photos[1] || cafe()!.photos[0] || 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=400&fit=crop') + ')'">
-                </div>
-                <p
-                    class="font-marker text-[10px] font-bold uppercase tracking-widest leading-none bg-primary/30 p-1 self-start ml-4">
-                    ART VIBES</p>
-            </div>
-        </div>
-    </div>
 
-    <!-- Section: The Brew (Signature) -->
-    <div class="mt-12 px-4 relative">
-        <div class="bg-sage p-6 rounded-xl border-4 border-espresso zine-shadow">
-            <div class="flex justify-between items-start">
-                <div>
-                    <p class="text-espresso font-black text-xs uppercase tracking-widest mb-1 underline">Signature Brew
-                    </p>
-                    <h3 class="text-espresso text-4xl font-black leading-none uppercase italic">DIRTY<br />CHAI OAT</h3>
+                @if (reviews().length === 0) {
+                <div class="bg-off-white zine-border p-10 text-center zine-shadow -rotate-1">
+                    <p class="font-marker text-lg text-espresso/60">No vibes shared yet.</p>
+                    <p class="text-xs font-zine font-bold uppercase text-espresso/40 mt-1">Be the first to share!</p>
                 </div>
-                <div class="bg-off-white p-2 rounded-full border-2 border-espresso -rotate-12">
-                    <span class="material-symbols-outlined text-espresso text-3xl">local_cafe</span>
-                </div>
-            </div>
-            <p class="mt-6 text-espresso text-sm font-medium leading-tight">
-                Spiced, bold espresso, organic oat milk, and a secret house-made syrup that tastes like nostalgia.
-            </p>
-        </div>
-    </div>
-
-    <!-- Section: Heard on the Street -->
-    <div class="mt-16 px-4 pb-32">
-        <h2 class="text-espresso text-3xl font-black italic uppercase tracking-tighter mb-6 relative">
-            HEARD ON THE STREET
-            <span
-                class="absolute -top-4 -right-2 text-primary rotate-12 material-symbols-outlined text-4xl">chat_bubble</span>
-        </h2>
-
-        @if (reviews().length === 0) {
-        <div class="bg-off-white zine-border p-6 text-center rotate-[-1deg] zine-shadow">
-            <span class="material-symbols-outlined text-4xl text-espresso/30 mb-2">forum</span>
-            <p class="font-marker text-lg">No reviews yet...</p>
-            <p class="font-zine text-sm font-bold uppercase text-espresso/60 mt-1">Be the first to spill the tea on the
-                Scene page!</p>
-        </div>
-        } @else {
-        <div class="space-y-6">
-            @for (review of reviews().slice(0, 3); track review.id; let i = $index) {
-            <div class="relative bg-off-white border-2 border-espresso p-4 zine-border"
-                [class]="i % 2 === 0 ? '' : 'bg-primary -rotate-1'">
-                <div class="flex items-center gap-3 mb-2">
-                    @if (review.photoURL) {
-                    <img [src]="review.photoURL" [alt]="review.displayName"
-                        class="w-8 h-8 rounded-full border-2 border-espresso object-cover" />
-                    } @else {
-                    <div
-                        class="w-8 h-8 rounded-full bg-sage border-2 border-espresso flex items-center justify-center font-bold text-xs uppercase">
-                        {{ review.displayName[0] }}</div>
-                    }
-                    <span class="text-xs font-black uppercase italic tracking-widest"
-                        [class]="i % 2 === 0 ? '' : 'text-off-white'">&#64;{{ review.displayName }}</span>
-                    <!-- Stars -->
-                    <div class="flex gap-0.5 ml-auto shrink-0">
-                        @for (s of [1,2,3,4,5]; track s) {
-                        <span class="material-symbols-outlined text-sm"
-                            [class]="s <= review.rating ? 'text-primary' : 'text-espresso/20'"
-                            style="font-variation-settings: 'FILL' 1">star</span>
-                        }
+                } @else {
+                <div class="space-y-6">
+                    @for (review of reviews(); track review.id; let i = $index) {
+                    <div class="bg-white border-2 border-espresso p-5 zine-shadow relative"
+                         [class]="i % 2 === 0 ? 'rotate-[0.5deg]' : 'rotate-[-0.5deg]'">
+                        <div class="flex items-center gap-3 mb-3 border-b-2 border-espresso/10 pb-3">
+                            <img [src]="review.photoURL" class="size-10 zine-border bg-latte" [alt]="review.displayName" />
+                            <div>
+                                <h4 class="font-zine font-black italic uppercase text-espresso text-sm leading-none">{{ review.displayName }}</h4>
+                                <div class="flex gap-0.5 mt-1">
+                                    @for (star of [1,2,3,4,5]; track star) {
+                                    <span class="material-symbols-outlined text-[10px]" 
+                                          [class.text-primary]="star <= review.rating"
+                                          [class.text-espresso/10]="star > review.rating"
+                                          style="font-variation-settings: 'FILL' 1">star</span>
+                                    }
+                                </div>
+                            </div>
+                            <span class="ml-auto font-marker text-[9px] text-espresso/30 uppercase">{{ review.createdAt | date:'shortDate' }}</span>
+                        </div>
+                        <p class="font-marker text-espresso text-base leading-snug">"{{ review.text }}"</p>
                     </div>
+                    }
                 </div>
-                @if (review.text) {
-                <p class="font-zine text-sm font-bold italic leading-snug"
-                    [class]="i % 2 === 0 ? '' : 'text-off-white'">"{{ review.text }}"</p>
                 }
             </div>
-            }
         </div>
-        }
     </div>
-    } @else {
-    <div class="flex-1 flex items-center justify-center">
-        <div class="animate-pulse flex flex-col items-center gap-4">
-            <span class="material-symbols-outlined text-6xl text-espresso/20 animate-spin">cyclone</span>
-            <p class="font-marker text-xl text-espresso/40">Curating the zine...</p>
-        </div>
+
+    <!-- Sticky Action Button -->
+    <div class="fixed bottom-0 inset-x-0 p-6 z-[60] bg-gradient-to-t from-latte via-latte/80 to-transparent max-w-md mx-auto">
+        <a [routerLink]="['/cafe', cafeData.id, 'scene']" class="w-full bg-primary text-espresso py-4 border-4 border-espresso zine-shadow font-zine font-black italic uppercase text-xl tracking-widest zine-click-active hover:bg-sage flex items-center justify-center gap-2">
+            <span class="material-symbols-outlined">visibility</span>
+            LEPAK HERE
+        </a>
     </div>
     }
 
+    <!-- Image Lightbox -->
+    @if (activeLightboxImage(); as lightboxImg) {
+    <div class="fixed inset-0 z-[100] bg-espresso/95 backdrop-blur-md flex flex-col p-6 animate-in fade-in zoom-in duration-300">
+        <div class="flex justify-end mb-4">
+            <button (click)="activeLightboxImage.set(null)" 
+                    class="size-12 bg-off-white border-2 border-espresso zine-shadow-sm flex items-center justify-center zine-click-active">
+                <span class="material-symbols-outlined font-black">close</span>
+            </button>
+        </div>
+        <div class="flex-1 flex items-center justify-center">
+            <img [src]="lightboxImg" class="max-w-full max-h-full object-contain zine-border shadow-2xl" />
+        </div>
+        <p class="text-center font-marker text-primary text-lg mt-6 uppercase tracking-widest">{{ cafe()?.name }}</p>
+    </div>
+    }
 </div>

@@ -5,7 +5,6 @@ import { Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CafeService } from '../../../core/services/cafe.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { BroadcastService } from '../../../core/services/broadcast.service';
 import { CheckInService } from '../../../core/services/checkin.service';
 import { ReviewService } from '../../../core/services/review.service';
 import { Cafe, CrowdLevel, NoiseLevel } from '../../../core/models/cafe.model';
@@ -23,20 +22,12 @@ export class SceneComponent implements OnInit {
     private route = inject(ActivatedRoute);
     private location = inject(Location);
     private cafeService = inject(CafeService);
-    private authService = inject(AuthService);
-    private broadcastService = inject(BroadcastService);
     private checkInService = inject(CheckInService);
     private reviewService = inject(ReviewService);
     private toastService = inject(ToastService);
 
     cafe = signal<Cafe | null>(null);
-    isUpdatingVibe = signal(false);
-    isSubmittingVibe = signal(false);
-    selectedCrowdLevel = signal<CrowdLevel | null>(null);
-    selectedNoiseLevel = signal<NoiseLevel | null>(null);
-    isBroadcasting = signal(false);
     showSaveModal = signal(false);
-    broadcastMessage = signal('');
     isCheckedIn = signal(false);
     isPresent = signal(false);
     checkingIn = signal(false);
@@ -156,78 +147,7 @@ export class SceneComponent implements OnInit {
         this.location.back();
     }
 
-    toggleVibeForm() {
-        this.isUpdatingVibe.update(v => !v);
-        if (this.isUpdatingVibe() && this.isBroadcasting()) {
-            this.isBroadcasting.set(false);
-        }
-    }
 
-    async submitVibeUpdate() {
-        const cafe = this.cafe();
-        if (!cafe || this.isSubmittingVibe()) return;
-
-        const crowd = this.selectedCrowdLevel();
-        const noise = this.selectedNoiseLevel();
-        if (!crowd && !noise) {
-            this.toastService.show('Select at least one vibe option to update.', 'info');
-            return;
-        }
-
-        this.isSubmittingVibe.set(true);
-        try {
-            const updates: Partial<Cafe> = {};
-            if (crowd) updates.crowdLevel = crowd;
-            if (noise) updates.noiseLevel = noise;
-
-            await this.cafeService.updateVibeData(cafe.id!, updates as { crowdLevel?: CrowdLevel; noiseLevel?: NoiseLevel });
-            this.cafe.update(c => c ? { ...c, ...updates } : c);
-            this.isUpdatingVibe.set(false);
-            this.selectedCrowdLevel.set(null);
-            this.selectedNoiseLevel.set(null);
-            this.toastService.show('Vibe updated! Thanks for keeping the zine alive 🌿', 'success');
-        } catch (error) {
-            console.error('Failed to update vibe:', error);
-            this.toastService.show('Could not update vibe. Try again.', 'error');
-        } finally {
-            this.isSubmittingVibe.set(false);
-        }
-    }
-
-    broadcastDuration = signal<number>(2); // hours
-
-    toggleBroadcastForm() {
-        this.isBroadcasting.update(v => !v);
-        if (this.isBroadcasting() && this.isUpdatingVibe()) {
-            this.isUpdatingVibe.set(false);
-        }
-    }
-
-    async createBroadcast() {
-        const currentUser = this.authService.currentUser();
-        const currentCafe = this.cafe();
-
-        if (!currentUser || !currentCafe) {
-            this.toastService.show('You must be logged in to broadcast.', 'error');
-            return;
-        }
-
-        try {
-            await this.broadcastService.createBroadcast(
-                currentCafe.id!,
-                currentCafe.name,
-                this.broadcastMessage(),
-                this.broadcastDuration()
-            );
-            this.isBroadcasting.set(false);
-            this.broadcastMessage.set('');
-            this.broadcastDuration.set(2);
-            this.toastService.show('Broadcast sent! 📡 Friends can see you are here.', 'success');
-        } catch (error) {
-            console.error('Error creating broadcast:', error);
-            this.toastService.show('Failed to send broadcast. Try again later.', 'error');
-        }
-    }
 
     openDirections() {
         const cafe = this.cafe();
