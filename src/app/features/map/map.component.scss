@@ -296,7 +296,7 @@
     padding: 4px 12px;
     background: var(--color-off-white);
     border: 2px solid var(--color-espresso);
-    border-radius: 4px;
+    border-radius: 20px;
     box-shadow: 2px 2px 0 var(--color-espresso);
     font-family: 'Permanent Marker', cursive;
     font-size: 0.8rem;
@@ -407,6 +407,7 @@
     height: 8px;
     background: rgba(60, 42, 33, 0.1);
     border: 2px solid var(--color-espresso);
+    border-radius: 6px;
     overflow: hidden;
 }
 
@@ -611,6 +612,58 @@
         opacity: 1;
         transform: scale(1) rotate(-1deg);
     }
+}
+
+/* ── Distance Badge ── */
+.distance-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    border: 2px solid var(--color-espresso);
+    font-family: 'Permanent Marker', cursive;
+    font-size: 0.7rem;
+    white-space: nowrap;
+
+    &.near {
+        background: var(--color-sage);
+        color: var(--color-espresso);
+    }
+
+    &.far {
+        background: #fee2e2;
+        color: #dc2626;
+        border-color: #dc2626;
+    }
+}
+
+/* ── Too Far Notice ── */
+.too-far-notice {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 16px;
+    background: #fef2f2;
+    border: 3px solid #fca5a5;
+    border-radius: 14px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: #dc2626;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+
+    .material-symbols-outlined {
+        font-size: 1.25rem;
+        animation: pulse-icon 1.5s ease-in-out infinite;
+    }
+}
+
+@keyframes pulse-icon {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
 }
 
 /* ── Spinner ── */

@@ -40,9 +40,9 @@
         }
     </div>
 
-    <!-- City Name (hide when searching) -->
+    <!-- City Name (hide when searching) — dynamic based on map center -->
     @if (!searchOpen()) {
-    <div class="city-name">KUALA LUMPUR</div>
+    <div class="city-name">{{ cityName() }}</div>
     }
 
     <!-- Location Detail Drawer -->
@@ -58,13 +58,22 @@
             </div>
             <div class="cafe-info">
                 <h2 class="cafe-name">{{ cafe.name }}</h2>
-                <p class="cafe-address">
+                <a [href]="'https://maps.google.com/?q=' + cafe.lat + ',' + cafe.lng"
+                    target="_blank" class="cafe-address">
                     <span class="material-symbols-outlined small">location_on</span>
                     {{ cafe.address }}
-                </p>
-                <div class="cafe-rating">
-                    <span class="material-symbols-outlined small star">star</span>
-                    {{ cafe.rating.toFixed(1) }}
+                </a>
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px;">
+                    <div class="cafe-rating">
+                        <span class="material-symbols-outlined small star">star</span>
+                        {{ cafe.rating.toFixed(1) }}
+                    </div>
+                    @if (distanceToCafe() !== null) {
+                    <div class="distance-badge" [class.near]="!tooFarToCheckIn()" [class.far]="tooFarToCheckIn()">
+                        <span class="material-symbols-outlined" style="font-size:12px;">{{ tooFarToCheckIn() ? 'location_searching' : 'my_location' }}</span>
+                        {{ tooFarToCheckIn() ? formatDistance() : "You're here!" }}
+                    </div>
+                    }
                 </div>
             </div>
         </div>
@@ -127,7 +136,12 @@
 
         <!-- Check-in Button -->
         <div class="checkin-section">
-            @if (checkInSuccess()) {
+            @if (tooFarToCheckIn() && checkInStatus() === 'ready' && userLat() !== null) {
+            <div class="too-far-notice">
+                <span class="material-symbols-outlined">location_searching</span>
+                <span>Get within 50m to check in{{ distanceToCafe() !== null ? ' · ' + formatDistance() : '' }}</span>
+            </div>
+            } @else if (checkInSuccess()) {
             <div class="checkin-success">
                 <span class="material-symbols-outlined">task_alt</span>
                 <span>You're checked in! +25 pts</span>

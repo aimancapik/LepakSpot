@@ -135,6 +135,11 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     checkInStatus = signal<'loading' | 'ready' | 'already' | 'was-here'>('loading');
     searchOpen = signal(false);
     searchQuery = this.cafeService.searchQuery;
+    cityName = signal('KUALA LUMPUR');
+    userLat = signal<number | null>(null);
+    userLng = signal<number | null>(null);
+    private watchId: number | null = null;
+    private initialPositionSet = false;
 
     activePeople = this.checkInService.activePeopleAtCafe;
 
@@ -146,8 +151,37 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
 
     densityConfig = computed(() => DENSITY_CONFIG[this.selectedCafeDensity().level as DensityLevel]);
 
+    distanceToCafe = computed<number | null>(() => {
+        const cafe = this.selectedCafe();
+        const lat = this.userLat();
+        const lng = this.userLng();
+        if (!cafe || lat === null || lng === null) return null;
+        return this.haversine(lat, lng, cafe.lat, cafe.lng);
+    });
+
+    tooFarToCheckIn = computed(() => {
+        const d = this.distanceToCafe();
+        return d === null || d > 50;
+    });
+
+    formatDistance(): string {
+        const d = this.distanceToCafe();
+        if (d === null) return '';
+        return d < 1000 ? `${Math.round(d)}m away` : `${(d / 1000).toFixed(1)}km away`;
+    }
+
+    private haversine(lat1: number, lng1: number, lat2: number, lng2: number): number {
+        const R = 6371000;
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLng = (lng2 - lng1) * Math.PI / 180;
+        const a = Math.sin(dLat / 2) ** 2 +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
+
     private unsubscribeDensity?: () => void;
     private unsubscribeCafe?: () => void;
+    private cityNameDebounce: ReturnType<typeof setTimeout> | null = null;
 
     ngOnInit() {
         this.unsubscribeDensity = this.checkInService.watchAllDensity();
@@ -175,13 +209,40 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
             if (this.map) this.map.invalidateSize();
             this.addCafeMarkers();
             this.getUserLocation();
+            // Dynamic city name on map pan/scroll
+            this.map.on('moveend', () => this.updateCityNameFromCenter());
         }, 100);
     }
 
     ngOnDestroy() {
         this.unsubscribeDensity?.();
         this.unsubscribeCafe?.();
+        if (this.watchId !== null) navigator.geolocation.clearWatch(this.watchId);
+        if (this.cityNameDebounce) clearTimeout(this.cityNameDebounce);
         this.map?.remove();
+    }
+
+    /** Debounced reverse geocode for the current map center. */
+    private updateCityNameFromCenter() {
+        if (this.cityNameDebounce) clearTimeout(this.cityNameDebounce);
+        this.cityNameDebounce = setTimeout(() => {
+            const center = this.map.getCenter();
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${center.lat}&lon=${center.lng}`)
+                .then(r => r.json())
+                .then((data: any) => {
+                    const a = data.address;
+                    const name =
+                        a.suburb ||
+                        a.city_district ||
+                        a.town ||
+                        a.city ||
+                        a.county ||
+                        a.state ||
+                        'SOMEWHERE';
+                    this.ngZone.run(() => this.cityName.set(name.toUpperCase()));
+                })
+                .catch(() => {});
+        }, 600); // 600 ms debounce — jangan bagi Nominatim kena spam
     }
 
     private addCafeMarkers() {
@@ -215,16 +276,30 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     private getUserLocation() {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                (pos) => {
-                    this.ngZone.run(() => {
-                        this.map.setView([pos.coords.latitude, pos.coords.longitude], 14);
-                    });
-                },
-                () => {}
-            );
-        }
+        if (!navigator.geolocation) return;
+        this.watchId = navigator.geolocation.watchPosition(
+            (pos) => {
+                const { latitude: lat, longitude: lng } = pos.coords;
+                this.ngZone.run(() => {
+                    this.userLat.set(lat);
+                    this.userLng.set(lng);
+                });
+                if (!this.initialPositionSet) {
+                    this.initialPositionSet = true;
+                    this.ngZone.run(() => this.map.setView([lat, lng], 14));
+                    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+                        .then(r => r.json())
+                        .then((data: any) => {
+                            const a = data.address;
+                            const name = a.city || a.town || a.village || a.county || a.state || 'YOUR AREA';
+                            this.ngZone.run(() => this.cityName.set(name.toUpperCase()));
+                        })
+                        .catch(() => {});
+                }
+            },
+            () => {},
+            { enableHighAccuracy: true, maximumAge: 10000 }
+        );
     }
 
     async onMarkerClick(cafe: Cafe) {
@@ -299,6 +374,11 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     async handleCheckIn() {
         const cafe = this.selectedCafe();
         if (!cafe || this.checkInStatus() !== 'ready') return;
+        if (this.tooFarToCheckIn()) {
+            const dist = this.formatDistance();
+            this.toastService.show(`You're ${dist} — move within 50m to check in`, 'error');
+            return;
+        }
         this.isCheckingIn.set(true);
         try {
             await this.checkInService.checkIn(cafe.id, cafe.name);

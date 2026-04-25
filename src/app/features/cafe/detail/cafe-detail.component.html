@@ -33,10 +33,16 @@
 
                 <div class="p-6 bg-gradient-to-t from-espresso via-espresso/40 to-transparent">
                     <h1 class="text-off-white text-4xl font-black leading-none italic tracking-tighter uppercase font-zine">{{ cafe()!.name }}</h1>
-                    <p class="text-off-white/70 text-xs font-marker uppercase mt-1 flex items-center gap-1">
-                        <span class="material-symbols-outlined text-[13px]">location_on</span>
+                    <a [href]="'https://maps.google.com/?q=' + cafe()!.lat + ',' + cafe()!.lng"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="Open location in Google Maps"
+                        class="group text-off-white/80 text-xs font-marker uppercase mt-2 flex items-center gap-1.5 hover:text-off-white active:text-primary transition-all duration-200 w-fit underline underline-offset-2 decoration-off-white/30 hover:decoration-off-white">
+                        <span class="material-symbols-outlined text-[14px] text-primary group-hover:scale-125 transition-transform duration-200"
+                            style="font-variation-settings: 'FILL' 1">location_on</span>
                         {{ cafe()!.address }}
-                    </p>
+                        <span class="material-symbols-outlined text-[11px] opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all duration-200">open_in_new</span>
+                    </a>
                 </div>
             </div>
         </div>
