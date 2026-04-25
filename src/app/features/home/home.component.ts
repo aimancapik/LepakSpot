@@ -161,4 +161,10 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.recentSearches.set([]);
     localStorage.removeItem('ls_recent_searches');
   }
+
+  /** Returns an array of max 3 items for rendering person avatar bubbles */
+  getPeopleArr(count: number): number[] {
+    return Array.from({ length: Math.min(count, 3) }, (_, i) => i);
+  }
 }
+

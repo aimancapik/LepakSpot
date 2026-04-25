@@ -201,6 +201,9 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
                 maxZoom: 19,
             }).addTo(this.map);
 
+            // Dynamic city name — must be inside runOutsideAngular so Leaflet wires it properly
+            this.map.on('moveend', () => this.updateCityNameFromCenter());
+
         });
 
         await this.cafeService.getNearby();
@@ -209,8 +212,8 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
             if (this.map) this.map.invalidateSize();
             this.addCafeMarkers();
             this.getUserLocation();
-            // Dynamic city name on map pan/scroll
-            this.map.on('moveend', () => this.updateCityNameFromCenter());
+            // Fire initial lookup for default center
+            this.updateCityNameFromCenter();
         }, 100);
     }
 

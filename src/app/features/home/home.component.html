@@ -133,28 +133,61 @@
 
     <!-- Nearby Right Now -->
     @if (liveCafes().length > 0 && !cafeService.searchQuery()) {
-    <div class="px-5 mb-3">
+    <div class="px-5 mb-3 flex items-center justify-between">
         <h2 class="font-zine font-black italic uppercase text-lg text-espresso flex items-center gap-2">
-            <span class="inline-block w-2 h-2 rounded-full bg-sage border border-espresso animate-pulse"></span>
+            <span class="relative flex h-3 w-3">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-sage opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-3 w-3 bg-sage border border-espresso"></span>
+            </span>
             Nearby Right Now
         </h2>
+        <span class="font-marker text-[10px] text-espresso/40 uppercase">{{ liveCafes().length }} active</span>
     </div>
     <div class="flex gap-3 px-5 overflow-x-auto pb-5 no-scrollbar snap-x">
         @for (item of liveCafes(); track item.cafe.id; let i = $index) {
         <a [routerLink]="['/cafe', item.cafe.id]"
-            class="shrink-0 w-44 bg-off-white zine-border p-2 snap-center zine-shadow zine-click-active"
+            class="shrink-0 w-56 snap-center group"
             [class]="i % 2 === 0 ? 'rotate-[-0.5deg]' : 'rotate-[0.5deg]'">
-            <div class="overflow-hidden zine-border aspect-[4/3] bg-latte relative">
-                <img [src]="item.cafe.photos[0] || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=400&h=300&fit=crop'"
-                    [alt]="item.cafe.name" class="w-full h-full object-cover" />
-                <div class="absolute top-1.5 left-1.5 bg-espresso text-primary border border-primary px-2 py-0.5 font-zine font-bold text-[9px] flex items-center gap-1 animate-pulse">
-                    <span class="material-symbols-outlined text-[10px]">sensors</span>
-                    {{ item.count }} here
+            <!-- Polaroid-style card -->
+            <div class="bg-white border-2 border-espresso p-2 pb-3 zine-shadow group-hover:translate-x-0.5 group-hover:-translate-y-1 transition-transform duration-200">
+                <!-- Photo -->
+                <div class="relative overflow-hidden aspect-[4/3] bg-latte">
+                    <img [src]="item.cafe.photos[0] || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=400&h=300&fit=crop'"
+                        [alt]="item.cafe.name" class="w-full h-full object-cover" />
+                    <!-- Dark gradient bottom -->
+                    <div class="absolute inset-0 bg-gradient-to-t from-espresso/70 via-transparent to-transparent"></div>
+                    <!-- Live badge top-left -->
+                    <div class="absolute top-2 left-2 flex items-center gap-1 bg-espresso/90 text-primary px-2 py-0.5 font-zine font-bold text-[9px] border border-primary/50">
+                        <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+                        LIVE
+                    </div>
+                    <!-- People count bottom overlay -->
+                    <div class="absolute bottom-2 left-2 right-2 flex items-end justify-between">
+                        <div class="flex items-center gap-1">
+                            @for (n of getPeopleArr(item.count); track n) {
+                            <div class="w-5 h-5 rounded-full bg-primary border border-white/80 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-[9px] text-espresso">person</span>
+                            </div>
+                            }
+                            @if (item.count > 3) {
+                            <div class="w-5 h-5 rounded-full bg-off-white border border-espresso flex items-center justify-center font-marker text-[8px] text-espresso">
+                                +{{ item.count - 3 }}
+                            </div>
+                            }
+                        </div>
+                        <div class="bg-sage text-espresso px-1.5 py-0.5 font-marker text-[9px] border border-espresso">
+                            {{ item.count }} here
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <div class="pt-2">
-                <h3 class="font-zine text-sm font-black italic uppercase text-espresso leading-tight truncate">{{ item.cafe.name }}</h3>
-                <p class="font-marker text-[9px] text-espresso/50 truncate mt-0.5">{{ item.cafe.address }}</p>
+                <!-- Caption strip -->
+                <div class="pt-2 px-0.5">
+                    <h3 class="font-zine text-sm font-black italic uppercase text-espresso leading-tight truncate">{{ item.cafe.name }}</h3>
+                    <p class="font-marker text-[9px] text-espresso/50 truncate mt-0.5 flex items-center gap-0.5">
+                        <span class="material-symbols-outlined text-[9px]">location_on</span>
+                        {{ item.cafe.address }}
+                    </p>
+                </div>
             </div>
         </a>
         }
