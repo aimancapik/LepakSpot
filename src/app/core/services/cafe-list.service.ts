@@ -32,7 +32,7 @@ export class CafeListService {
         this.supabase.client
             .from('cafe_lists')
             .select('*')
-            .contains('collaboratorIds', [user.uid])
+            .filter('collaboratorIds', 'cs', JSON.stringify([user.uid]))
             .order('updatedAt', { ascending: false })
             .then(({ data }) => {
                 this.sharedLists.set((data || []) as CafeList[]);

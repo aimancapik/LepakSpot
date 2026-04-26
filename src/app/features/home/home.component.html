@@ -33,20 +33,6 @@
                 }
             </div>
         </div>
-
-        <!-- Recent Searches -->
-        @if (!cafeService.searchQuery() && recentSearches().length > 0) {
-        <div class="mt-2 flex flex-wrap gap-2 items-center">
-            <span class="font-marker text-[10px] uppercase text-espresso/40">Recent:</span>
-            @for (q of recentSearches(); track q) {
-            <button (click)="applyRecentSearch(q)"
-                class="px-2 py-0.5 bg-off-white zine-border font-marker text-xs hover:bg-primary transition-colors">
-                {{ q }}
-            </button>
-            }
-            <button (click)="clearRecentSearches()" class="font-marker text-[10px] text-espresso/30 underline">clear</button>
-        </div>
-        }
     </header>
 
     <!-- Single filter + sort row -->

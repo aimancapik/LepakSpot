@@ -337,8 +337,7 @@ export class CafeService {
         const { error } = await this.supabase.client
             .from('cafes')
             .update(data)
-            .eq('id', id)
-            .eq('submittedBy', user.uid);
+            .eq('id', id);
         if (error) throw error;
         this.nearbyCafes.update(cafes =>
             cafes.map(c => c.id === id ? { ...c, ...data } : c)

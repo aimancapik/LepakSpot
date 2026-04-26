@@ -106,7 +106,7 @@
         </div>
         }
 
-        <!-- Owner Actions: claim or go to dashboard -->
+        <!-- Owner Dashboard link (only for verified owners) -->
         @if (isOwner()) {
         <a [routerLink]="['/cafe', cafeData.id, 'owner']"
             class="flex items-center justify-between bg-espresso text-off-white border-4 border-espresso zine-shadow px-5 py-4 zine-click-active -rotate-[0.5deg]">
@@ -116,24 +116,6 @@
             </div>
             <span class="material-symbols-outlined text-off-white/60">chevron_right</span>
         </a>
-        } @else if (canClaim()) {
-        <button (click)="claimCafe()" [disabled]="claiming()"
-            class="w-full flex items-center justify-between bg-off-white border-4 border-espresso zine-shadow px-5 py-4 zine-click-active rotate-[0.5deg] disabled:opacity-50">
-            <div class="text-left">
-                <p class="font-zine font-black italic uppercase tracking-wider text-sm text-espresso">Own this cafe?</p>
-                <p class="font-marker text-xs text-espresso/60 mt-0.5">Claim it to manage info, post deals & view stats</p>
-            </div>
-            @if (claiming()) {
-            <span class="material-symbols-outlined text-espresso animate-spin">progress_activity</span>
-            } @else {
-            <span class="material-symbols-outlined text-espresso">storefront</span>
-            }
-        </button>
-        } @else if (cafeData.claimStatus === 'claimed' && !isOwner()) {
-        <div class="flex items-center gap-3 bg-off-white border-2 border-espresso/30 px-4 py-3 opacity-60">
-            <span class="material-symbols-outlined text-sm text-espresso/40">verified</span>
-            <p class="font-zine text-xs text-espresso/40 uppercase font-bold tracking-wide">Managed by owner</p>
-        </div>
         }
 
         <!-- See on Socials — only show if any link provided -->

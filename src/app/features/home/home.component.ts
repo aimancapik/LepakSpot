@@ -55,9 +55,6 @@ export class HomeComponent implements OnInit, OnDestroy {
   // New this week
   newThisWeekCafes = signal<Cafe[]>([]);
 
-  // Search history
-  recentSearches = signal<string[]>(this.loadRecentSearches());
-
   private unsubscribeDensity?: () => void;
 
   /** Smart "For You" suggestions based on time of day */
@@ -154,35 +151,10 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   onSearch(value: string) {
     this.cafeService.searchQuery.set(value);
-    if (value.trim()) {
-      this.saveSearch(value.trim());
-    }
-  }
-
-  applyRecentSearch(q: string) {
-    this.cafeService.searchQuery.set(q);
   }
 
   clearSearch() {
     this.cafeService.searchQuery.set('');
-  }
-
-  private loadRecentSearches(): string[] {
-    try {
-      return JSON.parse(localStorage.getItem('ls_recent_searches') || '[]');
-    } catch { return []; }
-  }
-
-  private saveSearch(q: string) {
-    const existing = this.recentSearches().filter(s => s !== q);
-    const updated = [q, ...existing].slice(0, 5);
-    this.recentSearches.set(updated);
-    localStorage.setItem('ls_recent_searches', JSON.stringify(updated));
-  }
-
-  clearRecentSearches() {
-    this.recentSearches.set([]);
-    localStorage.removeItem('ls_recent_searches');
   }
 
   /** Returns an array of max 3 items for rendering person avatar bubbles */
