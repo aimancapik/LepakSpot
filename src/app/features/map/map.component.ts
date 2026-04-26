@@ -85,6 +85,12 @@ function createPolaroidIcon(cafe: Cafe, density: { color: string; count: number 
                     <div style="font-size:6px;font-weight:800;color:#EF4444;text-transform:uppercase;letter-spacing:0.5px;line-height:1.3;">${month}</div>
                     <div style="font-size:13px;font-weight:800;color:#1A1A1A;line-height:1.1;">${day}</div>
                 </div>
+                <!-- rating badge -->
+                <div style="position:absolute;top:-5px;right:-5px;background:#d48c3a;border-radius:6px;
+                    box-shadow:0 2px 8px rgba(0,0,0,0.18);padding:2px 6px;z-index:10;display:flex;align-items:center;gap:2px;">
+                    <span style="font-size:9px;color:white;line-height:1;">★</span>
+                    <span style="font-size:10px;font-weight:800;color:white;line-height:1;">${cafe.rating > 0 ? cafe.rating.toFixed(1) : '–'}</span>
+                </div>
                 <!-- photo -->
                 <div style="width:100%;height:105px;border-radius:3px;overflow:hidden;position:relative;">
                     ${photoHtml}
