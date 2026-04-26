@@ -197,8 +197,14 @@ export class SceneComponent implements OnInit {
 
     // Lightbox for scene snaps
     snapLightboxIndex = signal<number | null>(null);
+    readonly Math = Math;
 
-    openSnapLightbox(index: number) { this.snapLightboxIndex.set(index); }
+    openSnapLightbox(index: number) {
+        this.snapLightboxIndex.set(index);
+        setTimeout(() => {
+            document.getElementById(`snap-lb-${index}`)?.scrollIntoView({ behavior: 'instant', inline: 'start' });
+        }, 0);
+    }
     closeSnapLightbox() { this.snapLightboxIndex.set(null); }
 
     // Lightbox for review images

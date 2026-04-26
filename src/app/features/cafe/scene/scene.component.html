@@ -445,15 +445,18 @@
                     <span class="material-symbols-outlined font-black">close</span>
                 </button>
             </div>
-            <div class="flex-1 flex overflow-x-auto snap-x snap-mandatory no-scrollbar" (click)="$event.stopPropagation()">
+            <div #snapScroll
+                 class="flex-1 flex overflow-x-auto snap-x snap-mandatory no-scrollbar"
+                 (click)="$event.stopPropagation()"
+                 (scroll)="snapLightboxIndex.set(Math.round(snapScroll.scrollLeft / snapScroll.offsetWidth))">
                 @for (snap of cafe()!.sceneSnaps; track $index; let i = $index) {
-                <div class="flex-none w-full h-full snap-center flex items-center justify-center px-4">
+                <div [id]="'snap-lb-' + i" class="flex-none w-full h-full snap-center flex items-center justify-center px-4">
                     <img [src]="snap.url" [alt]="snap.tag"
                          class="max-w-full max-h-full object-contain zine-border shadow-2xl" />
                 </div>
                 }
             </div>
-            <div class="shrink-0 flex justify-center gap-2 pb-8 pt-4">
+            <div class="shrink-0 flex justify-center gap-2 pb-8 pt-4" (click)="$event.stopPropagation()">
                 @for (snap of cafe()!.sceneSnaps; track $index; let i = $index) {
                 <div class="h-1.5 rounded-full transition-all"
                      [class]="i === snapLightboxIndex() ? 'w-4 bg-primary' : 'w-1.5 bg-white/30'"></div>
