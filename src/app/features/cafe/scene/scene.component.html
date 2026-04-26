@@ -168,9 +168,10 @@
                         <!-- Photo Frame -->
                         <div class="relative zine-border p-2 bg-off-white zine-shadow rounded-2xl"
                              [class]="i % 2 === 0 ? 'aspect-square rotate-[-2deg]' : 'aspect-[4/5] bg-espresso rotate-[2deg] shadow-[8px_8px_0_var(--color-primary)] p-3 z-10'">
-                            <div class="w-full h-full overflow-hidden border-2 border-espresso bg-espresso">
+                            <div class="w-full h-full overflow-hidden border-2 border-espresso bg-espresso cursor-zoom-in"
+                                 (click)="openSnapLightbox(i)">
                                 <img [src]="snap.url"
-                                     class="w-full h-full object-cover transition-all duration-500"
+                                     class="w-full h-full object-cover transition-all duration-500 hover:scale-105"
                                      [alt]="snap.tag" />
                             </div>
 
@@ -428,6 +429,34 @@
                     class="w-full mt-4 py-2 font-marker text-sm uppercase tracking-wide text-espresso/60 hover:text-espresso border-t-2 border-espresso/10 hover:border-espresso/30 transition-all">
                     {{ showAllReviews() ? '▲ Show less' : '▼ Show all ' + reviews().length + ' reviews' }}
                 </button>
+                }
+            </div>
+        </div>
+        }
+
+        <!-- Scene Snap Lightbox -->
+        @if (snapLightboxIndex() !== null) {
+        <div class="fixed inset-0 z-[100] bg-espresso/95 backdrop-blur-md flex flex-col animate-in fade-in duration-200"
+             (click)="closeSnapLightbox()">
+            <div class="flex items-center justify-between p-4 pt-10 shrink-0" (click)="$event.stopPropagation()">
+                <p class="font-marker text-primary text-sm uppercase tracking-widest">{{ cafe()?.sceneSnaps?.[snapLightboxIndex()!]?.tag }}</p>
+                <button (click)="closeSnapLightbox()"
+                    class="size-10 bg-off-white border-2 border-espresso zine-shadow-sm flex items-center justify-center zine-click-active">
+                    <span class="material-symbols-outlined font-black">close</span>
+                </button>
+            </div>
+            <div class="flex-1 flex overflow-x-auto snap-x snap-mandatory no-scrollbar" (click)="$event.stopPropagation()">
+                @for (snap of cafe()!.sceneSnaps; track $index; let i = $index) {
+                <div class="flex-none w-full h-full snap-center flex items-center justify-center px-4">
+                    <img [src]="snap.url" [alt]="snap.tag"
+                         class="max-w-full max-h-full object-contain zine-border shadow-2xl" />
+                </div>
+                }
+            </div>
+            <div class="shrink-0 flex justify-center gap-2 pb-8 pt-4">
+                @for (snap of cafe()!.sceneSnaps; track $index; let i = $index) {
+                <div class="h-1.5 rounded-full transition-all"
+                     [class]="i === snapLightboxIndex() ? 'w-4 bg-primary' : 'w-1.5 bg-white/30'"></div>
                 }
             </div>
         </div>

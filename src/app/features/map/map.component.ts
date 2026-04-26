@@ -70,7 +70,7 @@ function createPolaroidIcon(cafe: Cafe, density: { color: string; count: number 
                 position:relative;
                 background:white;
                 border-radius:6px;
-                padding:5px 5px 28px;
+                padding:5px 5px 10px;
                 width:110px;
                 ${selectedRing}
                 transform:rotate(${rotation}deg);
@@ -85,7 +85,7 @@ function createPolaroidIcon(cafe: Cafe, density: { color: string; count: number 
                     <div style="font-size:13px;font-weight:800;color:#1A1A1A;line-height:1.1;">${day}</div>
                 </div>
                 <!-- photo -->
-                <div style="width:100%;height:82px;border-radius:3px;overflow:hidden;position:relative;">
+                <div style="width:100%;height:105px;border-radius:3px;overflow:hidden;position:relative;">
                     ${photoHtml}
                     <!-- name overlay -->
                     <div style="position:absolute;bottom:3px;left:4px;right:4px;
@@ -101,9 +101,9 @@ function createPolaroidIcon(cafe: Cafe, density: { color: string; count: number 
                     border-top:10px solid white;filter:drop-shadow(0 2px 2px rgba(0,0,0,0.2));"></div>
             </div>
         `,
-        iconSize: [120, 130],
-        iconAnchor: [60, 130], // tip of pin stem anchors to coord
-        popupAnchor: [0, -130],
+        iconSize: [120, 135],
+        iconAnchor: [60, 135],
+        popupAnchor: [0, -135],
     });
 }
 
@@ -303,6 +303,14 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
             () => {},
             { enableHighAccuracy: true, maximumAge: 10000 }
         );
+    }
+
+    flyToUser() {
+        const lat = this.userLat();
+        const lng = this.userLng();
+        if (lat !== null && lng !== null) {
+            this.map.flyTo([lat, lng], 14, { animate: true, duration: 0.8 });
+        }
     }
 
     async onMarkerClick(cafe: Cafe) {

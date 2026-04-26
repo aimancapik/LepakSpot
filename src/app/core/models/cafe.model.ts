@@ -3,6 +3,7 @@ export type CrowdLevel = 'Empty' | 'Moderate' | 'Packed';
 export type NoiseLevel = 'Library Quiet' | 'Chill Chatter' | 'Loud';
 export type WifiSpeed = 'Fast' | 'Average' | 'Slow' | 'None';
 export type OutletAvailability = 'Many' | 'Few' | 'None';
+export type ClaimStatus = 'unclaimed' | 'pending' | 'claimed';
 
 export interface Cafe {
     id: string;
@@ -29,4 +30,7 @@ export interface Cafe {
     pendingApproval?: boolean;
     approvedAt?: string;
     submittedBy?: string;
+    ownerId?: string;
+    claimStatus?: ClaimStatus;
+    hasActiveDeal?: boolean;
 }

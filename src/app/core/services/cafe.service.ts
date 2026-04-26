@@ -374,4 +374,68 @@ export class CafeService {
             cafes.map(c => c.id === id ? { ...c, ...updates } as Cafe : c)
         );
     }
+
+    async claimCafe(id: string): Promise<void> {
+        const user = this.authService.currentUser();
+        if (!user) throw new Error('Not authenticated');
+
+        const cafe = await this.getCafeById(id);
+        if (!cafe) throw new Error('Cafe not found');
+        if (cafe.claimStatus === 'claimed') throw new Error('Cafe already claimed');
+
+        const updates = { ownerId: user.uid, claimStatus: 'claimed' as const };
+        const { error } = await this.supabase.client
+            .from('cafes')
+            .update(updates)
+            .eq('id', id);
+        if (error) throw error;
+
+        this.nearbyCafes.update(cafes =>
+            cafes.map(c => c.id === id ? { ...c, ...updates } : c)
+        );
+    }
+
+    async updateCafeAsOwner(id: string, data: Partial<Cafe>): Promise<void> {
+        const user = this.authService.currentUser();
+        if (!user) throw new Error('Not authenticated');
+
+        const { error } = await this.supabase.client
+            .from('cafes')
+            .update(data)
+            .eq('id', id)
+            .eq('ownerId', user.uid);
+        if (error) throw error;
+
+        this.nearbyCafes.update(cafes =>
+            cafes.map(c => c.id === id ? { ...c, ...data } : c)
+        );
+    }
+
+    async getOwnerStats(cafeId: string): Promise<{ totalCheckins: number; totalSessions: number; avgRating: number }> {
+        const [checkinsResult, sessionsResult, reviewsResult] = await Promise.all([
+            this.supabase.client
+                .from('checkins')
+                .select('id', { count: 'exact', head: true })
+                .eq('cafeId', cafeId),
+            this.supabase.client
+                .from('sessions')
+                .select('id', { count: 'exact', head: true })
+                .eq('winnerId', cafeId),
+            this.supabase.client
+                .from('reviews')
+                .select('rating')
+                .eq('cafeId', cafeId),
+        ]);
+
+        const ratings = (reviewsResult.data || []).map((r: any) => r.rating);
+        const avgRating = ratings.length
+            ? ratings.reduce((a: number, b: number) => a + b, 0) / ratings.length
+            : 0;
+
+        return {
+            totalCheckins: checkinsResult.count ?? 0,
+            totalSessions: sessionsResult.count ?? 0,
+            avgRating: Math.round(avgRating * 10) / 10,
+        };
+    }
 }

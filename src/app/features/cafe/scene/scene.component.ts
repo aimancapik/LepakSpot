@@ -195,6 +195,12 @@ export class SceneComponent implements OnInit {
         }
     }
 
+    // Lightbox for scene snaps
+    snapLightboxIndex = signal<number | null>(null);
+
+    openSnapLightbox(index: number) { this.snapLightboxIndex.set(index); }
+    closeSnapLightbox() { this.snapLightboxIndex.set(null); }
+
     // Lightbox for review images
     lightboxReviews = signal<{ reviews: import('../../../core/models/review.model').Review[], startIndex: number } | null>(null);
 

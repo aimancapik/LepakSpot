@@ -1,9 +1,12 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal, computed } from '@angular/core';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CafeService } from '../../../core/services/cafe.service';
 import { ReviewService } from '../../../core/services/review.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { DealService } from '../../../core/services/deal.service';
 import { ToastService } from '../../../shared/components/toast/toast.service';
 import { Cafe } from '../../../core/models/cafe.model';
+import { Deal } from '../../../core/models/deal.model';
 
 import { CommonModule, Location } from '@angular/common';
 
@@ -17,28 +20,64 @@ import { CommonModule, Location } from '@angular/common';
 })
 export class CafeDetailComponent implements OnInit {
     private route = inject(ActivatedRoute);
+    private router = inject(Router);
     private cafeService = inject(CafeService);
     private reviewService = inject(ReviewService);
+    private authService = inject(AuthService);
+    private dealService = inject(DealService);
     private toastService = inject(ToastService);
     private location = inject(Location);
 
     cafe = signal<Cafe | null>(null);
     reviews = this.reviewService.cafeReviews;
     likedReviewIds = this.reviewService.likedReviewIds;
-    
-    // Lightbox state
+    activeDeals = signal<Deal[]>([]);
+    claiming = signal(false);
+
     lightboxIndex = signal<number | null>(null);
     readonly Math = Math;
+
+    currentUser = this.authService.currentUser;
+
+    isOwner = computed(() => {
+        const user = this.authService.currentUser();
+        const cafe = this.cafe();
+        return !!user && !!cafe && cafe.ownerId === user.uid;
+    });
+
+    canClaim = computed(() => {
+        const user = this.authService.currentUser();
+        const cafe = this.cafe();
+        return !!user && !!cafe && (!cafe.claimStatus || cafe.claimStatus === 'unclaimed');
+    });
 
     async ngOnInit() {
         const id = this.route.snapshot.paramMap.get('id');
         if (id) {
-            const cafe = await this.cafeService.getCafeById(id);
+            const [cafe] = await Promise.all([
+                this.cafeService.getCafeById(id),
+                this.reviewService.loadReviewsForCafe(id),
+            ]);
             if (cafe) {
                 this.cafe.set(cafe);
-                // Load real reviews
-                await this.reviewService.loadReviewsForCafe(id);
+                const deals = await this.dealService.getActiveDealsForCafe(id);
+                this.activeDeals.set(deals);
             }
+        }
+    }
+
+    async claimCafe() {
+        const cafe = this.cafe();
+        if (!cafe) return;
+        this.claiming.set(true);
+        try {
+            await this.cafeService.claimCafe(cafe.id);
+            this.cafe.update(c => c ? { ...c, ownerId: this.authService.currentUser()!.uid, claimStatus: 'claimed' } : c);
+            this.toastService.show('Cafe claimed! You\'re now the owner.', 'success');
+        } catch (e: any) {
+            this.toastService.show(e?.message || 'Claim failed.', 'error');
+        } finally {
+            this.claiming.set(false);
         }
     }
 

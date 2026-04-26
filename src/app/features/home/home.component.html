@@ -99,37 +99,105 @@
 
     <!-- New This Week -->
     @if (newThisWeekCafes().length > 0 && !cafeService.searchQuery()) {
-    <div class="px-5 mb-3">
+    <div class="px-5 mb-4">
         <div class="flex items-baseline gap-2">
             <h2 class="font-zine font-black italic uppercase text-lg text-espresso">New This Week</h2>
             <span class="font-marker text-[10px] text-espresso/40 uppercase">freshly approved</span>
         </div>
     </div>
-    <div class="flex gap-3 px-5 overflow-x-auto pb-5 no-scrollbar snap-x">
-        @for (cafe of newThisWeekCafes(); track cafe.id; let i = $index) {
-        <a [routerLink]="['/cafe', cafe.id]"
-            class="shrink-0 w-44 bg-off-white zine-border p-2 snap-center zine-shadow zine-click-active"
-            [class]="i % 2 === 0 ? 'rotate-[-1deg]' : 'rotate-[1deg]'">
-            <div class="overflow-hidden zine-border aspect-[4/3] bg-latte relative">
-                <img [src]="cafe.photos[0] || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=400&h=300&fit=crop'"
-                    [alt]="cafe.name" class="w-full h-full object-cover" />
-                <div class="absolute top-1.5 left-1.5 bg-sage text-espresso px-2 py-0.5 font-zine text-[9px] font-bold uppercase border border-espresso">NEW</div>
+
+    <!-- Messy Stack -->
+    @let cafes = newThisWeekCafes();
+    @let idx = activeNewCafeIndex();
+    @let total = cafes.length;
+    <div class="relative h-72 mx-5 mb-4">
+
+        <!-- Card 3 — furthest back -->
+        @if (total > 2) {
+        <div class="absolute inset-0 border-4 border-espresso overflow-hidden"
+             style="transform: rotate(7deg) translate(12px, 6px); z-index: 1;">
+            <img [src]="cafes[(idx + 2) % total].photos[0] || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=600&h=400&fit=crop'"
+                 class="w-full h-full object-cover brightness-50" />
+        </div>
+        }
+
+        <!-- Card 2 — middle -->
+        @if (total > 1) {
+        <div class="absolute inset-0 border-4 border-espresso overflow-hidden"
+             style="transform: rotate(-4deg) translate(-8px, 4px); z-index: 2;">
+            <img [src]="cafes[(idx + 1) % total].photos[0] || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=600&h=400&fit=crop'"
+                 class="w-full h-full object-cover brightness-75" />
+        </div>
+        }
+
+        <!-- Card 1 — top, interactive -->
+        <a [routerLink]="['/cafe', cafes[idx].id]"
+           class="absolute inset-0 border-4 border-espresso overflow-hidden block zine-click-active"
+           style="transform: rotate(-1.5deg); z-index: 3; box-shadow: 6px 6px 0 var(--color-espresso);">
+
+            <div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-5 bg-white/60 border border-espresso/40 rotate-2 z-10"></div>
+
+            <img [src]="cafes[idx].photos[0] || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=600&h=400&fit=crop'"
+                 [alt]="cafes[idx].name" class="w-full h-full object-cover" />
+
+            <div class="absolute inset-0 bg-gradient-to-t from-espresso/90 via-espresso/20 to-transparent"></div>
+
+            <div class="absolute top-4 left-4 bg-sage text-espresso px-3 py-1 font-zine text-[10px] font-bold uppercase border-2 border-espresso tracking-widest">
+                ✦ NEW
             </div>
-            <div class="pt-2 pb-1 px-1">
-                <p class="font-zine font-black italic uppercase text-espresso text-xs leading-tight line-clamp-1">{{ cafe.name }}</p>
-                <p class="font-marker text-[10px] text-espresso/50 mt-0.5 line-clamp-1">{{ cafe.address }}</p>
+
+            <div class="absolute bottom-4 left-4 right-4">
+                <h3 class="font-zine font-black italic uppercase text-off-white text-2xl leading-tight drop-shadow-lg">
+                    {{ cafes[idx].name }}
+                </h3>
+                <p class="font-marker text-off-white/70 text-xs mt-1 flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[12px]">location_on</span>
+                    {{ cafes[idx].address }}
+                </p>
+                @if (cafes[idx].tags.length > 0) {
+                <div class="flex gap-1.5 mt-2 flex-wrap">
+                    @for (tag of cafes[idx].tags.slice(0, 3); track tag) {
+                    <span class="px-2 py-0.5 bg-white/20 backdrop-blur-sm border border-white/30 font-marker text-[9px] text-white uppercase">#{{ tag }}</span>
+                    }
+                </div>
+                }
             </div>
         </a>
+
+        <!-- Prev / Next arrows -->
+        @if (total > 1) {
+        <button (click)="prevNewCafe()" class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 z-[4] w-8 h-8 bg-off-white border-2 border-espresso flex items-center justify-center zine-shadow-sm zine-click-active">
+            <span class="material-symbols-outlined text-sm text-espresso">chevron_left</span>
+        </button>
+        <button (click)="nextNewCafe()" class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 z-[4] w-8 h-8 bg-off-white border-2 border-espresso flex items-center justify-center zine-shadow-sm zine-click-active">
+            <span class="material-symbols-outlined text-sm text-espresso">chevron_right</span>
+        </button>
         }
     </div>
+
+    <!-- Dot indicators -->
+    @if (total > 1) {
+    <div class="flex justify-center gap-1.5 mb-8">
+        @for (cafe of cafes; track cafe.id; let i = $index) {
+        <button (click)="activeNewCafeIndex.set(i)"
+            class="h-1.5 rounded-full border border-espresso transition-all duration-200"
+            [class]="i === idx ? 'w-5 bg-espresso' : 'w-1.5 bg-espresso/20'">
+        </button>
+        }
+    </div>
+    }
     }
 
     <!-- For You -->
     @if (suggestedCafes().length > 0 && !cafeService.searchQuery()) {
     <div class="px-5 mb-3">
-        <div class="flex items-baseline gap-2">
+        <div class="flex items-center gap-2">
             <h2 class="font-zine font-black italic uppercase text-lg text-espresso">For You</h2>
             <span class="font-marker text-[10px] text-espresso/40 uppercase">based on time &amp; vibe</span>
+            <button (click)="showSuggestedInfo.set(true)"
+                class="ml-auto shrink-0 w-6 h-6 rounded-full border-2 border-espresso/40 bg-off-white flex items-center justify-center hover:border-espresso hover:bg-primary transition-all">
+                <span class="material-symbols-outlined text-[13px] text-espresso/60">info</span>
+            </button>
         </div>
     </div>
     <div class="flex gap-3 px-5 overflow-x-auto pb-5 no-scrollbar snap-x">
@@ -142,7 +210,7 @@
                     [alt]="cafe.name" class="w-full h-full object-cover" />
                 @if (cafe.tags && cafe.tags.length > 0) {
                 <div class="absolute top-1.5 right-1.5 bg-primary text-espresso px-1.5 py-0.5 font-marker text-[9px] zine-border uppercase">
-                    {{ cafe.tags[0] }}
+                    #{{ cafe.tags[0] }}
                 </div>
                 }
             </div>
@@ -220,26 +288,25 @@
                             [alt]="cafe.name" class="w-full h-full object-cover" />
                     </a>
 
-                    @if (liveCount(cafe.id) > 0) {
-                    <div class="absolute top-2 left-2 bg-espresso text-primary border border-primary px-2 py-0.5 font-zine font-bold text-[9px] flex items-center gap-1 animate-pulse">
-                        <span class="material-symbols-outlined text-[10px]">sensors</span>
-                        {{ liveCount(cafe.id) }} here now
-                    </div>
-                    }
 
                     @if (cafe.tags && cafe.tags.length > 0) {
                     <div class="absolute top-2 right-2 bg-primary text-espresso px-2 py-0.5 font-marker text-[10px] rotate-2 zine-border uppercase">
-                        {{ cafe.tags[0] }}
+                        #{{ cafe.tags[0] }}
                     </div>
                     }
 
                     <div class="absolute bottom-2 left-2 flex gap-1.5">
-                        <div [class]="cafeService.isOpenNow(cafe)
-                            ? 'bg-sage text-espresso px-2 py-0.5 font-zine font-bold text-[9px] zine-border flex items-center gap-1'
-                            : 'bg-latte/80 text-espresso/50 px-2 py-0.5 font-zine font-bold text-[9px] border border-espresso/20 flex items-center gap-1'">
-                            <span class="material-symbols-outlined text-[10px]">schedule</span>
-                            {{ cafeService.isOpenNow(cafe) ? 'Open' : 'Closed' }}
+                        @if (cafeService.isOpenNow(cafe)) {
+                        <div class="flex items-center gap-1 bg-sage border-2 border-espresso px-2.5 py-1 zine-shadow-sm">
+                            <span class="w-1.5 h-1.5 rounded-full bg-espresso animate-pulse"></span>
+                            <span class="font-zine font-black text-[9px] uppercase tracking-widest text-espresso">Open</span>
                         </div>
+                        } @else {
+                        <div class="flex items-center gap-1 bg-espresso/80 backdrop-blur-sm border border-white/10 px-2.5 py-1">
+                            <span class="material-symbols-outlined text-[10px] text-white/50">remove_circle</span>
+                            <span class="font-zine font-black text-[9px] uppercase tracking-widest text-white/60">Closed</span>
+                        </div>
+                        }
                     </div>
                 </div>
 
@@ -289,5 +356,56 @@
     <!-- Save to List Modal -->
     @if (bookmarkCafeId()) {
     <app-save-to-list-modal [cafeId]="bookmarkCafeId()!" (close)="closeBookmark()"></app-save-to-list-modal>
+    }
+
+    <!-- For You Info Sheet -->
+    @if (showSuggestedInfo()) {
+    <div class="fixed inset-0 z-[80] flex items-end justify-center max-w-md mx-auto" (click)="showSuggestedInfo.set(false)">
+        <div class="absolute inset-0 bg-espresso/40 backdrop-blur-sm"></div>
+        <div class="relative w-full bg-latte border-t-4 border-x-4 border-espresso rounded-t-3xl px-6 pt-5 pb-12 grain-overlay"
+             (click)="$event.stopPropagation()">
+            <!-- Handle -->
+            <div class="w-12 h-1.5 bg-espresso/30 rounded-full mx-auto mb-5"></div>
+
+            <div class="flex items-start gap-3 mb-5">
+                <div class="w-10 h-10 bg-primary border-2 border-espresso flex items-center justify-center shrink-0 -rotate-2 zine-shadow-sm">
+                    <span class="material-symbols-outlined text-espresso">auto_awesome</span>
+                </div>
+                <div>
+                    <h3 class="font-zine font-black italic uppercase text-espresso text-lg leading-tight">How "For You" Works</h3>
+                    <p class="font-marker text-espresso/50 text-xs uppercase mt-0.5">picks spots based on you</p>
+                </div>
+            </div>
+
+            <div class="space-y-3">
+                <div class="flex items-start gap-3 bg-off-white border-2 border-espresso p-3 zine-shadow-sm rotate-[0.3deg]">
+                    <span class="material-symbols-outlined text-primary text-xl shrink-0">schedule</span>
+                    <div>
+                        <p class="font-zine font-bold text-xs uppercase tracking-wide text-espresso">Time of Day</p>
+                        <p class="font-marker text-xs text-espresso/60 mt-0.5">Morning → study &amp; wifi spots. Afternoon → chill &amp; halal. Evening → aesthetic &amp; hangout vibes.</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3 bg-off-white border-2 border-espresso p-3 zine-shadow-sm -rotate-[0.3deg]">
+                    <span class="material-symbols-outlined text-primary text-xl shrink-0">weekend</span>
+                    <div>
+                        <p class="font-zine font-bold text-xs uppercase tracking-wide text-espresso">Weekend Mode</p>
+                        <p class="font-marker text-xs text-espresso/60 mt-0.5">Weekends always lean aesthetic &amp; chill — explore mode on.</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3 bg-off-white border-2 border-espresso p-3 zine-shadow-sm rotate-[0.2deg]">
+                    <span class="material-symbols-outlined text-primary text-xl shrink-0">star</span>
+                    <div>
+                        <p class="font-zine font-bold text-xs uppercase tracking-wide text-espresso">Rating Boost</p>
+                        <p class="font-marker text-xs text-espresso/60 mt-0.5">Higher rated cafes score higher. Tag match weighs double over rating.</p>
+                    </div>
+                </div>
+            </div>
+
+            <button (click)="showSuggestedInfo.set(false)"
+                class="w-full mt-5 py-3 font-marker text-sm uppercase tracking-wide text-espresso/60 hover:text-espresso border-t-2 border-espresso/10 hover:border-espresso/30 transition-all">
+                Got it
+            </button>
+        </div>
+    </div>
     }
 </div>

@@ -152,7 +152,7 @@ export class AddCafeComponent implements OnInit {
     onSceneSnapSelected(event: Event) {
         const input = event.target as HTMLInputElement;
         if (!input.files) return;
-        const newFiles = Array.from(input.files).slice(0, 3 - this.sceneSnapFiles().length);
+        const newFiles = Array.from(input.files).slice(0, 5 - this.sceneSnapFiles().length);
         newFiles.forEach(file => {
             if (!file.type.startsWith('image/')) return;
             const reader = new FileReader();

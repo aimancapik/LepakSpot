@@ -45,6 +45,13 @@
     <div class="city-name">{{ cityName() }}</div>
     }
 
+    <!-- Locate Me Button -->
+    @if (userLat() !== null) {
+    <button class="locate-btn" (click)="flyToUser()">
+        <span class="material-symbols-outlined">my_location</span>
+    </button>
+    }
+
     <!-- Location Detail Drawer -->
     <div class="drawer-backdrop" [class.open]="isDrawerOpen()" (click)="closeDrawer()"></div>
     <div class="drawer" [class.open]="isDrawerOpen()">
@@ -65,12 +72,12 @@
                 </a>
                 <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px;">
                     <div class="cafe-rating">
-                        <span class="material-symbols-outlined small star">star</span>
+                        <span class="material-symbols-outlined small star" style="font-variation-settings:'FILL' 1">star</span>
                         {{ cafe.rating.toFixed(1) }}
                     </div>
                     @if (distanceToCafe() !== null) {
                     <div class="distance-badge" [class.near]="!tooFarToCheckIn()" [class.far]="tooFarToCheckIn()">
-                        <span class="material-symbols-outlined" style="font-size:12px;">{{ tooFarToCheckIn() ? 'location_searching' : 'my_location' }}</span>
+                        <span class="material-symbols-outlined" style="font-size:13px;">{{ tooFarToCheckIn() ? 'location_searching' : 'where_to_vote' }}</span>
                         {{ tooFarToCheckIn() ? formatDistance() : "You're here!" }}
                     </div>
                     }
@@ -81,58 +88,10 @@
         <!-- Tags -->
         <div class="tags-row">
             @for (tag of cafe.tags; track tag) {
-            <span class="tag">{{ tag }}</span>
+            <span class="tag">#{{ tag }}</span>
             }
         </div>
 
-        <!-- Density Card -->
-        <div class="density-card" [style.background]="densityConfig().bg"
-            [style.border-color]="densityConfig().color + '40'">
-            <div class="density-left">
-                <div class="density-ring">
-                    <svg viewBox="0 0 36 36">
-                        <circle class="ring-bg" cx="18" cy="18" r="15.9"></circle>
-                        <circle class="ring-fill" cx="18" cy="18" r="15.9" [style.stroke]="densityConfig().color"
-                            [style.stroke-dasharray]="getDensityFill(selectedCafeDensity().level) + ' 100'">
-                        </circle>
-                    </svg>
-                    <div class="density-count">{{ selectedCafeDensity().count }}</div>
-                </div>
-            </div>
-            <div class="density-right">
-                <div class="density-label" [style.color]="densityConfig().color">{{ densityConfig().label }}</div>
-                <div class="density-sublabel">{{ selectedCafeDensity().count }} people here now</div>
-                <div class="density-bar">
-                    <div class="density-bar-fill" [style.width]="getDensityFill(selectedCafeDensity().level) + '%'"
-                        [style.background]="densityConfig().color">
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Who's Here -->
-        @if (activePeople().length > 0) {
-        <div class="whos-here">
-            <h3 class="section-title">
-                <span class="material-symbols-outlined small">groups</span>
-                Who's around
-            </h3>
-            <div class="avatar-row">
-                @for (person of activePeople().slice(0, 5); track person.userId) {
-                <div class="avatar-wrap" [title]="person.displayName">
-                    @if (person.photoURL) {
-                    <img class="avatar-img" [src]="person.photoURL" [alt]="person.displayName" />
-                    } @else {
-                    <div class="avatar-initials">{{ getAvatarInitials(person.displayName) }}</div>
-                    }
-                </div>
-                }
-                @if (activePeople().length > 5) {
-                <div class="avatar-more">+{{ activePeople().length - 5 }}</div>
-                }
-            </div>
-        </div>
-        }
 
         <!-- Check-in Button -->
         <div class="checkin-section">

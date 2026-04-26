@@ -118,6 +118,15 @@ export const routes: Routes = [
     data: { showBottomNavbar: false, activeTab: 'home' }
   },
   {
+    path: 'cafe/:id/owner',
+    loadComponent: () =>
+      import('./features/cafe/owner-dashboard/owner-dashboard.component').then(
+        (m) => m.OwnerDashboardComponent
+      ),
+    canActivate: [authOnlyGuard],
+    data: { showBottomNavbar: false }
+  },
+  {
     path: 'cafe/:id/scene',
     loadComponent: () =>
       import('./features/cafe/scene/scene.component').then(

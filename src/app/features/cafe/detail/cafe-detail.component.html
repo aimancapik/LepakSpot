@@ -79,6 +79,63 @@
             }
         </div>
 
+        <!-- Active Deals -->
+        @if (activeDeals().length > 0) {
+        <div class="space-y-3">
+            <h3 class="inline-block bg-primary text-espresso px-4 py-1 font-zine font-bold italic uppercase tracking-widest -rotate-1 border-2 border-espresso zine-shadow-sm">
+                DEALS ON NOW
+            </h3>
+            <div class="space-y-2">
+                @for (deal of activeDeals(); track deal.id) {
+                <div class="bg-primary/20 border-2 border-primary p-4 rotate-[0.3deg]">
+                    <div class="flex items-start gap-3">
+                        <span class="material-symbols-outlined text-primary text-2xl shrink-0 mt-0.5">local_offer</span>
+                        <div>
+                            <p class="font-zine font-black text-sm uppercase text-espresso">{{ deal.title }}</p>
+                            @if (deal.description) {
+                            <p class="font-marker text-xs text-espresso/70 mt-0.5">{{ deal.description }}</p>
+                            }
+                            <p class="font-zine text-[10px] text-espresso/50 uppercase mt-1">
+                                Until {{ deal.validUntil | date:'d MMM, h:mm a' }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                }
+            </div>
+        </div>
+        }
+
+        <!-- Owner Actions: claim or go to dashboard -->
+        @if (isOwner()) {
+        <a [routerLink]="['/cafe', cafeData.id, 'owner']"
+            class="flex items-center justify-between bg-espresso text-off-white border-4 border-espresso zine-shadow px-5 py-4 zine-click-active -rotate-[0.5deg]">
+            <div>
+                <p class="font-zine font-black italic uppercase tracking-wider text-sm">Owner Dashboard</p>
+                <p class="font-marker text-xs text-off-white/60 mt-0.5">Edit info · Manage deals · View stats</p>
+            </div>
+            <span class="material-symbols-outlined text-off-white/60">chevron_right</span>
+        </a>
+        } @else if (canClaim()) {
+        <button (click)="claimCafe()" [disabled]="claiming()"
+            class="w-full flex items-center justify-between bg-off-white border-4 border-espresso zine-shadow px-5 py-4 zine-click-active rotate-[0.5deg] disabled:opacity-50">
+            <div class="text-left">
+                <p class="font-zine font-black italic uppercase tracking-wider text-sm text-espresso">Own this cafe?</p>
+                <p class="font-marker text-xs text-espresso/60 mt-0.5">Claim it to manage info, post deals & view stats</p>
+            </div>
+            @if (claiming()) {
+            <span class="material-symbols-outlined text-espresso animate-spin">progress_activity</span>
+            } @else {
+            <span class="material-symbols-outlined text-espresso">storefront</span>
+            }
+        </button>
+        } @else if (cafeData.claimStatus === 'claimed' && !isOwner()) {
+        <div class="flex items-center gap-3 bg-off-white border-2 border-espresso/30 px-4 py-3 opacity-60">
+            <span class="material-symbols-outlined text-sm text-espresso/40">verified</span>
+            <p class="font-zine text-xs text-espresso/40 uppercase font-bold tracking-wide">Managed by owner</p>
+        </div>
+        }
+
         <!-- See on Socials — only show if any link provided -->
         @if (cafeData.socialLinks?.tiktok || cafeData.socialLinks?.facebook || cafeData.socialLinks?.other) {
         <div class="space-y-4">

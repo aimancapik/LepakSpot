@@ -1,0 +1,315 @@
+<div class="relative max-w-md mx-auto w-full min-h-screen bg-latte border-x-4 border-espresso grain-overlay font-display text-espresso">
+
+    @if (loading()) {
+    <div class="flex items-center justify-center min-h-screen">
+        <span class="font-marker text-xl text-espresso/40 uppercase animate-pulse">Loading...</span>
+    </div>
+    } @else if (cafe(); as cafeData) {
+
+    <!-- Header -->
+    <div class="bg-espresso text-off-white px-6 pt-10 pb-6 relative">
+        <button (click)="goBack()"
+            class="absolute top-10 left-6 size-9 bg-off-white/10 border border-off-white/20 flex items-center justify-center hover:bg-off-white/20">
+            <span class="material-symbols-outlined text-off-white text-lg">arrow_back</span>
+        </button>
+        <div class="pl-12">
+            <p class="font-zine text-[10px] uppercase tracking-widest text-off-white/50 mb-1">Owner Dashboard</p>
+            <h1 class="font-zine font-black italic uppercase text-2xl leading-tight tracking-tight">{{ cafeData.name }}</h1>
+            <p class="font-marker text-off-white/60 text-xs mt-1 flex items-center gap-1">
+                <span class="material-symbols-outlined text-xs">verified</span>
+                Claimed by you
+            </p>
+        </div>
+    </div>
+
+    <!-- Tab Bar -->
+    <div class="flex border-b-4 border-espresso bg-off-white sticky top-0 z-30">
+        @for (tab of [
+            {id: 'overview', icon: 'edit', label: 'Info'},
+            {id: 'reviews', icon: 'rate_review', label: 'Reviews'},
+            {id: 'deals', icon: 'local_offer', label: 'Deals'},
+            {id: 'traffic', icon: 'bar_chart', label: 'Traffic'}
+        ]; track tab.id) {
+        <button (click)="activeTab.set($any(tab.id))"
+            class="flex-1 flex flex-col items-center gap-0.5 py-3 font-zine text-[10px] font-bold uppercase tracking-wider transition-colors"
+            [class.bg-espresso]="activeTab() === tab.id"
+            [class.text-off-white]="activeTab() === tab.id"
+            [class.text-espresso]="activeTab() !== tab.id">
+            <span class="material-symbols-outlined text-base">{{ tab.icon }}</span>
+            {{ tab.label }}
+        </button>
+        }
+    </div>
+
+    <!-- Tab Content -->
+    <div class="px-6 py-8 pb-24 space-y-6">
+
+        <!-- ── OVERVIEW TAB ── -->
+        @if (activeTab() === 'overview') {
+        <div class="space-y-5">
+            <h2 class="inline-block bg-primary text-espresso px-4 py-1 font-zine font-black italic uppercase tracking-widest -rotate-1 border-2 border-espresso zine-shadow-sm">
+                Cafe Info
+            </h2>
+
+            <!-- Name -->
+            <div class="space-y-1.5">
+                <label class="font-zine text-xs font-bold uppercase tracking-widest text-espresso/60">Cafe Name</label>
+                <input [ngModel]="editName()" (ngModelChange)="editName.set($event)"
+                    class="w-full bg-off-white border-2 border-espresso px-4 py-3 font-zine text-sm font-bold focus:outline-none focus:border-primary" />
+            </div>
+
+            <!-- Address -->
+            <div class="space-y-1.5">
+                <label class="font-zine text-xs font-bold uppercase tracking-widest text-espresso/60">Address</label>
+                <input [ngModel]="editAddress()" (ngModelChange)="editAddress.set($event)"
+                    class="w-full bg-off-white border-2 border-espresso px-4 py-3 font-zine text-sm focus:outline-none focus:border-primary" />
+            </div>
+
+            <!-- Opening Hours -->
+            <div class="space-y-1.5">
+                <label class="font-zine text-xs font-bold uppercase tracking-widest text-espresso/60">Opening Hours</label>
+                <input [ngModel]="editOpeningHours()" (ngModelChange)="editOpeningHours.set($event)"
+                    placeholder="e.g. 8am – 10pm, Daily"
+                    class="w-full bg-off-white border-2 border-espresso px-4 py-3 font-zine text-sm focus:outline-none focus:border-primary" />
+            </div>
+
+            <!-- Tags -->
+            <div class="space-y-2">
+                <label class="font-zine text-xs font-bold uppercase tracking-widest text-espresso/60">Tags</label>
+                <div class="flex flex-wrap gap-2">
+                    @for (tag of allTags; track tag) {
+                    <button (click)="toggleEditTag(tag)"
+                        class="px-3 py-1 border-2 border-espresso font-marker text-sm uppercase transition-colors"
+                        [class.bg-primary]="editTags().includes(tag)"
+                        [class.bg-off-white]="!editTags().includes(tag)">
+                        #{{ tag }}
+                    </button>
+                    }
+                </div>
+            </div>
+
+            <!-- WiFi + Outlets -->
+            <div class="grid grid-cols-2 gap-3">
+                <div class="space-y-1.5">
+                    <label class="font-zine text-xs font-bold uppercase tracking-widest text-espresso/60">WiFi Speed</label>
+                    <select [ngModel]="editWifiSpeed()" (ngModelChange)="editWifiSpeed.set($event)"
+                        class="w-full bg-off-white border-2 border-espresso px-3 py-2.5 font-zine text-sm focus:outline-none">
+                        <option value="">—</option>
+                        <option>Fast</option><option>Average</option><option>Slow</option><option>None</option>
+                    </select>
+                </div>
+                <div class="space-y-1.5">
+                    <label class="font-zine text-xs font-bold uppercase tracking-widest text-espresso/60">Outlets</label>
+                    <select [ngModel]="editOutletAvailability()" (ngModelChange)="editOutletAvailability.set($event)"
+                        class="w-full bg-off-white border-2 border-espresso px-3 py-2.5 font-zine text-sm focus:outline-none">
+                        <option value="">—</option>
+                        <option>Many</option><option>Few</option><option>None</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Late Night Toggle -->
+            <div class="flex items-center justify-between bg-off-white border-2 border-espresso px-4 py-3">
+                <span class="font-zine text-sm font-bold uppercase">Late Night Spot</span>
+                <button (click)="editIsLateNight.update(v => !v)"
+                    class="w-12 h-6 rounded-full border-2 border-espresso transition-colors flex items-center px-0.5"
+                    [class.bg-primary]="editIsLateNight()"
+                    [class.bg-espresso/10]="!editIsLateNight()">
+                    <span class="w-4 h-4 rounded-full bg-espresso transition-transform"
+                        [class.translate-x-6]="editIsLateNight()"></span>
+                </button>
+            </div>
+
+            <!-- Save -->
+            <button (click)="saveOverview()" [disabled]="saving()"
+                class="w-full bg-espresso text-off-white py-4 border-4 border-espresso zine-shadow font-zine font-black italic uppercase text-lg tracking-widest zine-click-active disabled:opacity-50 flex items-center justify-center gap-2">
+                @if (saving()) { <span class="animate-spin material-symbols-outlined text-base">progress_activity</span> }
+                Save Changes
+            </button>
+        </div>
+        }
+
+        <!-- ── REVIEWS TAB ── -->
+        @if (activeTab() === 'reviews') {
+        <div class="space-y-4">
+            <h2 class="inline-block bg-sage text-espresso px-4 py-1 font-zine font-black italic uppercase tracking-widest rotate-1 border-2 border-espresso zine-shadow-sm">
+                Customer Reviews
+            </h2>
+            @if (reviews().length === 0) {
+            <div class="bg-off-white zine-border p-10 text-center zine-shadow -rotate-1">
+                <p class="font-marker text-lg text-espresso/60">No reviews yet.</p>
+                <p class="font-zine text-xs uppercase text-espresso/40 mt-1">Reviews from customers appear here.</p>
+            </div>
+            } @else {
+            <div class="space-y-4">
+                @for (review of reviews(); track review.id) {
+                <div class="bg-off-white border-2 border-espresso/20 p-4 space-y-2 rounded-xl">
+                    <div class="flex items-center gap-2">
+                        @if (review.photoURL) {
+                        <img [src]="review.photoURL" class="w-8 h-8 rounded-full border-2 border-espresso object-cover shrink-0" />
+                        } @else {
+                        <div class="w-8 h-8 rounded-full border-2 border-espresso bg-sage flex items-center justify-center shrink-0">
+                            <span class="font-marker text-sm uppercase">{{ review.displayName[0] }}</span>
+                        </div>
+                        }
+                        <div class="flex-1 min-w-0">
+                            <p class="font-marker text-sm text-espresso truncate">{{ review.displayName }}</p>
+                            <p class="font-zine text-[10px] text-espresso/50 uppercase">{{ review.createdAt | date:'d MMM yyyy' }}</p>
+                        </div>
+                        <div class="flex gap-0.5 shrink-0">
+                            @for (s of [1,2,3,4,5]; track s) {
+                            <span class="material-symbols-outlined text-sm"
+                                [class.text-primary]="s <= review.rating"
+                                [class.text-espresso]="s > review.rating"
+                                style="font-variation-settings:'FILL' 1"
+                                [style.opacity]="s > review.rating ? '0.2' : '1'">star</span>
+                            }
+                        </div>
+                    </div>
+                    @if (review.text) {
+                    <p class="font-marker text-sm text-espresso/80 leading-relaxed">"{{ review.text }}"</p>
+                    }
+                </div>
+                }
+            </div>
+            }
+        </div>
+        }
+
+        <!-- ── DEALS TAB ── -->
+        @if (activeTab() === 'deals') {
+        <div class="space-y-5">
+            <div class="flex items-center justify-between">
+                <h2 class="inline-block bg-primary text-espresso px-4 py-1 font-zine font-black italic uppercase tracking-widest -rotate-1 border-2 border-espresso zine-shadow-sm">
+                    Deals & Promos
+                </h2>
+                <button (click)="showDealForm.update(v => !v)"
+                    class="size-10 bg-espresso text-off-white border-2 border-espresso zine-shadow-sm flex items-center justify-center zine-click-active">
+                    <span class="material-symbols-outlined text-lg">{{ showDealForm() ? 'close' : 'add' }}</span>
+                </button>
+            </div>
+
+            <!-- Deal form -->
+            @if (showDealForm()) {
+            <div class="bg-off-white border-4 border-espresso zine-shadow p-5 space-y-4 rotate-[0.5deg]">
+                <p class="font-zine font-black italic uppercase tracking-wider text-sm">New Deal</p>
+                <input [ngModel]="newDealTitle()" (ngModelChange)="newDealTitle.set($event)"
+                    placeholder="Deal title *"
+                    class="w-full border-2 border-espresso px-3 py-2 font-zine text-sm focus:outline-none focus:border-primary bg-latte" />
+                <textarea [ngModel]="newDealDescription()" (ngModelChange)="newDealDescription.set($event)"
+                    placeholder="Description (optional)"
+                    rows="2"
+                    class="w-full border-2 border-espresso px-3 py-2 font-zine text-sm focus:outline-none focus:border-primary bg-latte resize-none"></textarea>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label class="font-zine text-[10px] uppercase tracking-widest text-espresso/60">Valid From *</label>
+                        <input type="datetime-local" [ngModel]="newDealValidFrom()" (ngModelChange)="newDealValidFrom.set($event)"
+                            class="w-full border-2 border-espresso px-2 py-2 font-zine text-xs focus:outline-none bg-latte" />
+                    </div>
+                    <div class="space-y-1">
+                        <label class="font-zine text-[10px] uppercase tracking-widest text-espresso/60">Valid Until *</label>
+                        <input type="datetime-local" [ngModel]="newDealValidUntil()" (ngModelChange)="newDealValidUntil.set($event)"
+                            class="w-full border-2 border-espresso px-2 py-2 font-zine text-xs focus:outline-none bg-latte" />
+                    </div>
+                </div>
+                <button (click)="createDeal()" [disabled]="saving()"
+                    class="w-full bg-primary text-espresso py-3 border-2 border-espresso font-zine font-black italic uppercase tracking-wider zine-click-active disabled:opacity-50">
+                    Post Deal
+                </button>
+            </div>
+            }
+
+            <!-- Deal list -->
+            @if (deals().length === 0) {
+            <div class="bg-off-white zine-border p-10 text-center zine-shadow -rotate-1">
+                <p class="font-marker text-lg text-espresso/60">No deals yet.</p>
+                <p class="font-zine text-xs uppercase text-espresso/40 mt-1">Post a promo to attract more customers.</p>
+            </div>
+            } @else {
+            <div class="space-y-3">
+                @for (deal of deals(); track deal.id) {
+                <div class="bg-off-white border-2 border-espresso p-4 space-y-2"
+                    [class.opacity-50]="!isDealActive(deal)">
+                    <div class="flex items-start gap-3">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <p class="font-zine font-black text-sm uppercase">{{ deal.title }}</p>
+                                @if (isDealActive(deal)) {
+                                <span class="px-2 py-0.5 bg-primary border border-espresso font-zine text-[9px] font-bold uppercase tracking-widest text-espresso">LIVE</span>
+                                } @else if (!deal.isActive) {
+                                <span class="px-2 py-0.5 bg-espresso/10 border border-espresso/30 font-zine text-[9px] font-bold uppercase tracking-widest text-espresso/50">PAUSED</span>
+                                } @else {
+                                <span class="px-2 py-0.5 bg-espresso/10 border border-espresso/30 font-zine text-[9px] font-bold uppercase tracking-widest text-espresso/50">EXPIRED</span>
+                                }
+                            </div>
+                            @if (deal.description) {
+                            <p class="font-marker text-xs text-espresso/70 mt-0.5">{{ deal.description }}</p>
+                            }
+                            <p class="font-zine text-[10px] text-espresso/50 mt-1 uppercase">
+                                {{ deal.validFrom | date:'d MMM, h:mm a' }} — {{ deal.validUntil | date:'d MMM, h:mm a' }}
+                            </p>
+                        </div>
+                        <div class="flex gap-2 shrink-0">
+                            <button (click)="toggleDeal(deal)"
+                                class="size-8 border-2 border-espresso flex items-center justify-center zine-click-active"
+                                [class.bg-sage]="deal.isActive"
+                                [class.bg-off-white]="!deal.isActive"
+                                [title]="deal.isActive ? 'Pause' : 'Activate'">
+                                <span class="material-symbols-outlined text-sm">{{ deal.isActive ? 'pause' : 'play_arrow' }}</span>
+                            </button>
+                            <button (click)="deleteDeal(deal)"
+                                class="size-8 bg-off-white border-2 border-espresso flex items-center justify-center zine-click-active hover:bg-red-100">
+                                <span class="material-symbols-outlined text-sm text-espresso/60">delete</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                }
+            </div>
+            }
+        </div>
+        }
+
+        <!-- ── TRAFFIC TAB ── -->
+        @if (activeTab() === 'traffic') {
+        <div class="space-y-5">
+            <h2 class="inline-block bg-espresso text-off-white px-4 py-1 font-zine font-black italic uppercase tracking-widest -rotate-1 zine-shadow-sm">
+                Traffic Overview
+            </h2>
+
+            @if (stats(); as s) {
+            <div class="grid grid-cols-3 gap-3">
+                <div class="bg-off-white border-2 border-espresso zine-shadow p-4 text-center -rotate-1">
+                    <p class="font-zine font-black text-3xl text-primary">{{ s.totalCheckins }}</p>
+                    <p class="font-marker text-[10px] uppercase text-espresso/60 mt-1">Check-ins</p>
+                </div>
+                <div class="bg-off-white border-2 border-espresso zine-shadow p-4 text-center rotate-1">
+                    <p class="font-zine font-black text-3xl text-sage">{{ s.totalSessions }}</p>
+                    <p class="font-marker text-[10px] uppercase text-espresso/60 mt-1">Sessions Won</p>
+                </div>
+                <div class="bg-off-white border-2 border-espresso zine-shadow p-4 text-center -rotate-[0.5deg]">
+                    <p class="font-zine font-black text-3xl text-espresso">{{ s.avgRating || '—' }}</p>
+                    <p class="font-marker text-[10px] uppercase text-espresso/60 mt-1">Avg Rating</p>
+                </div>
+            </div>
+
+            <div class="bg-off-white border-2 border-espresso p-5 space-y-3">
+                <p class="font-zine font-bold text-sm uppercase tracking-wider">What the numbers mean</p>
+                <div class="space-y-2 font-marker text-sm text-espresso/70">
+                    <p>— <span class="text-primary font-bold">{{ s.totalCheckins }}</span> people checked in here</p>
+                    <p>— Your cafe won <span class="text-sage font-bold">{{ s.totalSessions }}</span> group voting sessions</p>
+                    <p>— Average review rating: <span class="font-bold">{{ s.avgRating || 'No reviews yet' }}</span></p>
+                </div>
+            </div>
+            } @else {
+            <div class="flex items-center justify-center h-40">
+                <span class="font-marker text-espresso/40 animate-pulse uppercase">Loading stats...</span>
+            </div>
+            }
+        </div>
+        }
+
+    </div>
+    }
+
+</div>

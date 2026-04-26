@@ -11,6 +11,14 @@
             <span class="text-xs font-bold text-espresso">{{ cafe().rating }}</span>
         </div>
 
+        <!-- Deal badge -->
+        @if (cafe().hasActiveDeal) {
+        <div class="absolute top-3 left-1/2 -translate-x-1/2 bg-espresso text-off-white border-2 border-primary rounded-full px-2.5 py-1 flex items-center gap-1 zine-shadow-sm rotate-1">
+            <span class="material-symbols-outlined text-primary text-xs" style="font-variation-settings:'FILL' 1">local_offer</span>
+            <span class="text-[10px] font-bold uppercase tracking-wide">Deal On</span>
+        </div>
+        }
+
         <!-- Save button -->
         <button (click)="openSaveModal($event)"
             class="absolute top-3 right-3 bg-white/80 backdrop-blur-sm border-2 border-espresso rounded-full w-9 h-9 flex items-center justify-center zine-shadow-sm active:scale-90 transition-transform rotate-2">
@@ -20,13 +28,7 @@
         <!-- Crowd + Noise badges — always visible -->
         <div class="absolute bottom-0 left-0 right-0 px-2 pb-2 flex gap-1.5 flex-wrap"
             style="background: linear-gradient(to top, rgba(44,24,16,0.55) 0%, transparent 100%)">
-            @if (cafe().crowdLevel) {
-            <div class="bg-white/20 backdrop-blur-md border border-white/40 text-white px-2 py-0.5 rounded-full font-bold text-[10px] flex items-center gap-1">
-                <span class="material-symbols-outlined text-[11px]">groups</span>
-                {{ cafe().crowdLevel }}
-            </div>
-            }
-            @if (cafe().noiseLevel) {
+@if (cafe().noiseLevel) {
             <div class="bg-primary/80 backdrop-blur-md border border-primary text-espresso px-2 py-0.5 rounded-full font-bold text-[10px] flex items-center gap-1">
                 <span class="material-symbols-outlined text-[11px]">volume_up</span>
                 {{ cafe().noiseLevel }}
@@ -55,7 +57,7 @@
         <div class="flex gap-1.5 mt-2 flex-wrap">
             @for (tag of cafe().tags.slice(0, 3); track tag) {
             <span class="px-2 py-0.5 rounded-full bg-primary/15 border border-primary/30 text-espresso text-[10px] font-bold uppercase tracking-widest">
-                {{ tag }}
+                #{{ tag }}
             </span>
             }
         </div>

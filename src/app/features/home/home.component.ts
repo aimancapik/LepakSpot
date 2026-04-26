@@ -34,6 +34,24 @@ export class HomeComponent implements OnInit, OnDestroy {
   // Bookmark modal
   bookmarkCafeId = signal<string | null>(null);
 
+  // For You info sheet
+  showSuggestedInfo = signal(false);
+
+  // New This Week deck
+  activeNewCafeIndex = signal(0);
+
+  nextNewCafe() {
+    const len = this.newThisWeekCafes().length;
+    if (len < 2) return;
+    this.activeNewCafeIndex.set((this.activeNewCafeIndex() + 1) % len);
+  }
+
+  prevNewCafe() {
+    const len = this.newThisWeekCafes().length;
+    if (len < 2) return;
+    this.activeNewCafeIndex.set((this.activeNewCafeIndex() - 1 + len) % len);
+  }
+
   // New this week
   newThisWeekCafes = signal<Cafe[]>([]);
 
