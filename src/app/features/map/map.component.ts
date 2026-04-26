@@ -13,6 +13,7 @@ import {
 } from '@angular/core';
 import * as L from 'leaflet';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { CafeService } from '../../core/services/cafe.service';
 import { CheckInService, CafeDensity } from '../../core/services/checkin.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -111,7 +112,7 @@ function createPolaroidIcon(cafe: Cafe, density: { color: string; count: number 
     selector: 'app-map',
     standalone: true,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [FormsModule],
+    imports: [FormsModule, RouterLink],
     templateUrl: './map.component.html',
     styleUrl: './map.component.scss',
 })
