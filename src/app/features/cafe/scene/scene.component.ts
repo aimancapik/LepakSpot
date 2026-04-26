@@ -202,8 +202,11 @@ export class SceneComponent implements OnInit {
     openSnapLightbox(index: number) {
         this.snapLightboxIndex.set(index);
         setTimeout(() => {
-            document.getElementById(`snap-lb-${index}`)?.scrollIntoView({ behavior: 'instant', inline: 'start' });
-        }, 0);
+            const el = document.getElementById(`snap-lb-${index}`);
+            if (el?.parentElement) {
+                el.parentElement.scrollLeft = el.parentElement.offsetWidth * index;
+            }
+        }, 50);
     }
     closeSnapLightbox() { this.snapLightboxIndex.set(null); }
 

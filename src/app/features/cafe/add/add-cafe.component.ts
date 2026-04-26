@@ -167,8 +167,12 @@ export class AddCafeComponent implements OnInit {
     }
 
     removeSceneSnap(index: number) {
+        const preview = this.sceneSnapPreviews()[index];
+        if (preview.startsWith('data:')) {
+            const newFileIndex = this.sceneSnapPreviews().slice(0, index).filter(p => p.startsWith('data:')).length;
+            this.sceneSnapFiles.update(f => f.filter((_, i) => i !== newFileIndex));
+        }
         this.sceneSnapPreviews.update(p => p.filter((_, i) => i !== index));
-        this.sceneSnapFiles.update(f => f.filter((_, i) => i !== index));
         this.sceneSnapTags.update(t => t.filter((_, i) => i !== index));
     }
 
