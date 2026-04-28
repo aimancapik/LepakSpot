@@ -51,6 +51,73 @@
                 Cafe Info
             </h2>
 
+            <!-- Photos -->
+            <div class="space-y-3">
+                <div class="flex items-center justify-between gap-3">
+                    <label class="font-zine text-xs font-bold uppercase tracking-widest text-espresso/60">Gallery Photos</label>
+                    <span class="font-marker text-[10px] text-espresso/40 uppercase">{{ photoPreviews().length }}/4</span>
+                </div>
+
+                @if (photoPreviews().length > 0) {
+                <div class="grid grid-cols-2 gap-3">
+                    @for (url of photoPreviews(); track url; let i = $index) {
+                    <div class="relative aspect-[4/3] bg-off-white border-2 border-espresso overflow-hidden zine-shadow-sm">
+                        <img [src]="url" alt="Cafe photo" class="w-full h-full object-cover" />
+                        <button (click)="removePhoto(i)"
+                            class="absolute top-2 right-2 size-8 bg-espresso text-off-white border-2 border-off-white flex items-center justify-center zine-click-active">
+                            <span class="material-symbols-outlined text-sm">close</span>
+                        </button>
+                    </div>
+                    }
+                </div>
+                }
+
+                @if (photoPreviews().length < 4) {
+                <label
+                    class="relative w-full flex items-center justify-center gap-2 py-4 bg-off-white border-2 border-dashed border-espresso cursor-pointer hover:bg-white transition-all zine-click-active">
+                    <span class="material-symbols-outlined text-espresso/50">add_photo_alternate</span>
+                    <span class="font-zine text-xs font-black uppercase tracking-widest text-espresso/60">Add Photos</span>
+                    <input type="file" accept="image/*" multiple class="sr-only" (change)="onPhotoSelected($event)" />
+                </label>
+                }
+            </div>
+
+            <!-- Scene Snaps -->
+            <div class="space-y-3">
+                <div class="flex items-center justify-between gap-3">
+                    <label class="font-zine text-xs font-bold uppercase tracking-widest text-espresso/60">Scene Snaps</label>
+                    <span class="font-marker text-[10px] text-espresso/40 uppercase">{{ sceneSnapPreviews().length }}/5</span>
+                </div>
+
+                @if (sceneSnapPreviews().length > 0) {
+                <div class="space-y-4">
+                    @for (url of sceneSnapPreviews(); track url; let i = $index) {
+                    <div class="relative bg-off-white p-3 border-2 border-espresso zine-shadow-sm">
+                        <div class="aspect-[4/3] bg-espresso overflow-hidden border-2 border-espresso">
+                            <img [src]="url" alt="Scene snap" class="w-full h-full object-cover" />
+                        </div>
+                        <button (click)="removeSceneSnap(i)"
+                            class="absolute top-1 right-1 size-8 bg-espresso text-off-white border-2 border-off-white flex items-center justify-center zine-click-active">
+                            <span class="material-symbols-outlined text-sm">close</span>
+                        </button>
+                        <input type="text" [value]="sceneSnapTags()[i]" (input)="updateSceneSnapTag(i, $any($event.target).value)"
+                            placeholder="e.g. Cozy Corner, Matcha Bar"
+                            class="mt-3 w-full bg-white border-2 border-espresso/20 focus:border-espresso p-2 font-zine text-sm text-espresso outline-none" />
+                    </div>
+                    }
+                </div>
+                }
+
+                @if (sceneSnapPreviews().length < 5) {
+                <label
+                    class="relative w-full flex items-center justify-center gap-2 py-4 bg-off-white border-2 border-dashed border-espresso cursor-pointer hover:bg-white transition-all zine-click-active">
+                    <span class="material-symbols-outlined text-espresso/50">photo_camera</span>
+                    <span class="font-zine text-xs font-black uppercase tracking-widest text-espresso/60">Add Scene Snap</span>
+                    <input type="file" accept="image/*" multiple class="sr-only" (change)="onSceneSnapSelected($event)" />
+                </label>
+                }
+            </div>
+
             <!-- Name -->
             <div class="space-y-1.5">
                 <label class="font-zine text-xs font-bold uppercase tracking-widest text-espresso/60">Cafe Name</label>
@@ -124,7 +191,7 @@
             <button (click)="saveOverview()" [disabled]="saving()"
                 class="w-full bg-espresso text-off-white py-4 border-4 border-espresso zine-shadow font-zine font-black italic uppercase text-lg tracking-widest zine-click-active disabled:opacity-50 flex items-center justify-center gap-2">
                 @if (saving()) { <span class="animate-spin material-symbols-outlined text-base">progress_activity</span> }
-                Save Changes
+                {{ uploadingPhotos() ? 'Uploading Photos...' : 'Save Changes' }}
             </button>
         </div>
         }

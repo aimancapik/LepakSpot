@@ -8,5 +8,6 @@ export interface User {
   totalCheckins: number;
   streak?: number;
   lastCheckinDate?: string;
+  isAdmin?: boolean;
   createdAt: string;
 }

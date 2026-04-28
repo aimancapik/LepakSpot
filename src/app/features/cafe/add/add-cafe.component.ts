@@ -9,6 +9,12 @@ import {
 } from '../../../core/models/cafe.model';
 import { Location, UpperCasePipe } from '@angular/common';
 import { SupabaseService } from '../../../core/services/supabase.service';
+import {
+    assertValidClaimDocument,
+    assertValidImageUpload,
+    createUserDocumentPath,
+    createUserImagePath,
+} from '../../../core/utils/image-upload';
 
 @Component({
     selector: 'app-add-cafe',
@@ -49,6 +55,17 @@ export class AddCafeComponent implements OnInit {
     facebookUrl = signal('');
     otherUrl = signal('');
 
+    // Owner claim during new submission
+    wantsOwnerClaim = signal(false);
+    ownerClaimName = signal('');
+    ownerClaimRole = signal('');
+    ownerClaimContact = signal('');
+    ownerClaimSsmNumber = signal('');
+    ownerClaimDocument = signal<File | null>(null);
+    ownerClaimProofUrl = signal('');
+    ownerClaimMessage = signal('');
+    ownerClaimSubmitted = signal(false);
+
     // ─── Photo upload ───────────────────────────────────────────────────
     photoPreviews = signal<string[]>([]);
     photoFiles = signal<File[]>([]);
@@ -86,6 +103,11 @@ export class AddCafeComponent implements OnInit {
             this.isEditMode.set(true);
             const cafe = await this.cafeService.getCafeById(id);
             if (cafe) {
+                if (!this.cafeService.canCurrentUserEditCafe(cafe)) {
+                    this.toastService.show('This cafe is claimed. Only the verified owner can edit it now.', 'error');
+                    this.router.navigate(['/cafe', id]);
+                    return;
+                }
                 this.name.set(cafe.name);
                 this.address.set(cafe.address);
                 this.openingHours.set(cafe.openingHours || '');
@@ -125,7 +147,13 @@ export class AddCafeComponent implements OnInit {
         if (!input.files) return;
         const newFiles = Array.from(input.files).slice(0, 4 - this.photoFiles().length);
         newFiles.forEach(file => {
-            if (!file.type.startsWith('image/')) return;
+            try {
+                assertValidImageUpload(file);
+            } catch (error) {
+                const msg = error instanceof Error ? error.message : 'Invalid image upload.';
+                this.toastService.show(msg, 'error');
+                return;
+            }
             const reader = new FileReader();
             reader.onload = (e) => {
                 this.photoPreviews.update(p => [...p, e.target!.result as string]);
@@ -154,7 +182,13 @@ export class AddCafeComponent implements OnInit {
         if (!input.files) return;
         const newFiles = Array.from(input.files).slice(0, 5 - this.sceneSnapFiles().length);
         newFiles.forEach(file => {
-            if (!file.type.startsWith('image/')) return;
+            try {
+                assertValidImageUpload(file);
+            } catch (error) {
+                const msg = error instanceof Error ? error.message : 'Invalid image upload.';
+                this.toastService.show(msg, 'error');
+                return;
+            }
             const reader = new FileReader();
             reader.onload = (e) => {
                 this.sceneSnapPreviews.update(p => [...p, e.target!.result as string]);
@@ -189,10 +223,11 @@ export class AddCafeComponent implements OnInit {
         if (!user || files.length === 0) return [];
         const urls: string[] = [];
         for (const file of files) {
-            const path = `${user.uid}/${Date.now()}-${file.name}`;
+            assertValidImageUpload(file);
+            const path = createUserImagePath(user.uid, 'cafes', file);
             const { data, error } = await this.supabase.client.storage
                 .from('cafe-photos')
-                .upload(path, file, { upsert: true });
+                .upload(path, file, { contentType: file.type, upsert: false });
             if (error) { console.error('Upload error:', error); continue; }
             const { data: urlData } = this.supabase.client.storage
                 .from('cafe-photos')
@@ -233,6 +268,40 @@ export class AddCafeComponent implements OnInit {
 
     openGoogleMaps() { window.open('https://www.google.com/maps', '_blank'); }
 
+    onOwnerClaimDocumentSelected(event: Event) {
+        const input = event.target as HTMLInputElement;
+        const file = input.files?.[0];
+        if (!file) return;
+        try {
+            assertValidClaimDocument(file);
+            this.ownerClaimDocument.set(file);
+        } catch (error) {
+            const msg = error instanceof Error ? error.message : 'Invalid document upload.';
+            this.toastService.show(msg, 'error');
+            this.ownerClaimDocument.set(null);
+            input.value = '';
+        }
+    }
+
+    private ownerClaimReady(): boolean {
+        if (this.isEditMode() || !this.wantsOwnerClaim()) return true;
+        return !!this.ownerClaimName().trim()
+            && !!this.ownerClaimRole().trim()
+            && !!this.ownerClaimContact().trim()
+            && !!this.ownerClaimSsmNumber().trim()
+            && !!this.ownerClaimDocument();
+    }
+
+    private async uploadOwnerClaimDocument(userId: string, file: File): Promise<string> {
+        assertValidClaimDocument(file);
+        const path = createUserDocumentPath(userId, 'cafe-claims', file);
+        const { data, error } = await this.supabase.client.storage
+            .from('cafe-claim-documents')
+            .upload(path, file, { contentType: file.type, upsert: false });
+        if (error) throw error;
+        return data.path;
+    }
+
     get nameErr(): string {
         return this.touched() && !this.name().trim() ? 'Cafe name is required' : '';
     }
@@ -240,7 +309,10 @@ export class AddCafeComponent implements OnInit {
         return this.touched() && !this.address().trim() ? 'Address is required' : '';
     }
     canSubmit(): boolean {
-        return this.name().trim().length > 0 && this.address().trim().length > 0 && !this.submitting();
+        return this.name().trim().length > 0
+            && this.address().trim().length > 0
+            && this.ownerClaimReady()
+            && !this.submitting();
     }
 
     async submit() {
@@ -296,7 +368,24 @@ export class AddCafeComponent implements OnInit {
                 this.toastService.show('Cafe updated!', 'success');
                 this.location.back();
             } else {
-                await this.cafeService.submitCafe(cafeData);
+                const cafeId = await this.cafeService.submitCafe(cafeData);
+                if (this.wantsOwnerClaim()) {
+                    const user = this.authService.currentUser();
+                    const document = this.ownerClaimDocument();
+                    if (!user || !document) throw new Error('Owner claim details missing.');
+                    const documentPath = await this.uploadOwnerClaimDocument(user.uid, document);
+                    await this.cafeService.submitCafeClaim(cafeId, {
+                        claimantName: this.ownerClaimName().trim(),
+                        role: this.ownerClaimRole().trim(),
+                        contact: this.ownerClaimContact().trim(),
+                        ssmNumber: this.ownerClaimSsmNumber().trim(),
+                        documentPath,
+                        documentName: document.name,
+                        proofUrl: this.ownerClaimProofUrl().trim(),
+                        message: this.ownerClaimMessage().trim(),
+                    });
+                    this.ownerClaimSubmitted.set(true);
+                }
                 this.pointsEarned.set(100);
                 this.submitted.set(true);
             }

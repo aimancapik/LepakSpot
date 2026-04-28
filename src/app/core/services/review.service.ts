@@ -2,6 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { Review } from '../models/review.model';
 import { AuthService } from './auth.service';
 import { SupabaseService } from './supabase.service';
+import { assertValidImageUpload, createUserImagePath } from '../utils/image-upload';
 
 @Injectable({ providedIn: 'root' })
 export class ReviewService {
@@ -13,10 +14,11 @@ export class ReviewService {
     userReview = signal<Review | null>(null);
 
     async uploadReviewImage(file: File, userId: string): Promise<string> {
-        const path = `${userId}/review-${Date.now()}-${file.name}`;
+        assertValidImageUpload(file);
+        const path = createUserImagePath(userId, 'reviews', file);
         const { data, error } = await this.supabase.client.storage
             .from('cafe-photos')
-            .upload(path, file, { upsert: true });
+            .upload(path, file, { contentType: file.type, upsert: false });
         if (error) throw error;
         const { data: urlData } = this.supabase.client.storage
             .from('cafe-photos')

@@ -1,5 +1,5 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
-import { Cafe, CafeTag } from '../models/cafe.model';
+import { Cafe, CafeClaim, CafeTag } from '../models/cafe.model';
 import { AuthService } from './auth.service';
 import { SupabaseService } from './supabase.service';
 
@@ -334,6 +334,13 @@ export class CafeService {
     async updateCafe(id: string, data: Partial<Cafe>): Promise<void> {
         const user = this.authService.currentUser();
         if (!user) throw new Error('Not authenticated');
+
+        const cafe = await this.getCafeById(id);
+        if (!cafe) throw new Error('Cafe not found');
+        if (!this.canEditCafe(cafe, user.uid)) {
+            throw new Error('You can edit your submission only until it is claimed. Claimed cafes can only be edited by the verified owner.');
+        }
+
         const { error } = await this.supabase.client
             .from('cafes')
             .update(data)
@@ -342,6 +349,11 @@ export class CafeService {
         this.nearbyCafes.update(cafes =>
             cafes.map(c => c.id === id ? { ...c, ...data } : c)
         );
+    }
+
+    canCurrentUserEditCafe(cafe: Cafe): boolean {
+        const user = this.authService.currentUser();
+        return !!user && this.canEditCafe(cafe, user.uid);
     }
 
     async getMySubmissions(): Promise<Cafe[]> {
@@ -353,6 +365,128 @@ export class CafeService {
             .eq('submittedBy', user.uid)
             .order('createdAt', { ascending: false });
         return (data || []) as Cafe[];
+    }
+
+    async getMyCafeClaims(): Promise<CafeClaim[]> {
+        const user = this.authService.currentUser();
+        if (!user) return [];
+        const { data, error } = await this.supabase.client
+            .from('cafe_claims')
+            .select('*')
+            .eq('userId', user.uid)
+            .order('createdAt', { ascending: false });
+        if (error) throw error;
+        return (data || []) as CafeClaim[];
+    }
+
+    async getCafeClaims(status: 'all' | 'pending' | 'approved' | 'rejected' = 'pending'): Promise<CafeClaim[]> {
+        this.assertAdmin();
+        let query = this.supabase.client
+            .from('cafe_claims')
+            .select('*')
+            .order('createdAt', { ascending: false });
+        if (status !== 'all') query = query.eq('status', status);
+        const { data, error } = await query;
+        if (error) throw error;
+        return (data || []) as CafeClaim[];
+    }
+
+    async approveCafeClaim(claim: CafeClaim): Promise<void> {
+        const admin = this.assertAdmin();
+        const reviewedAt = new Date().toISOString();
+
+        const { error: cafeError } = await this.supabase.client
+            .from('cafes')
+            .update({
+                ownerId: claim.userId,
+                claimStatus: 'claimed' as const,
+            })
+            .eq('id', claim.cafeId);
+        if (cafeError) throw cafeError;
+
+        const { error: claimError } = await this.supabase.client
+            .from('cafe_claims')
+            .update({
+                status: 'approved',
+                reviewedBy: admin.uid,
+                reviewedAt,
+            })
+            .eq('id', claim.id);
+        if (claimError) throw claimError;
+
+        this.nearbyCafes.update(cafes =>
+            cafes.map(c => c.id === claim.cafeId ? { ...c, ownerId: claim.userId, claimStatus: 'claimed' } : c)
+        );
+    }
+
+    async rejectCafeClaim(claim: CafeClaim, reason: string): Promise<void> {
+        const admin = this.assertAdmin();
+        const reviewedAt = new Date().toISOString();
+        const rejectionReason = reason.trim();
+        if (!rejectionReason) throw new Error('Rejection reason is required.');
+
+        const { error: claimError } = await this.supabase.client
+            .from('cafe_claims')
+            .update({
+                status: 'rejected',
+                rejectionReason,
+                reviewedBy: admin.uid,
+                reviewedAt,
+            })
+            .eq('id', claim.id);
+        if (claimError) throw claimError;
+
+        const { error: cafeError } = await this.supabase.client
+            .from('cafes')
+            .update({ claimStatus: 'unclaimed' as const })
+            .eq('id', claim.cafeId)
+            .eq('claimStatus', 'pending');
+        if (cafeError) throw cafeError;
+
+        this.nearbyCafes.update(cafes =>
+            cafes.map(c => c.id === claim.cafeId ? { ...c, claimStatus: 'unclaimed' } : c)
+        );
+    }
+
+    async appealCafeClaim(claim: CafeClaim, appealMessage: string): Promise<void> {
+        const user = this.authService.currentUser();
+        if (!user) throw new Error('Not authenticated');
+        if (claim.userId !== user.uid) throw new Error('You can only appeal your own claim.');
+        if (claim.status !== 'rejected') throw new Error('Only rejected claims can be appealed.');
+
+        const message = appealMessage.trim();
+        if (!message) throw new Error('Appeal message is required.');
+        const appealedAt = new Date().toISOString();
+
+        const { error: claimError } = await this.supabase.client
+            .from('cafe_claims')
+            .update({
+                status: 'pending',
+                appealMessage: message,
+                appealedAt,
+                reviewedBy: null,
+                reviewedAt: null,
+            })
+            .eq('id', claim.id)
+            .eq('userId', user.uid)
+            .eq('status', 'rejected');
+        if (claimError) throw claimError;
+
+        const { error: cafeError } = await this.supabase.client
+            .from('cafes')
+            .update({ claimStatus: 'pending' as const })
+            .eq('id', claim.cafeId)
+            .neq('claimStatus', 'claimed');
+        if (cafeError) throw cafeError;
+    }
+
+    async createClaimDocumentUrl(documentPath: string): Promise<string> {
+        this.assertAdmin();
+        const { data, error } = await this.supabase.client.storage
+            .from('cafe-claim-documents')
+            .createSignedUrl(documentPath, 60 * 5);
+        if (error) throw error;
+        return data.signedUrl;
     }
 
     async getNewThisWeek(): Promise<Cafe[]> {
@@ -374,15 +508,49 @@ export class CafeService {
         );
     }
 
-    async claimCafe(id: string): Promise<void> {
+    async submitCafeClaim(
+        id: string,
+        request: {
+            claimantName: string;
+            role: string;
+            contact: string;
+            ssmNumber: string;
+            documentPath: string;
+            documentName: string;
+            proofUrl?: string;
+            message?: string;
+        }
+    ): Promise<void> {
         const user = this.authService.currentUser();
         if (!user) throw new Error('Not authenticated');
 
         const cafe = await this.getCafeById(id);
         if (!cafe) throw new Error('Cafe not found');
         if (cafe.claimStatus === 'claimed') throw new Error('Cafe already claimed');
+        if (cafe.claimStatus === 'pending') throw new Error('This cafe already has a pending claim.');
 
-        const updates = { ownerId: user.uid, claimStatus: 'claimed' as const };
+        const claim = {
+            cafeId: id,
+            cafeName: cafe.name,
+            userId: user.uid,
+            claimantName: request.claimantName.trim(),
+            role: request.role.trim(),
+            contact: request.contact.trim(),
+            ssmNumber: request.ssmNumber.trim(),
+            documentPath: request.documentPath,
+            documentName: request.documentName,
+            proofUrl: request.proofUrl?.trim() || null,
+            message: request.message?.trim() || null,
+            status: 'pending',
+            createdAt: new Date().toISOString(),
+        };
+
+        const { error: claimError } = await this.supabase.client
+            .from('cafe_claims')
+            .insert(claim);
+        if (claimError) throw claimError;
+
+        const updates = { claimStatus: 'pending' as const };
         const { error } = await this.supabase.client
             .from('cafes')
             .update(updates)
@@ -394,6 +562,18 @@ export class CafeService {
         );
     }
 
+    private canEditCafe(cafe: Cafe, userId: string): boolean {
+        const isUnclaimed = !cafe.claimStatus || cafe.claimStatus === 'unclaimed';
+        return (cafe.ownerId === userId && cafe.claimStatus === 'claimed')
+            || (isUnclaimed && (cafe.submittedBy === userId || cafe.addedBy === userId));
+    }
+
+    private assertAdmin() {
+        const user = this.authService.currentUser();
+        if (!user?.isAdmin) throw new Error('Admin access required.');
+        return user;
+    }
+
     async updateCafeAsOwner(id: string, data: Partial<Cafe>): Promise<void> {
         const user = this.authService.currentUser();
         if (!user) throw new Error('Not authenticated');
@@ -402,7 +582,8 @@ export class CafeService {
             .from('cafes')
             .update(data)
             .eq('id', id)
-            .eq('ownerId', user.uid);
+            .eq('ownerId', user.uid)
+            .eq('claimStatus', 'claimed');
         if (error) throw error;
 
         this.nearbyCafes.update(cafes =>

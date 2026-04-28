@@ -36,10 +36,38 @@
 
   .bg-latte {
     background-color: #F5E6D3 !important;
-    background-image: url('/assets/app-background/coffee-mark.jpeg') !important;
-    background-size: 520px !important;
+    background-image:
+      radial-gradient(ellipse at 14% 10%, rgba(212, 140, 58, 0.18) 0 0.5px, transparent 42px),
+      radial-gradient(ellipse at 86% 22%, rgba(143, 175, 143, 0.20) 0 0.5px, transparent 48px),
+      radial-gradient(ellipse at 26% 78%, rgba(44, 24, 16, 0.09) 0 0.5px, transparent 58px),
+      linear-gradient(rgba(44, 24, 16, 0.085) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(44, 24, 16, 0.075) 1px, transparent 1px),
+      radial-gradient(circle at 18% 14%, rgba(212, 140, 58, 0.14) 0 1px, transparent 1.5px),
+      radial-gradient(circle at 78% 28%, rgba(44, 24, 16, 0.07) 0 1px, transparent 1.5px),
+      linear-gradient(135deg, rgba(255, 255, 255, 0.50), rgba(255, 255, 255, 0) 46%),
+      linear-gradient(180deg, #F8ECDD 0%, #F1DEC5 100%) !important;
+    background-size:
+      360px 360px,
+      420px 420px,
+      460px 460px,
+      32px 32px,
+      32px 32px,
+      34px 34px,
+      46px 46px,
+      100% 100%,
+      100% 100% !important;
+    background-position:
+      -90px -70px,
+      190px 40px,
+      -120px 320px,
+      0 0,
+      0 0,
+      0 0,
+      12px 18px,
+      0 0,
+      0 0 !important;
     background-repeat: repeat !important;
-    background-blend-mode: multiply !important;
+    background-blend-mode: multiply, multiply, multiply, normal, normal, normal, normal, normal, normal !important;
     opacity: 1;
   }
 

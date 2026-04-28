@@ -58,7 +58,7 @@
                 </h1>
                 <div class="bg-primary text-espresso border-4 border-espresso px-3 py-1 font-black font-zine italic uppercase tracking-widest -rotate-2 zine-shadow-sm flex items-center gap-1 shrink-0 mt-1">
                     <span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1">star</span>
-                    {{ cafeData.rating }} / 5.0
+                    {{ formatRating(cafeData.rating) }}
                 </div>
             </div>
             <a [href]="'https://www.google.com/maps/search/?api=1&query=' + cafeData.lat + ',' + cafeData.lng"
@@ -102,6 +102,97 @@
                     </div>
                 </div>
                 }
+            </div>
+        </div>
+        }
+
+        <!-- Claim ownership -->
+        @if (canClaim()) {
+        <div class="bg-off-white border-4 border-espresso zine-shadow px-5 py-4 space-y-4 -rotate-[0.5deg]">
+            <button type="button" (click)="claimFormOpen.set(!claimFormOpen())"
+                class="w-full flex items-center justify-between text-espresso zine-click-active">
+                <div class="text-left">
+                    <p class="font-zine font-black italic uppercase tracking-wider text-sm">Claim This Cafe</p>
+                    <p class="font-marker text-xs text-espresso/60 mt-0.5">Request owner access for deals, stats, and updates</p>
+                </div>
+                <span class="material-symbols-outlined text-espresso/60">
+                    {{ claimFormOpen() ? 'expand_less' : 'storefront' }}
+                </span>
+            </button>
+
+            @if (claimFormOpen()) {
+            <form class="space-y-3 pt-3 border-t-2 border-espresso/10" (ngSubmit)="claimCafe()">
+                <label class="block">
+                    <span class="block font-zine text-[10px] font-bold uppercase tracking-widest text-espresso/50 mb-1">Your name</span>
+                    <input type="text" [ngModel]="claimantName()" (ngModelChange)="claimantName.set($event)" name="claimantName"
+                        class="w-full bg-[#FAFAF7] border-2 border-espresso px-3 py-2 font-zine text-sm outline-none focus:bg-white focus:border-primary"
+                        placeholder="e.g. Aiman" required />
+                </label>
+
+                <label class="block">
+                    <span class="block font-zine text-[10px] font-bold uppercase tracking-widest text-espresso/50 mb-1">Role at cafe</span>
+                    <input type="text" [ngModel]="claimantRole()" (ngModelChange)="claimantRole.set($event)" name="claimantRole"
+                        class="w-full bg-[#FAFAF7] border-2 border-espresso px-3 py-2 font-zine text-sm outline-none focus:bg-white focus:border-primary"
+                        placeholder="Owner, manager, staff" required />
+                </label>
+
+                <label class="block">
+                    <span class="block font-zine text-[10px] font-bold uppercase tracking-widest text-espresso/50 mb-1">Contact</span>
+                    <input type="text" [ngModel]="claimantContact()" (ngModelChange)="claimantContact.set($event)" name="claimantContact"
+                        class="w-full bg-[#FAFAF7] border-2 border-espresso px-3 py-2 font-zine text-sm outline-none focus:bg-white focus:border-primary"
+                        placeholder="Business email or phone number" required />
+                </label>
+
+                <label class="block">
+                    <span class="block font-zine text-[10px] font-bold uppercase tracking-widest text-espresso/50 mb-1">SSM / business reg no.</span>
+                    <input type="text" [ngModel]="claimantSsmNumber()" (ngModelChange)="claimantSsmNumber.set($event)" name="claimantSsmNumber"
+                        class="w-full bg-[#FAFAF7] border-2 border-espresso px-3 py-2 font-zine text-sm outline-none focus:bg-white focus:border-primary"
+                        placeholder="e.g. 202401012345" required />
+                </label>
+
+                <label class="block">
+                    <span class="block font-zine text-[10px] font-bold uppercase tracking-widest text-espresso/50 mb-1">Business document</span>
+                    <div class="bg-[#FAFAF7] border-2 border-dashed border-espresso px-3 py-3 flex items-center justify-between gap-3">
+                        <div class="min-w-0">
+                            <p class="font-zine text-sm font-bold text-espresso truncate">
+                                {{ claimDocument()?.name || 'Upload SSM / business proof' }}
+                            </p>
+                            <p class="font-marker text-[10px] text-espresso/50 uppercase mt-0.5">PDF, JPG, PNG, or WebP · max 10MB</p>
+                        </div>
+                        <span class="material-symbols-outlined text-espresso/50 shrink-0">upload_file</span>
+                    </div>
+                    <input type="file" accept=".pdf,image/jpeg,image/png,image/webp" class="sr-only"
+                        (change)="onClaimDocumentSelected($event)" required />
+                </label>
+
+                <label class="block">
+                    <span class="block font-zine text-[10px] font-bold uppercase tracking-widest text-espresso/50 mb-1">Public proof link</span>
+                    <input type="url" [ngModel]="claimProofUrl()" (ngModelChange)="claimProofUrl.set($event)" name="claimProofUrl"
+                        class="w-full bg-[#FAFAF7] border-2 border-espresso px-3 py-2 font-zine text-sm outline-none focus:bg-white focus:border-primary"
+                        placeholder="Google Business, Instagram, or official website" />
+                </label>
+
+                <label class="block">
+                    <span class="block font-zine text-[10px] font-bold uppercase tracking-widest text-espresso/50 mb-1">Note</span>
+                    <textarea [ngModel]="claimMessage()" (ngModelChange)="claimMessage.set($event)" name="claimMessage" rows="3"
+                        class="w-full bg-[#FAFAF7] border-2 border-espresso px-3 py-2 font-zine text-sm outline-none focus:bg-white focus:border-primary resize-none"
+                        placeholder="Anything admins should know?"></textarea>
+                </label>
+
+                <button type="submit" [disabled]="claiming()"
+                    class="w-full bg-sage text-espresso py-3 border-2 border-espresso zine-shadow-sm font-zine font-black italic uppercase text-sm tracking-widest zine-click-active disabled:opacity-60 disabled:translate-y-0 flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined text-base">{{ claiming() ? 'hourglass_top' : 'send' }}</span>
+                    {{ claiming() ? 'Sending...' : 'Submit Claim' }}
+                </button>
+            </form>
+            }
+        </div>
+        } @else if (currentUser() && cafeData.claimStatus === 'pending') {
+        <div class="flex items-center gap-3 bg-off-white border-2 border-espresso/30 px-4 py-3 -rotate-[0.3deg]">
+            <span class="material-symbols-outlined text-primary">pending</span>
+            <div>
+                <p class="font-zine font-black uppercase text-xs text-espresso">Claim Pending</p>
+                <p class="font-marker text-xs text-espresso/60">This cafe claim is waiting for review.</p>
             </div>
         </div>
         }

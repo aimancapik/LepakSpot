@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { authOrGuestGuard, authOnlyGuard } from './core/guards/guest.guard';
+import { adminGuard } from './core/guards/admin.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
@@ -89,6 +90,15 @@ export const routes: Routes = [
       ),
     canActivate: [authOnlyGuard],
     data: { showBottomNavbar: true, activeTab: 'profile' }
+  },
+  {
+    path: 'admin/claims',
+    loadComponent: () =>
+      import('./features/admin/claims/admin-claims.component').then(
+        (m) => m.AdminClaimsComponent
+      ),
+    canActivate: [authOnlyGuard, adminGuard],
+    data: { showBottomNavbar: false }
   },
   {
     path: 'cafe/add',

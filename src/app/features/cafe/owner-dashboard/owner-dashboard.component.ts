@@ -10,6 +10,8 @@ import { ToastService } from '../../../shared/components/toast/toast.service';
 import { Cafe, CafeTag } from '../../../core/models/cafe.model';
 import { Deal } from '../../../core/models/deal.model';
 import { Review } from '../../../core/models/review.model';
+import { SupabaseService } from '../../../core/services/supabase.service';
+import { assertValidImageUpload, createUserImagePath } from '../../../core/utils/image-upload';
 
 export type DashboardTab = 'overview' | 'reviews' | 'deals' | 'traffic';
 
@@ -29,6 +31,7 @@ export class OwnerDashboardComponent implements OnInit {
     private reviewService = inject(ReviewService);
     private authService = inject(AuthService);
     private toastService = inject(ToastService);
+    private supabase = inject(SupabaseService);
 
     cafe = signal<Cafe | null>(null);
     deals = signal<Deal[]>([]);
@@ -47,6 +50,13 @@ export class OwnerDashboardComponent implements OnInit {
     editIsLateNight = signal(false);
     editWifiSpeed = signal('');
     editOutletAvailability = signal('');
+    existingPhotoUrls = signal<string[]>([]);
+    photoPreviews = signal<string[]>([]);
+    photoFiles = signal<File[]>([]);
+    uploadingPhotos = signal(false);
+    sceneSnapFiles = signal<File[]>([]);
+    sceneSnapPreviews = signal<string[]>([]);
+    sceneSnapTags = signal<string[]>([]);
 
     // Deal form
     showDealForm = signal(false);
@@ -60,7 +70,7 @@ export class OwnerDashboardComponent implements OnInit {
     isOwner = computed(() => {
         const user = this.authService.currentUser();
         const cafe = this.cafe();
-        return !!user && !!cafe && cafe.ownerId === user.uid;
+        return !!user && !!cafe && cafe.ownerId === user.uid && cafe.claimStatus === 'claimed';
     });
 
     async ngOnInit() {
@@ -71,7 +81,7 @@ export class OwnerDashboardComponent implements OnInit {
         if (!cafe) { this.router.navigate(['/home']); return; }
 
         const user = this.authService.currentUser();
-        if (!user || cafe.ownerId !== user.uid) {
+        if (!user || cafe.ownerId !== user.uid || cafe.claimStatus !== 'claimed') {
             this.toastService.show('Only the cafe owner can access this dashboard.', 'error');
             this.router.navigate(['/cafe', id]);
             return;
@@ -100,6 +110,10 @@ export class OwnerDashboardComponent implements OnInit {
         this.editIsLateNight.set(cafe.isLateNight || false);
         this.editWifiSpeed.set(cafe.wifiSpeed || '');
         this.editOutletAvailability.set(cafe.outletAvailability || '');
+        this.existingPhotoUrls.set(cafe.photos || []);
+        this.photoPreviews.set(cafe.photos || []);
+        this.sceneSnapPreviews.set((cafe.sceneSnaps || []).map(s => s.url));
+        this.sceneSnapTags.set((cafe.sceneSnaps || []).map(s => s.tag));
     }
 
     toggleEditTag(tag: CafeTag) {
@@ -113,6 +127,17 @@ export class OwnerDashboardComponent implements OnInit {
         if (!cafe) return;
         this.saving.set(true);
         try {
+            this.uploadingPhotos.set(true);
+            const newPhotoUrls = await this.uploadFiles(this.photoFiles());
+            const finalPhotoUrls = [...this.existingPhotoUrls(), ...newPhotoUrls];
+            const existingSnaps = this.sceneSnapPreviews()
+                .map((preview, i) => (!preview.startsWith('data:') ? { url: preview, tag: this.sceneSnapTags()[i] || 'Spot' } : null))
+                .filter(Boolean) as { url: string; tag: string }[];
+            const newSnapUrls = await this.uploadFiles(this.sceneSnapFiles());
+            const newSnaps = newSnapUrls.map((url, i) => ({ url, tag: this.sceneSnapTags()[existingSnaps.length + i] || 'Spot' }));
+            const sceneSnaps = [...existingSnaps, ...newSnaps];
+            this.uploadingPhotos.set(false);
+
             const updates: Partial<Cafe> = {
                 name: this.editName(),
                 address: this.editAddress(),
@@ -121,15 +146,119 @@ export class OwnerDashboardComponent implements OnInit {
                 isLateNight: this.editIsLateNight(),
                 wifiSpeed: this.editWifiSpeed() as any || undefined,
                 outletAvailability: this.editOutletAvailability() as any || undefined,
+                photos: finalPhotoUrls,
+                sceneSnaps,
             };
             await this.cafeService.updateCafeAsOwner(cafe.id, updates);
+            this.existingPhotoUrls.set(finalPhotoUrls);
+            this.photoPreviews.set(finalPhotoUrls);
+            this.photoFiles.set([]);
+            this.sceneSnapPreviews.set(sceneSnaps.map(s => s.url));
+            this.sceneSnapTags.set(sceneSnaps.map(s => s.tag));
+            this.sceneSnapFiles.set([]);
             this.cafe.update(c => c ? { ...c, ...updates } : c);
             this.toastService.show('Cafe info updated!', 'success');
         } catch {
             this.toastService.show('Save failed. Try again.', 'error');
         } finally {
+            this.uploadingPhotos.set(false);
             this.saving.set(false);
         }
+    }
+
+    onPhotoSelected(event: Event) {
+        const input = event.target as HTMLInputElement;
+        if (!input.files) return;
+        const remaining = Math.max(0, 4 - this.photoPreviews().length);
+        const newFiles = Array.from(input.files).slice(0, remaining);
+        newFiles.forEach(file => {
+            try {
+                assertValidImageUpload(file);
+            } catch (error) {
+                const msg = error instanceof Error ? error.message : 'Invalid image upload.';
+                this.toastService.show(msg, 'error');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                this.photoPreviews.update(p => [...p, e.target!.result as string]);
+            };
+            reader.readAsDataURL(file);
+            this.photoFiles.update(f => [...f, file]);
+        });
+        input.value = '';
+    }
+
+    removePhoto(index: number) {
+        const preview = this.photoPreviews()[index];
+        if (!preview.startsWith('data:')) {
+            this.existingPhotoUrls.update(urls => urls.filter(url => url !== preview));
+        } else {
+            const newFileIndex = this.photoPreviews().slice(0, index).filter(p => p.startsWith('data:')).length;
+            this.photoFiles.update(files => files.filter((_, i) => i !== newFileIndex));
+        }
+        this.photoPreviews.update(previews => previews.filter((_, i) => i !== index));
+    }
+
+    onSceneSnapSelected(event: Event) {
+        const input = event.target as HTMLInputElement;
+        if (!input.files) return;
+        const remaining = Math.max(0, 5 - this.sceneSnapPreviews().length);
+        const newFiles = Array.from(input.files).slice(0, remaining);
+        newFiles.forEach(file => {
+            try {
+                assertValidImageUpload(file);
+            } catch (error) {
+                const msg = error instanceof Error ? error.message : 'Invalid image upload.';
+                this.toastService.show(msg, 'error');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                this.sceneSnapPreviews.update(p => [...p, e.target!.result as string]);
+            };
+            reader.readAsDataURL(file);
+            this.sceneSnapFiles.update(f => [...f, file]);
+            this.sceneSnapTags.update(tags => [...tags, '']);
+        });
+        input.value = '';
+    }
+
+    removeSceneSnap(index: number) {
+        const preview = this.sceneSnapPreviews()[index];
+        if (preview.startsWith('data:')) {
+            const newFileIndex = this.sceneSnapPreviews().slice(0, index).filter(p => p.startsWith('data:')).length;
+            this.sceneSnapFiles.update(files => files.filter((_, i) => i !== newFileIndex));
+        }
+        this.sceneSnapPreviews.update(previews => previews.filter((_, i) => i !== index));
+        this.sceneSnapTags.update(tags => tags.filter((_, i) => i !== index));
+    }
+
+    updateSceneSnapTag(index: number, tag: string) {
+        this.sceneSnapTags.update(tags => {
+            const next = [...tags];
+            next[index] = tag;
+            return next;
+        });
+    }
+
+    private async uploadFiles(files: File[]): Promise<string[]> {
+        const user = this.authService.currentUser();
+        if (!user || files.length === 0) return [];
+        const urls: string[] = [];
+        for (const file of files) {
+            assertValidImageUpload(file);
+            const path = createUserImagePath(user.uid, 'cafes', file);
+            const { data, error } = await this.supabase.client.storage
+                .from('cafe-photos')
+                .upload(path, file, { contentType: file.type, upsert: false });
+            if (error) throw error;
+            const { data: urlData } = this.supabase.client.storage
+                .from('cafe-photos')
+                .getPublicUrl(data.path);
+            urls.push(urlData.publicUrl);
+        }
+        return urls;
     }
 
     async createDeal() {

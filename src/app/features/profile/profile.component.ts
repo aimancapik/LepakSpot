@@ -1,10 +1,11 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit, signal, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit, signal, computed } from '@angular/core';
 import { AuthService } from '../../core/services/auth.service';
 import { CheckInService } from '../../core/services/checkin.service';
 import { CafeService } from '../../core/services/cafe.service';
 import { CheckIn } from '../../core/models/checkin.model';
-import { Cafe } from '../../core/models/cafe.model';
+import { Cafe, CafeClaim, CafeClaimStatus } from '../../core/models/cafe.model';
 import { DatePipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { CafeListService } from '../../core/services/cafe-list.service';
 import { RouterModule } from '@angular/router';
 import { ToastService } from '../../shared/components/toast/toast.service';
@@ -29,11 +30,11 @@ const ALL_BADGES: Badge[] = [
   selector: 'app-profile',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DatePipe, RouterModule],
+  imports: [DatePipe, RouterModule, FormsModule],
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.scss',
 })
-export class ProfileComponent implements OnInit {
+export class ProfileComponent implements OnInit, OnDestroy {
   authService = inject(AuthService);
   private checkinService = inject(CheckInService);
   cafeListService = inject(CafeListService);
@@ -44,7 +45,16 @@ export class ProfileComponent implements OnInit {
   recentCheckins = signal<CheckIn[]>([]);
   checkinsLoading = signal(true);
   mySubmissions = signal<Cafe[]>([]);
+  myCafeClaims = signal<CafeClaim[]>([]);
+  claimsLoading = signal(true);
+  appealingClaimId = signal<string | null>(null);
+  appealMessage = signal('');
+  appealSubmitting = signal(false);
+  profilePhotoFailed = signal(false);
   allBadges = ALL_BADGES;
+  private visibilityHandler = () => {
+    if (document.visibilityState === 'visible') this.loadCafeClaims(false);
+  };
 
   userTitle = computed(() => {
     const points = this.authService.currentUser()?.points || 0;
@@ -58,12 +68,68 @@ export class ProfileComponent implements OnInit {
     return this.authService.currentUser()?.badges?.includes(name) ?? false;
   }
 
+  claimStatusClass(status: CafeClaimStatus): string {
+    if (status === 'approved') return 'bg-sage/50 border-sage';
+    if (status === 'rejected') return 'bg-red-100 border-red-300';
+    return 'bg-primary/20 border-primary';
+  }
+
+  claimStatusIcon(status: CafeClaimStatus): string {
+    if (status === 'approved') return 'verified';
+    if (status === 'rejected') return 'cancel';
+    return 'pending';
+  }
+
+  startAppeal(claim: CafeClaim) {
+    this.appealingClaimId.set(claim.id);
+    this.appealMessage.set(claim.appealMessage || '');
+  }
+
+  cancelAppeal() {
+    this.appealingClaimId.set(null);
+    this.appealMessage.set('');
+  }
+
+  async submitAppeal(claim: CafeClaim) {
+    const message = this.appealMessage().trim();
+    if (!message) {
+      this.toastService.show('Add an appeal message first.', 'error');
+      return;
+    }
+    this.appealSubmitting.set(true);
+    try {
+      await this.cafeService.appealCafeClaim(claim, message);
+      const appealedAt = new Date().toISOString();
+      this.myCafeClaims.update(claims => claims.map(c =>
+        c.id === claim.id ? { ...c, status: 'pending', appealMessage: message, appealedAt, reviewedAt: null } : c
+      ));
+      this.cancelAppeal();
+      this.toastService.show('Appeal sent for review.', 'success');
+    } catch (error: any) {
+      this.toastService.show(error?.message || 'Could not submit appeal.', 'error');
+    } finally {
+      this.appealSubmitting.set(false);
+    }
+  }
+
+  profileInitials(): string {
+    const name = this.authService.currentUser()?.displayName?.trim() || 'Coffee Lover';
+    return name
+      .split(/\s+/)
+      .slice(0, 2)
+      .map(part => part[0])
+      .join('')
+      .toUpperCase();
+  }
+
   async ngOnInit() {
     const user = this.authService.currentUser();
     if (user) {
       this.cafeListService.loadMyLists();
       this.cafeListService.loadSharedLists();
       this.cafeService.getMySubmissions().then(s => this.mySubmissions.set(s));
+      this.loadCafeClaims();
+      document.addEventListener('visibilitychange', this.visibilityHandler);
       try {
         const checkins = await this.checkinService.getUserCheckins(user.uid);
         this.recentCheckins.set(checkins);
@@ -74,6 +140,19 @@ export class ProfileComponent implements OnInit {
       }
     } else {
       this.checkinsLoading.set(false);
+      this.claimsLoading.set(false);
     }
+  }
+
+  ngOnDestroy() {
+    document.removeEventListener('visibilitychange', this.visibilityHandler);
+  }
+
+  private loadCafeClaims(showLoading = true) {
+    if (showLoading) this.claimsLoading.set(true);
+    this.cafeService.getMyCafeClaims()
+      .then(claims => this.myCafeClaims.set(claims))
+      .catch(() => this.toastService.show('Could not load your cafe claim status.', 'error'))
+      .finally(() => this.claimsLoading.set(false));
   }
 }

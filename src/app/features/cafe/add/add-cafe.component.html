@@ -52,8 +52,12 @@
         <div class="w-full bg-white zine-border p-4 zine-shadow-sm flex gap-3 items-start text-left">
             <span class="material-symbols-outlined text-primary text-2xl shrink-0 mt-0.5">pending_actions</span>
             <div>
-                <p class="font-zine font-bold text-xs uppercase tracking-widest text-espresso">Pending Approval</p>
-                <p class="font-marker text-sm text-espresso/70 mt-1">Your spot will go live once reviewed. Check status in your profile.</p>
+                <p class="font-zine font-bold text-xs uppercase tracking-widest text-espresso">
+                    {{ ownerClaimSubmitted() ? 'Spot + Claim Submitted' : 'Pending Approval' }}
+                </p>
+                <p class="font-marker text-sm text-espresso/70 mt-1">
+                    {{ ownerClaimSubmitted() ? 'Your ownership claim is waiting for admin review. Check claim status in your profile.' : 'Your spot will go live once reviewed. Check status in your profile.' }}
+                </p>
             </div>
         </div>
 
@@ -464,6 +468,86 @@
                 </div>
             </div>
         </div>
+
+        @if (!isEditMode()) {
+        <!-- OWNER CLAIM -->
+        <div class="bg-off-white zine-border zine-shadow p-5 space-y-4">
+            <button type="button" (click)="wantsOwnerClaim.set(!wantsOwnerClaim())"
+                class="w-full flex items-center justify-between gap-4 text-left zine-click-active">
+                <div>
+                    <p class="font-zine font-black italic uppercase tracking-wider text-sm">Are you the business owner?</p>
+                    <p class="font-marker text-xs text-espresso/60 mt-1">Submit ownership proof now so admins can verify you faster.</p>
+                </div>
+                <div class="w-12 h-6 border-2 border-espresso transition-colors flex items-center px-0.5 shrink-0"
+                    [class.bg-primary]="wantsOwnerClaim()"
+                    [class.bg-espresso/10]="!wantsOwnerClaim()">
+                    <span class="w-4 h-4 bg-espresso transition-transform"
+                        [class.translate-x-6]="wantsOwnerClaim()"></span>
+                </div>
+            </button>
+
+            @if (wantsOwnerClaim()) {
+            <div class="space-y-3 pt-4 border-t-2 border-espresso/10">
+                <label class="block">
+                    <span class="block font-zine text-[10px] font-bold uppercase tracking-widest text-espresso/50 mb-1">Your name *</span>
+                    <input type="text" [ngModel]="ownerClaimName()" (ngModelChange)="ownerClaimName.set($event)" name="ownerClaimName"
+                        class="w-full bg-[#FAFAF7] border-2 border-espresso px-3 py-2 font-zine text-sm outline-none focus:bg-white focus:border-primary"
+                        placeholder="e.g. Aiman" />
+                </label>
+
+                <label class="block">
+                    <span class="block font-zine text-[10px] font-bold uppercase tracking-widest text-espresso/50 mb-1">Role at cafe *</span>
+                    <input type="text" [ngModel]="ownerClaimRole()" (ngModelChange)="ownerClaimRole.set($event)" name="ownerClaimRole"
+                        class="w-full bg-[#FAFAF7] border-2 border-espresso px-3 py-2 font-zine text-sm outline-none focus:bg-white focus:border-primary"
+                        placeholder="Owner, manager, staff" />
+                </label>
+
+                <label class="block">
+                    <span class="block font-zine text-[10px] font-bold uppercase tracking-widest text-espresso/50 mb-1">Contact *</span>
+                    <input type="text" [ngModel]="ownerClaimContact()" (ngModelChange)="ownerClaimContact.set($event)" name="ownerClaimContact"
+                        class="w-full bg-[#FAFAF7] border-2 border-espresso px-3 py-2 font-zine text-sm outline-none focus:bg-white focus:border-primary"
+                        placeholder="Business email or phone number" />
+                </label>
+
+                <label class="block">
+                    <span class="block font-zine text-[10px] font-bold uppercase tracking-widest text-espresso/50 mb-1">SSM / business reg no. *</span>
+                    <input type="text" [ngModel]="ownerClaimSsmNumber()" (ngModelChange)="ownerClaimSsmNumber.set($event)" name="ownerClaimSsmNumber"
+                        class="w-full bg-[#FAFAF7] border-2 border-espresso px-3 py-2 font-zine text-sm outline-none focus:bg-white focus:border-primary"
+                        placeholder="e.g. 202401012345" />
+                </label>
+
+                <label class="block">
+                    <span class="block font-zine text-[10px] font-bold uppercase tracking-widest text-espresso/50 mb-1">Business document *</span>
+                    <div class="bg-[#FAFAF7] border-2 border-dashed border-espresso px-3 py-3 flex items-center justify-between gap-3">
+                        <div class="min-w-0">
+                            <p class="font-zine text-sm font-bold text-espresso truncate">
+                                {{ ownerClaimDocument()?.name || 'Upload SSM / business proof' }}
+                            </p>
+                            <p class="font-marker text-[10px] text-espresso/50 uppercase mt-0.5">PDF, JPG, PNG, or WebP · max 10MB</p>
+                        </div>
+                        <span class="material-symbols-outlined text-espresso/50 shrink-0">upload_file</span>
+                    </div>
+                    <input type="file" accept=".pdf,image/jpeg,image/png,image/webp" class="sr-only"
+                        (change)="onOwnerClaimDocumentSelected($event)" />
+                </label>
+
+                <label class="block">
+                    <span class="block font-zine text-[10px] font-bold uppercase tracking-widest text-espresso/50 mb-1">Public proof link</span>
+                    <input type="url" [ngModel]="ownerClaimProofUrl()" (ngModelChange)="ownerClaimProofUrl.set($event)" name="ownerClaimProofUrl"
+                        class="w-full bg-[#FAFAF7] border-2 border-espresso px-3 py-2 font-zine text-sm outline-none focus:bg-white focus:border-primary"
+                        placeholder="Google Business, Instagram, official website" />
+                </label>
+
+                <label class="block">
+                    <span class="block font-zine text-[10px] font-bold uppercase tracking-widest text-espresso/50 mb-1">Note</span>
+                    <textarea [ngModel]="ownerClaimMessage()" (ngModelChange)="ownerClaimMessage.set($event)" name="ownerClaimMessage" rows="3"
+                        class="w-full bg-[#FAFAF7] border-2 border-espresso px-3 py-2 font-zine text-sm outline-none focus:bg-white focus:border-primary resize-none"
+                        placeholder="Anything admins should know?"></textarea>
+                </label>
+            </div>
+            }
+        </div>
+        }
 
         <!-- ─── SUBMIT ─────────────────────────────────────────── -->
         <button (click)="submit()" [disabled]="submitting()"

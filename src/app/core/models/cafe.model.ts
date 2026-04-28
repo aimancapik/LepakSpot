@@ -4,6 +4,7 @@ export type NoiseLevel = 'Library Quiet' | 'Chill Chatter' | 'Loud';
 export type WifiSpeed = 'Fast' | 'Average' | 'Slow' | 'None';
 export type OutletAvailability = 'Many' | 'Few' | 'None';
 export type ClaimStatus = 'unclaimed' | 'pending' | 'claimed';
+export type CafeClaimStatus = 'pending' | 'approved' | 'rejected';
 
 export interface Cafe {
     id: string;
@@ -33,4 +34,26 @@ export interface Cafe {
     ownerId?: string;
     claimStatus?: ClaimStatus;
     hasActiveDeal?: boolean;
+}
+
+export interface CafeClaim {
+    id: string;
+    cafeId: string;
+    cafeName: string;
+    userId: string;
+    claimantName: string;
+    role: string;
+    contact: string;
+    ssmNumber: string;
+    documentPath: string;
+    documentName?: string | null;
+    proofUrl?: string | null;
+    message?: string | null;
+    status: CafeClaimStatus;
+    rejectionReason?: string | null;
+    appealMessage?: string | null;
+    appealedAt?: string | null;
+    reviewedBy?: string | null;
+    reviewedAt?: string | null;
+    createdAt: string;
 }

@@ -11,6 +11,7 @@ import {
 import { SupabaseService } from './supabase.service';
 import { User } from '../models/user.model';
 import { ToastService } from '../../shared/components/toast/toast.service';
+import { environment } from '../../../environments/environment';
 
 const USER_CACHE_KEY = 'lepakspot_user_cache';
 
@@ -110,6 +111,7 @@ export class AuthService {
                     points: 0,
                     badges: [],
                     totalCheckins: 0,
+                    isAdmin: false,
                     createdAt: new Date().toISOString(),
                 };
                 await this.supabase.client.from('users').insert(userData);
@@ -133,6 +135,7 @@ export class AuthService {
                 points: 0,
                 badges: [],
                 totalCheckins: 0,
+                isAdmin: false,
                 createdAt: new Date().toISOString(),
             };
             this.currentUser.set(fallback);
@@ -197,6 +200,10 @@ export class AuthService {
     }
 
     async bypassLogin() {
+        if (!environment.enableDevBypass || environment.production) {
+            throw new Error('Developer bypass is disabled in this build.');
+        }
+
         this.loading.set(true);
         try {
             const mockUser: User = {
