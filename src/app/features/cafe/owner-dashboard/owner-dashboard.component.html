@@ -82,6 +82,31 @@
                 }
             </div>
 
+            <!-- Video -->
+            <div class="space-y-3">
+                <div class="flex items-center justify-between gap-3">
+                    <label class="font-zine text-xs font-bold uppercase tracking-widest text-espresso/60">Vibe Video</label>
+                    <span class="font-marker text-[10px] text-espresso/40 uppercase">Optional</span>
+                </div>
+
+                @if (videoPreview()) {
+                <div class="relative aspect-video bg-espresso border-2 border-espresso overflow-hidden zine-shadow-sm">
+                    <video [src]="videoPreview()" class="w-full h-full object-cover" autoplay muted loop playsinline controls></video>
+                    <button (click)="removeVideo()"
+                        class="absolute top-2 right-2 size-8 bg-espresso text-off-white border-2 border-off-white flex items-center justify-center zine-click-active">
+                        <span class="material-symbols-outlined text-sm">close</span>
+                    </button>
+                </div>
+                } @else {
+                <label
+                    class="relative w-full flex items-center justify-center gap-2 py-4 bg-off-white border-2 border-dashed border-espresso cursor-pointer hover:bg-white transition-all zine-click-active">
+                    <span class="material-symbols-outlined text-espresso/50">movie</span>
+                    <span class="font-zine text-xs font-black uppercase tracking-widest text-espresso/60">Add Short Video</span>
+                    <input type="file" accept="video/mp4,video/webm,video/quicktime" class="sr-only" (change)="onVideoSelected($event)" />
+                </label>
+                }
+            </div>
+
             <!-- Scene Snaps -->
             <div class="space-y-3">
                 <div class="flex items-center justify-between gap-3">
@@ -132,12 +157,32 @@
                     class="w-full bg-off-white border-2 border-espresso px-4 py-3 font-zine text-sm focus:outline-none focus:border-primary" />
             </div>
 
-            <!-- Opening Hours -->
-            <div class="space-y-1.5">
-                <label class="font-zine text-xs font-bold uppercase tracking-widest text-espresso/60">Opening Hours</label>
-                <input [ngModel]="editOpeningHours()" (ngModelChange)="editOpeningHours.set($event)"
-                    placeholder="e.g. 8am – 10pm, Daily"
-                    class="w-full bg-off-white border-2 border-espresso px-4 py-3 font-zine text-sm focus:outline-none focus:border-primary" />
+            <!-- Operating Hours -->
+            <div class="space-y-2">
+                <label class="font-zine text-xs font-bold uppercase tracking-widest text-espresso/60">Operating Hours</label>
+                <div class="bg-off-white border-2 border-espresso divide-y divide-espresso/10">
+                    @for (day of weekDays; track day.key) {
+                    @let hours = getDayHours(day.key);
+                    <div class="flex items-center gap-2 px-3 py-2">
+                        <span class="font-zine text-xs font-black uppercase w-8 shrink-0 text-espresso/70">{{ day.label }}</span>
+                        <button type="button" (click)="toggleDayHours(day.key)"
+                            class="px-2 py-1 border-2 border-espresso font-zine text-[10px] font-black uppercase tracking-wider shrink-0 transition-colors w-16"
+                            [class.bg-espresso]="hours.closed"
+                            [class.text-off-white]="hours.closed"
+                            [class.bg-latte]="!hours.closed"
+                            [class.text-espresso]="!hours.closed">
+                            {{ hours.closed ? 'Closed' : 'Open' }}
+                        </button>
+                        @if (!hours.closed) {
+                        <input type="time" [ngModel]="hours.open" (ngModelChange)="setDayTime(day.key, 'open', $event)"
+                            class="flex-1 min-w-0 bg-latte border-2 border-espresso/20 focus:border-espresso px-2 py-1 font-zine text-xs outline-none" />
+                        <span class="font-marker text-xs text-espresso/30 shrink-0">–</span>
+                        <input type="time" [ngModel]="hours.close" (ngModelChange)="setDayTime(day.key, 'close', $event)"
+                            class="flex-1 min-w-0 bg-latte border-2 border-espresso/20 focus:border-espresso px-2 py-1 font-zine text-xs outline-none" />
+                        }
+                    </div>
+                    }
+                </div>
             </div>
 
             <!-- Tags -->

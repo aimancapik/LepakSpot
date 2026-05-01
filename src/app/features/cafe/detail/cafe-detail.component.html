@@ -5,21 +5,23 @@
     <!-- Hero Image (full bleed, ~55vh) -->
     <div class="relative w-full h-[55vh] bg-espresso overflow-hidden">
 
-        <!-- Swipeable photos -->
-        <div class="flex w-full h-full overflow-x-auto snap-x snap-mandatory no-scrollbar">
+        <!-- Auto-sliding photos -->
+        @if (cafeData.photos.length > 0) {
+        <div class="flex w-full h-full transition-transform duration-700 ease-in-out"
+             [style.transform]="'translateX(-' + currentPhotoIndex() * 100 + '%)'">
             @for (photo of cafeData.photos; track $index) {
-            <div class="flex-none w-full h-full snap-center cursor-zoom-in"
+            <div class="flex-none w-full h-full cursor-zoom-in"
                  (click)="lightboxIndex.set($index)">
                 <img [src]="photo" class="w-full h-full object-cover" [alt]="cafeData.name" />
             </div>
             }
-            @if (cafeData.photos.length === 0) {
-            <div class="flex-none w-full h-full snap-center flex flex-col items-center justify-center text-off-white/60 bg-espresso">
-                <span class="material-symbols-outlined text-6xl">photo_library</span>
-                <p class="font-marker mt-2 text-lg uppercase">No photos yet</p>
-            </div>
-            }
         </div>
+        } @else {
+        <div class="flex flex-col items-center justify-center w-full h-full text-off-white/60 bg-espresso">
+            <span class="material-symbols-outlined text-6xl">photo_library</span>
+            <p class="font-marker mt-2 text-lg uppercase">No photos yet</p>
+        </div>
+        }
 
         <!-- Gradient overlay bottom -->
         <div class="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-latte to-transparent pointer-events-none"></div>
@@ -36,52 +38,134 @@
             </button>
         </div>
 
-        <!-- Swipe hint -->
+
+        <!-- Dot indicators -->
         @if (cafeData.photos.length > 1) {
-        <div class="absolute bottom-16 inset-x-0 flex justify-center z-20 pointer-events-none">
-            <div class="bg-espresso/30 backdrop-blur-sm text-white/60 px-3 py-1 font-zine text-[9px] font-bold uppercase tracking-widest border border-white/10 rounded-full flex items-center gap-1">
-                <span class="material-symbols-outlined text-xs">swipe</span>
-                SWIPE
+        <div class="absolute bottom-16 inset-x-0 flex justify-center gap-1.5 z-20 pointer-events-none">
+            @for (photo of cafeData.photos; track $index) {
+            <div class="h-1.5 rounded-full transition-all duration-300"
+                 [class.w-4]="currentPhotoIndex() === $index"
+                 [class.w-1.5]="currentPhotoIndex() !== $index"
+                 [class.bg-white]="currentPhotoIndex() === $index"
+                 [class.bg-white/40]="currentPhotoIndex() !== $index">
             </div>
+            }
         </div>
         }
     </div>
 
     <!-- Content card — rounds up over image -->
-    <div class="relative -mt-8 bg-latte rounded-t-[2rem] border-t-4 border-x-4 border-espresso z-10 px-6 pt-8 pb-40 space-y-10">
+    <div class="relative -mt-8 bg-latte rounded-t-[2rem] border-t-4 border-x-4 border-espresso z-10 px-6 pt-8 pb-40 space-y-8 animate-slide-up-card">
 
-        <!-- Name + Address -->
-        <div>
-            <div class="flex items-start gap-3 flex-wrap">
+        <!-- Name + Rating + Address + Tags + Socials — compact header block -->
+        <div class="space-y-2 animate-fade-up" style="animation-delay:0.1s">
+            <!-- Row 1: Name + Rating badge -->
+            <div class="flex items-start gap-2">
                 <h1 class="text-4xl font-black italic tracking-tighter uppercase font-zine text-espresso leading-none drop-shadow-sm flex-1">
                     {{ cafeData.name }}
                 </h1>
-                <div class="bg-primary text-espresso border-4 border-espresso px-3 py-1 font-black font-zine italic uppercase tracking-widest -rotate-2 zine-shadow-sm flex items-center gap-1 shrink-0 mt-1">
-                    <span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1">star</span>
+                <div class="bg-primary text-espresso border-4 border-espresso px-2.5 py-0.5 font-black font-zine italic uppercase tracking-widest -rotate-3 zine-shadow-sm flex items-center gap-1 shrink-0 mt-1 text-sm animate-pop-in" style="animation-delay:0.25s">
+                    <span class="material-symbols-outlined text-[13px]" style="font-variation-settings: 'FILL' 1">star</span>
                     {{ formatRating(cafeData.rating) }}
                 </div>
             </div>
-            <a [href]="'https://www.google.com/maps/search/?api=1&query=' + cafeData.lat + ',' + cafeData.lng"
-               target="_blank"
-               class="inline-flex items-center gap-2 mt-3 font-marker text-espresso/70 hover:text-espresso group transition-colors">
-                <span class="material-symbols-outlined text-xl group-hover:animate-bounce">location_on</span>
-                <span class="underline decoration-primary/40 group-hover:decoration-primary decoration-2 underline-offset-4">{{ cafeData.address }}</span>
-                <span class="material-symbols-outlined text-sm opacity-40 group-hover:opacity-100">open_in_new</span>
-            </a>
+
+            <!-- Row 2: Address pill + Socials on same line -->
+            <div class="flex items-center gap-2 flex-wrap">
+                <a [href]="'https://www.google.com/maps/search/?api=1&query=' + cafeData.lat + ',' + cafeData.lng"
+                   target="_blank"
+                   class="inline-flex items-center gap-1.5 bg-off-white border-2 border-espresso px-2.5 py-1 zine-shadow-sm zine-click-active group">
+                    <span class="material-symbols-outlined text-sm text-espresso/60">location_on</span>
+                    <span class="font-marker text-sm text-espresso">{{ cafeData.address }}</span>
+                    <span class="material-symbols-outlined text-xs text-espresso/40 group-hover:text-espresso transition-colors">open_in_new</span>
+                </a>
+
+                @if (cafeData.socialLinks?.tiktok || cafeData.socialLinks?.facebook || cafeData.socialLinks?.other) {
+                <div class="flex gap-1.5">
+                    @if (cafeData.socialLinks?.tiktok) {
+                    <a [href]="cafeData.socialLinks!.tiktok" target="_blank"
+                       class="size-8 bg-off-white border-2 border-espresso flex items-center justify-center zine-shadow-sm zine-click-active">
+                        <img src="/icons/logo/tik-tok.png" class="w-4 h-4" alt="TikTok" />
+                    </a>
+                    }
+                    @if (cafeData.socialLinks?.facebook) {
+                    <a [href]="cafeData.socialLinks!.facebook" target="_blank"
+                       class="size-8 bg-off-white border-2 border-espresso flex items-center justify-center zine-shadow-sm zine-click-active">
+                        <img src="/icons/logo/facebook.png" class="w-4 h-4" alt="Facebook" />
+                    </a>
+                    }
+                    @if (cafeData.socialLinks?.other) {
+                    <a [href]="cafeData.socialLinks!.other" target="_blank"
+                       class="size-8 bg-off-white border-2 border-espresso flex items-center justify-center zine-shadow-sm zine-click-active">
+                        <span class="material-symbols-outlined text-sm text-espresso">link</span>
+                    </a>
+                    }
+                </div>
+                }
+            </div>
+
         </div>
 
-        <!-- Tags -->
-        <div class="flex gap-3 flex-wrap">
-            @for (tag of cafeData.tags; track tag) {
-            <span class="px-4 py-1.5 bg-off-white border-2 border-espresso zine-shadow-sm font-marker text-sm font-bold uppercase rotate-[1deg] hover:rotate-0 transition-transform">
-                #{{ tag }}
-            </span>
+        <!-- Operating Hours -->
+        @if (cafeData.operatingHours || cafeData.openingHours) {
+        <div class="animate-fade-up" style="animation-delay:0.2s">
+
+            @if (cafeData.operatingHours) {
+            <!-- Structured hours — dropdown -->
+            <button type="button" (click)="hoursExpanded.set(!hoursExpanded())"
+                class="w-full flex items-center gap-3 text-left">
+                <h3 class="inline-block bg-espresso text-off-white px-4 py-1 font-zine font-bold italic uppercase tracking-widest -rotate-1 shrink-0">
+                    HOURS
+                </h3>
+                @if (operatingHoursStatus(); as status) {
+                <span class="px-3 py-1 font-zine text-xs font-black uppercase tracking-widest border-2 border-espresso shrink-0"
+                    [class.bg-sage]="status.isOpen"
+                    [class.bg-off-white]="!status.isOpen">
+                    {{ status.isOpen ? 'OPEN NOW' : 'CLOSED' }}
+                </span>
+                <span class="font-marker text-sm text-espresso/60 flex-1 truncate">{{ status.label }}</span>
+                }
+                <span class="material-symbols-outlined text-espresso/50 text-base ml-auto transition-transform duration-200 shrink-0"
+                    [class.rotate-180]="hoursExpanded()">
+                    expand_more
+                </span>
+            </button>
+            @if (hoursExpanded()) {
+            <div class="mt-3 bg-off-white border-2 border-espresso divide-y divide-espresso/10">
+                @for (day of weekDays; track day.key) {
+                @let dayHours = cafeData.operatingHours[day.key];
+                <div class="flex items-center justify-between px-4 py-2"
+                    [class.bg-primary]="isToday(day.index)"
+                    [class.bg-off-white]="!isToday(day.index)">
+                    <span class="font-zine text-xs font-black uppercase tracking-wider w-8 text-espresso">{{ day.label }}</span>
+                    @if (dayHours?.closed) {
+                    <span class="font-marker text-sm text-espresso/40">Closed</span>
+                    } @else if (dayHours) {
+                    <span class="font-marker text-sm text-espresso">{{ fmt12(dayHours.open) }} – {{ fmt12(dayHours.close) }}</span>
+                    } @else {
+                    <span class="font-marker text-sm text-espresso/30">—</span>
+                    }
+                </div>
+                }
+            </div>
             }
+
+            } @else if (cafeData.openingHours) {
+            <!-- Plain string hours — just one line, no dropdown -->
+            <div class="flex items-center gap-3">
+                <h3 class="inline-block bg-espresso text-off-white px-4 py-1 font-zine font-bold italic uppercase tracking-widest -rotate-1 shrink-0">
+                    HOURS
+                </h3>
+                <span class="font-marker text-sm text-espresso/70">{{ cafeData.openingHours }}</span>
+            </div>
+            }
+
         </div>
+        }
 
         <!-- Active Deals -->
         @if (activeDeals().length > 0) {
-        <div class="space-y-3">
+        <div class="space-y-3 animate-fade-up" style="animation-delay:0.3s">
             <h3 class="inline-block bg-primary text-espresso px-4 py-1 font-zine font-bold italic uppercase tracking-widest -rotate-1 border-2 border-espresso zine-shadow-sm">
                 DEALS ON NOW
             </h3>
@@ -209,40 +293,8 @@
         </a>
         }
 
-        <!-- See on Socials — only show if any link provided -->
-        @if (cafeData.socialLinks?.tiktok || cafeData.socialLinks?.facebook || cafeData.socialLinks?.other) {
-        <div class="space-y-4">
-            <h3 class="inline-block bg-espresso text-off-white px-4 py-1 font-zine font-bold italic uppercase tracking-widest -rotate-1">
-                SEE ON SOCIALS
-            </h3>
-            <div class="flex flex-col gap-3">
-                @if (cafeData.socialLinks?.tiktok) {
-                <a [href]="cafeData.socialLinks!.tiktok" target="_blank"
-                   class="flex items-center justify-center gap-3 py-4 bg-[#FE2C55] text-white zine-border zine-shadow-sm hover:translate-y-[-2px] transition-all rotate-1">
-                    <img src="/icons/logo/tik-tok.png" class="w-5 h-5" alt="TikTok" />
-                    <span class="font-zine font-black italic uppercase text-sm tracking-tight">TikTok</span>
-                </a>
-                }
-                @if (cafeData.socialLinks?.facebook) {
-                <a [href]="cafeData.socialLinks!.facebook" target="_blank"
-                   class="flex items-center justify-center gap-3 py-4 bg-[#1877F2] text-white zine-border zine-shadow-sm hover:translate-y-[-2px] transition-all -rotate-1">
-                    <img src="/icons/logo/facebook.png" class="w-5 h-5" alt="Facebook" />
-                    <span class="font-zine font-black italic uppercase text-sm tracking-tight">Facebook</span>
-                </a>
-                }
-                @if (cafeData.socialLinks?.other) {
-                <a [href]="cafeData.socialLinks!.other" target="_blank"
-                   class="flex items-center justify-center gap-3 py-4 bg-sage text-espresso zine-border zine-shadow-sm hover:translate-y-[-2px] transition-all rotate-1">
-                    <span class="material-symbols-outlined text-base">link</span>
-                    <span class="font-zine font-black italic uppercase text-sm tracking-tight">Website / Other</span>
-                </a>
-                }
-            </div>
-        </div>
-        }
-
         <!-- Reviews -->
-        <div class="space-y-6">
+        <div class="space-y-6 animate-fade-up" style="animation-delay:0.35s">
             <div class="flex items-center justify-between">
                 <h3 class="inline-block bg-sage text-espresso px-4 py-1 font-zine font-bold italic uppercase tracking-widest rotate-2 border-2 border-espresso">
                     LATEST REVIEWS
@@ -256,53 +308,73 @@
                 <p class="text-xs font-zine font-bold uppercase text-espresso/40 mt-1">Be the first to share!</p>
             </div>
             } @else {
-            <div class="space-y-4">
-                @for (review of reviews(); track review.id) {
-                <div class="bg-off-white border-2 border-espresso/20 p-3 space-y-2 rounded-xl">
-                    <div class="flex items-center gap-2">
-                        @if (review.photoURL) {
-                        <img [src]="review.photoURL" [alt]="review.displayName"
-                            class="w-8 h-8 rounded-full border-2 border-espresso object-cover shrink-0" />
-                        } @else {
-                        <div class="w-8 h-8 rounded-full border-2 border-espresso bg-sage flex items-center justify-center shrink-0">
-                            <span class="font-marker text-sm text-espresso uppercase">{{ review.displayName[0] }}</span>
+            <!-- 2-col masonry grid -->
+            <div class="columns-2 gap-3">
+                @for (review of reviews(); track review.id; let i = $index) {
+                <div class="break-inside-avoid mb-3 bg-off-white border-2 border-espresso overflow-hidden"
+                     [class]="i % 2 === 0 ? 'rotate-[0.4deg]' : '-rotate-[0.4deg]'">
+
+                    <!-- Review image -->
+                    @if (review.imageUrl) {
+                    <div class="relative">
+                        <img [src]="review.imageUrl" [alt]="review.displayName + ' photo'"
+                            class="w-full object-cover" style="max-height: 180px;" />
+                        <!-- Rating overlay bottom-right -->
+                        <div class="absolute bottom-2 right-2 bg-espresso/80 backdrop-blur-sm px-2 py-0.5 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[11px] text-primary" style="font-variation-settings:'FILL' 1">star</span>
+                            <span class="font-zine text-[10px] font-bold text-off-white">{{ review.rating }}/5</span>
                         </div>
-                        }
-                        <div class="flex-1 min-w-0">
-                            <p class="font-marker text-sm text-espresso truncate">{{ review.displayName }}</p>
-                            <p class="font-zine text-[10px] text-espresso/50 uppercase tracking-wider">{{ review.createdAt | date:'d MMM yyyy' }}</p>
+                        <!-- Date bottom-left -->
+                        <div class="absolute bottom-2 left-2 bg-espresso/80 backdrop-blur-sm px-2 py-0.5">
+                            <span class="font-zine text-[9px] font-bold text-off-white/80 uppercase tracking-wider">{{ review.createdAt | date:'d MMM' }}</span>
                         </div>
-                        <div class="flex gap-0.5 shrink-0">
+                    </div>
+                    }
+
+                    <!-- Body -->
+                    <div class="p-2.5 space-y-2">
+                        <!-- No image: show rating inline -->
+                        @if (!review.imageUrl) {
+                        <div class="flex items-center gap-0.5">
                             @for (s of [1,2,3,4,5]; track s) {
                             <span class="material-symbols-outlined text-sm"
                                 [class.text-primary]="s <= review.rating"
-                                [class.text-espresso]="s > review.rating"
-                                style="font-variation-settings:'FILL' 1; opacity: var(--tw-opacity, 1)"
-                                [style.opacity]="s > review.rating ? '0.2' : '1'">star</span>
+                                [class.text-espresso/20]="s > review.rating"
+                                style="font-variation-settings:'FILL' 1">star</span>
                             }
                         </div>
-                    </div>
-                    @if (review.text) {
-                    <p class="font-marker text-sm text-espresso/80 leading-relaxed">"{{ review.text }}"</p>
-                    }
-                    @if (review.imageUrl) {
-                    <img [src]="review.imageUrl" [alt]="review.displayName + ' photo'"
-                        class="w-full max-h-48 object-cover zine-border rounded-xl" />
-                    }
-                    <div class="flex justify-end pt-2 border-t border-espresso/10 mt-1">
-                        @if (likedReviewIds().has(review.id)) {
-                        <button (click)="toggleLike(review.id)"
-                            class="flex items-center gap-1.5 px-3 py-1 rounded-full border-2 border-primary bg-primary transition-all">
-                            <span class="material-symbols-outlined text-sm text-espresso" style="font-variation-settings:'FILL' 1">favorite</span>
-                            <span class="font-zine text-xs font-bold text-espresso">{{ review.likeCount || 0 }}</span>
-                        </button>
-                        } @else {
-                        <button (click)="toggleLike(review.id)"
-                            class="flex items-center gap-1.5 px-3 py-1 rounded-full border-2 border-espresso/20 bg-transparent transition-all hover:border-primary">
-                            <span class="material-symbols-outlined text-sm text-espresso/40" style="font-variation-settings:'FILL' 0">favorite</span>
-                            <span class="font-zine text-xs font-bold text-espresso/40">{{ review.likeCount || 0 }}</span>
-                        </button>
                         }
+
+                        @if (review.text) {
+                        <p class="font-marker text-xs text-espresso/80 leading-relaxed line-clamp-4">"{{ review.text }}"</p>
+                        }
+
+                        <!-- Author row -->
+                        <div class="flex items-center justify-between pt-1 border-t border-espresso/10">
+                            <div class="flex items-center gap-1.5 min-w-0">
+                                @if (review.photoURL && !failedAvatars().has(review.photoURL)) {
+                                <img [src]="review.photoURL" [alt]="review.displayName"
+                                    class="w-6 h-6 border border-espresso object-cover shrink-0 rounded-full"
+                                    (error)="onAvatarError(review.photoURL!)" />
+                                } @else {
+                                <div class="w-6 h-6 border border-espresso bg-sage flex items-center justify-center shrink-0 rounded-full">
+                                    <span class="font-marker text-[10px] text-espresso uppercase">{{ review.displayName[0] }}</span>
+                                </div>
+                                }
+                                <span class="font-marker text-[10px] text-espresso truncate">{{ review.displayName }}</span>
+                            </div>
+                            <!-- Like -->
+                            <button (click)="toggleLike(review.id)"
+                                class="flex items-center gap-1 shrink-0 transition-all">
+                                @if (likedReviewIds().has(review.id)) {
+                                <span class="material-symbols-outlined text-sm text-primary" style="font-variation-settings:'FILL' 1">favorite</span>
+                                <span class="font-zine text-[10px] font-bold text-primary">{{ review.likeCount || 0 }}</span>
+                                } @else {
+                                <span class="material-symbols-outlined text-sm text-espresso/30" style="font-variation-settings:'FILL' 0">favorite</span>
+                                <span class="font-zine text-[10px] font-bold text-espresso/30">{{ review.likeCount || 0 }}</span>
+                                }
+                            </button>
+                        </div>
                     </div>
                 </div>
                 }

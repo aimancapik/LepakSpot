@@ -287,13 +287,13 @@ export class CheckInService {
         return !!(data && data.length > 0);
     }
 
-    async getUserCheckins(uid: string): Promise<CheckIn[]> {
+    async getUserCheckins(uid: string, limit = 10): Promise<CheckIn[]> {
         const { data } = await this.supabase.client
             .from('checkins')
             .select('*')
             .eq('userId', uid)
             .order('timestamp', { ascending: false })
-            .limit(10);
+            .limit(limit);
 
         return (data || []) as CheckIn[];
     }

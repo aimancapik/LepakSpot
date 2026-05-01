@@ -8,8 +8,8 @@
             <span class="material-symbols-outlined text-espresso">arrow_back</span>
         </button>
         <h2
-            class="text-2xl font-black italic tracking-tighter uppercase font-zine text-espresso drop-shadow-sm -rotate-1 flex-1 text-center px-2">
-            THE SCENE
+            class="text-2xl font-black italic tracking-tighter uppercase font-zine text-espresso drop-shadow-sm -rotate-1 flex-1 text-center px-2 truncate">
+            {{ cafe()?.name ?? 'THE SCENE' }}
         </h2>
         <div class="flex items-center justify-end shrink-0 gap-2">
             <button (click)="showSaveModal.set(true)"
@@ -21,32 +21,9 @@
 
     @if (cafe()) {
     <!-- Main Content -->
-    <main class="px-6 py-8 flex flex-col gap-10">
-        <div class="relative">
-
-            <!-- Header Text -->
-            <div class="relative rotate-1">
-                <div
-                    class="bg-sage border-2 border-espresso p-4 shadow-[4px_4px_0_var(--color-espresso)] rounded-2xl">
-                    <p class="font-zine text-sm font-bold uppercase tracking-wider text-espresso">THE SCENE &#64;</p>
-                    <h1 class="font-marker text-3xl font-black text-espresso leading-none mt-1">{{ cafe()!.name }}</h1>
-                </div>
-            </div>
-        </div>
-
-        <!-- Opening Hours -->
-        @if (cafe()!.openingHours) {
-        <div class="bg-primary/20 border-2 border-espresso p-3 flex items-center gap-3 -mt-2 rounded-2xl relative z-10">
-            <span class="material-symbols-outlined text-espresso shrink-0">schedule</span>
-            <div>
-                <p class="font-zine font-bold text-xs uppercase tracking-widest text-espresso/70">Opening Hours</p>
-                <p class="font-marker text-sm text-espresso mt-0.5">{{ cafe()!.openingHours }}</p>
-            </div>
-        </div>
-        }
-
+    <main class="px-6 py-8 flex flex-col gap-10 animate-slide-up-card">
         <!-- Action Buttons -->
-        <div class="flex justify-center flex-wrap gap-4 -mt-4 z-10 transition-all font-marker text-sm px-2">
+        <div class="flex justify-center flex-wrap gap-4 -mt-4 z-10 transition-all font-marker text-sm px-2 animate-fade-up" style="animation-delay:0.1s">
             <!-- CHECK IN / CHECKOUT BUTTON -->
             @if (isCheckedIn() && isPresent()) {
             <!-- Currently present — show I'm Leaving -->
@@ -88,7 +65,7 @@
 
         <!-- VIP Perks & Secret Menu -->
         @if (cafe()!.perks?.length || cafe()!.secretMenu?.length) {
-        <div class="mt-8 relative z-10">
+        <div class="relative z-10 animate-fade-up" style="animation-delay:0.2s">
             <!-- Tape decoration -->
             <div
                 class="absolute -top-3 left-1/2 -translate-x-1/2 w-24 h-6 bg-white/60 backdrop-blur-sm border border-espresso -rotate-2 z-20">
@@ -147,7 +124,7 @@
         }
 
         <!-- Horizontal Scene Carousel -->
-        <div class="relative -mt-4 mb-8">
+        <div class="relative -mt-4 mb-8 animate-fade-up" style="animation-delay:0.25s">
             <div class="flex items-center gap-3 px-6 mb-4">
                 <h3 class="bg-espresso text-off-white px-3 py-1 font-zine font-bold italic uppercase tracking-widest -rotate-2">
                     SCENE SNAPS
@@ -156,7 +133,7 @@
             </div>
 
             <!-- Horizontal Scroll Container -->
-            <div class="flex overflow-x-auto gap-8 px-8 pb-4 snap-x snap-mandatory no-scrollbar">
+            <div #snapContainer class="flex overflow-x-auto gap-8 px-8 pb-4 snap-x snap-mandatory no-scrollbar">
                 @if (cafe()!.sceneSnaps?.length) {
                     @for (snap of cafe()!.sceneSnaps; track $index; let i = $index) {
                     <!-- Dynamic Scene Snap -->
@@ -191,17 +168,40 @@
                 }
             </div>
 
-            <!-- Hint -->
-            <div class="flex justify-center gap-1 opacity-30 mt-2">
-                <div class="w-1.5 h-1.5 rounded-full bg-espresso"></div>
-                <div class="w-1.5 h-1.5 rounded-full bg-espresso"></div>
-                <div class="w-1.5 h-1.5 rounded-full bg-espresso"></div>
+            <!-- Dot indicators -->
+            @if ((cafe()!.sceneSnaps?.length ?? 0) > 1) {
+            <div class="flex justify-center gap-1.5 mt-3">
+                @for (snap of cafe()!.sceneSnaps; track $index) {
+                <div class="h-1.5 rounded-full transition-all duration-300"
+                     [class.w-4]="currentSnapIndex() === $index"
+                     [class.w-1.5]="currentSnapIndex() !== $index"
+                     [class.bg-espresso]="currentSnapIndex() === $index"
+                     [class.bg-espresso/20]="currentSnapIndex() !== $index">
+                </div>
+                }
+            </div>
+            }
+        </div>
+
+        <!-- Video -->
+        @if (cafe()!.videoUrl) {
+        <div class="relative -mt-8 animate-fade-up" style="animation-delay:0.3s">
+            <div class="mb-4">
+                <h3 class="inline-block bg-espresso text-off-white px-3 py-1 font-zine font-bold italic uppercase tracking-widest -rotate-2">
+                    THE REEL
+                </h3>
+            </div>
+            <div class="relative zine-border zine-shadow bg-espresso overflow-hidden rotate-[0.5deg]">
+                <video [src]="cafe()!.videoUrl!" controls playsinline
+                       class="w-full max-h-[60vh] object-contain bg-espresso">
+                </video>
             </div>
         </div>
+        }
 
         <!-- ── Leave / Edit a Review ── -->
         @if (!hasReviewed() && !reviewSubmitted()) {
-        <div class="relative mt-2">
+        <div class="relative mt-2 animate-fade-up" style="animation-delay:0.35s">
             <div class="absolute -top-3 left-8 w-20 h-5 bg-white/60 backdrop-blur-sm border border-espresso rotate-2 z-20"></div>
             <div class="bg-off-white zine-border p-5 shadow-[4px_4px_0_var(--color-espresso)] -rotate-1 relative overflow-hidden">
                 <div class="flex items-center gap-2 mb-4 border-b-2 border-espresso/20 pb-2">
@@ -356,7 +356,7 @@
 
         <!-- ── What Locals Say ── -->
         @if (reviews().length > 0) {
-        <div class="relative mt-2">
+        <div class="relative mt-2 animate-fade-up" style="animation-delay:0.4s">
             <!-- tape decoration -->
             <div class="absolute -top-3 right-8 w-20 h-5 bg-primary/60 border border-espresso -rotate-3 z-20">
             </div>

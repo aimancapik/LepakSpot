@@ -1,7 +1,30 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
-import { Cafe, CafeClaim, CafeTag } from '../models/cafe.model';
+import { Cafe, CafeClaim, CafeTag, DayKey } from '../models/cafe.model';
 import { AuthService } from './auth.service';
 import { SupabaseService } from './supabase.service';
+
+export type CafeOpenState = 'open' | 'closed' | 'unknown';
+
+export interface CafeOpenStatus {
+    state: CafeOpenState;
+    label: string;
+    isOpen: boolean;
+}
+
+interface OpeningRange {
+    open: number;
+    close: number;
+}
+
+interface OpeningRule {
+    days: Set<number>;
+    ranges: OpeningRange[];
+    closed: boolean;
+}
+
+const ALL_DAYS = [0, 1, 2, 3, 4, 5, 6];
+const DAY_TOKEN = '(sun(?:day)?|mon(?:day)?|tue(?:s(?:day)?)?|wed(?:nesday)?|thu(?:r(?:sday)?)?|fri(?:day)?|sat(?:urday)?)';
+const TIME_TOKEN = '(?:noon|midnight|\\d{3,4}\\s*(?:am|pm)?|\\d{1,2}(?::|\\.)\\d{1,2}\\s*(?:am|pm)?|\\d{1,2}\\s*(?:am|pm)?)';
 
 const MOCK_CAFES: Cafe[] = [
     {
@@ -161,30 +184,292 @@ export class CafeService {
         return cafes;
     });
 
-    /** Parses opening hours like "8am – 10pm, Daily" to check if currently open */
-    isOpenNow(cafe: Cafe): boolean {
-        if (!cafe.openingHours) return true;
-        const now = new Date();
+    openStatus(cafe: Cafe, now = new Date()): CafeOpenStatus {
+        if (cafe.operatingHours) {
+            const keys: DayKey[] = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+            const todayHours = cafe.operatingHours[keys[now.getDay()]];
+            if (todayHours) {
+                if (todayHours.closed) return { state: 'closed', label: 'Closed', isOpen: false };
+                const [openH, openM] = todayHours.open.split(':').map(Number);
+                const [closeH, closeM] = todayHours.close.split(':').map(Number);
+                const nowMins = now.getHours() * 60 + now.getMinutes();
+                const isOpen = nowMins >= openH * 60 + openM && nowMins < closeH * 60 + closeM;
+                return { state: isOpen ? 'open' : 'closed', label: isOpen ? 'Open' : 'Closed', isOpen };
+            }
+        }
+
+        if (!cafe.openingHours?.trim()) {
+            return { state: 'unknown', label: 'Hours unknown', isOpen: false };
+        }
+
+        const normalized = this.normalizeOpeningHours(cafe.openingHours);
+        if (!normalized || /^(unknown|n\/a|na|tbd|varies|see google|check google)$/.test(normalized)) {
+            return { state: 'unknown', label: 'Hours unknown', isOpen: false };
+        }
+
+        if (/\b(?:24\/7|always open|open 24 hours|24 hours|24hrs|24h)\b/.test(normalized)) {
+            return { state: 'open', label: 'Open', isOpen: true };
+        }
+
+        const rules = this.parseOpeningRules(normalized);
+        if (rules.length === 0) {
+            return { state: 'unknown', label: 'Hours unknown', isOpen: false };
+        }
+
+        const today = now.getDay();
+        const yesterday = (today + 6) % 7;
         const nowMins = now.getHours() * 60 + now.getMinutes();
-        const segment = cafe.openingHours.split('|')[0];
-        const match = segment.match(/(\d+(?::\d+)?(?:am|pm))\s*[–\-]\s*(\d+(?::\d+)?(?:am|pm))/i);
-        if (!match) return true;
-        const open = this.parseTimeMins(match[1]);
-        let close = this.parseTimeMins(match[2]);
-        if (close <= open) close += 24 * 60; // overnight
-        const adjustedNow = nowMins < open ? nowMins + 24 * 60 : nowMins;
-        return adjustedNow >= open && adjustedNow < close;
+
+        for (const rule of rules.filter(rule => !rule.closed)) {
+            for (const range of rule.ranges) {
+                if (range.close <= range.open && rule.days.has(yesterday) && nowMins < range.close) {
+                    return { state: 'open', label: 'Open', isOpen: true };
+                }
+            }
+        }
+
+        if (rules.some(rule => rule.closed && rule.days.has(today))) {
+            return { state: 'closed', label: 'Closed', isOpen: false };
+        }
+
+        for (const rule of rules.filter(rule => !rule.closed)) {
+            for (const range of rule.ranges) {
+                if (range.open === 0 && range.close === 1440 && rule.days.has(today)) {
+                    return { state: 'open', label: 'Open', isOpen: true };
+                }
+
+                if (range.close > range.open && rule.days.has(today) && nowMins >= range.open && nowMins < range.close) {
+                    return { state: 'open', label: 'Open', isOpen: true };
+                }
+
+                if (range.close <= range.open && rule.days.has(today) && nowMins >= range.open) {
+                    return { state: 'open', label: 'Open', isOpen: true };
+                }
+            }
+        }
+
+        return { state: 'closed', label: 'Closed', isOpen: false };
     }
 
-    private parseTimeMins(t: string): number {
-        const pm = /pm/i.test(t);
-        const cleaned = t.replace(/(am|pm)/i, '').trim();
-        const [hStr, mStr] = cleaned.split(':');
-        let h = parseInt(hStr, 10);
-        const m = mStr ? parseInt(mStr, 10) : 0;
-        if (pm && h !== 12) h += 12;
-        if (!pm && h === 12) h = 0;
-        return h * 60 + m;
+    /** Supports common formats like "8am-10pm Daily", "Mon-Fri 9:00-18:00", "Tue-Sun 10am-6pm | Closed Mon", and overnight ranges. */
+    isOpenNow(cafe: Cafe): boolean {
+        return this.openStatus(cafe).isOpen;
+    }
+
+    private normalizeOpeningHours(hours: string): string {
+        return hours
+            .toLowerCase()
+            .replace(/â€“|–|—|−/g, '-')
+            .replace(/\ba\.m\./g, 'am')
+            .replace(/\bp\.m\./g, 'pm')
+            .replace(/\b(to|until|til|till|through|thru)\b/g, '-')
+            .replace(/\s+/g, ' ')
+            .trim();
+    }
+
+    private parseOpeningRules(hours: string): OpeningRule[] {
+        const rules: OpeningRule[] = [];
+        for (const segment of this.splitOpeningSegments(hours)) {
+            const days = this.daysForSegment(segment);
+            const closed = /\bclosed\b/.test(segment);
+            const ranges = this.timeRangesForSegment(segment);
+
+            if (closed && ranges.length === 0) {
+                rules.push({ days, ranges: [], closed: true });
+                continue;
+            }
+
+            if (ranges.length > 0) {
+                rules.push({ days, ranges, closed: false });
+            }
+        }
+        return rules;
+    }
+
+    private splitOpeningSegments(hours: string): string[] {
+        const baseSegments = hours.split(/\s*(?:\||;|\n)\s*/).filter(Boolean);
+        const segments: string[] = [];
+
+        for (const base of baseSegments) {
+            const parts = base.split(new RegExp(`,(?=\\s*(?:${DAY_TOKEN}|weekday|weekend|daily|every day|closed))`, 'i'));
+            for (const part of parts) {
+                const trimmed = part.trim();
+                if (!trimmed) continue;
+
+                if (segments.length > 0 && !this.hasTimeRange(trimmed) && !/\bclosed\b/.test(trimmed)) {
+                    segments[segments.length - 1] = `${segments[segments.length - 1]}, ${trimmed}`;
+                } else {
+                    segments.push(trimmed);
+                }
+            }
+        }
+
+        return segments;
+    }
+
+    private daysForSegment(segment: string): Set<number> {
+        const mentioned = this.extractDays(segment);
+        const days = mentioned ?? new Set(ALL_DAYS);
+        const exceptMatch = segment.match(/\b(?:except|excluding)\s+(.+)$/);
+        if (exceptMatch) {
+            const exceptDays = this.extractDays(exceptMatch[1]);
+            exceptDays?.forEach(day => days.delete(day));
+        }
+        return days;
+    }
+
+    private extractDays(text: string): Set<number> | null {
+        const days = new Set<number>();
+
+        if (/\b(?:daily|every day|everyday|mon-sun)\b/.test(text)) {
+            ALL_DAYS.forEach(day => days.add(day));
+        }
+        if (/\bweekdays?\b/.test(text)) {
+            [1, 2, 3, 4, 5].forEach(day => days.add(day));
+        }
+        if (/\bweekends?\b/.test(text)) {
+            [0, 6].forEach(day => days.add(day));
+        }
+
+        const rangeRegex = new RegExp(`\\b${DAY_TOKEN}\\b\\s*-\\s*\\b${DAY_TOKEN}\\b`, 'gi');
+        for (const match of text.matchAll(rangeRegex)) {
+            this.addDayRange(days, this.dayIndex(match[1]), this.dayIndex(match[2]));
+        }
+
+        const dayRegex = new RegExp(`\\b${DAY_TOKEN}\\b`, 'gi');
+        for (const match of text.matchAll(dayRegex)) {
+            days.add(this.dayIndex(match[1]));
+        }
+
+        return days.size > 0 ? days : null;
+    }
+
+    private addDayRange(days: Set<number>, start: number, end: number): void {
+        let day = start;
+        days.add(day);
+        while (day !== end) {
+            day = (day + 1) % 7;
+            days.add(day);
+        }
+    }
+
+    private dayIndex(day: string): number {
+        const key = day.slice(0, 3).toLowerCase();
+        if (key === 'sun') return 0;
+        if (key === 'mon') return 1;
+        if (key === 'tue') return 2;
+        if (key === 'wed') return 3;
+        if (key === 'thu') return 4;
+        if (key === 'fri') return 5;
+        return 6;
+    }
+
+    private timeRangesForSegment(segment: string): OpeningRange[] {
+        if (/\b(?:24\/7|always open|open 24 hours|24 hours|24hrs|24h)\b/.test(segment)) {
+            return [{ open: 0, close: 1440 }];
+        }
+
+        const ranges: OpeningRange[] = [];
+        const rangeRegex = new RegExp(`(${TIME_TOKEN})\\s*-\\s*(${TIME_TOKEN})`, 'gi');
+
+        for (const match of segment.matchAll(rangeRegex)) {
+            const range = this.parseTimeRange(match[1], match[2]);
+            if (range) ranges.push(range);
+        }
+
+        return ranges;
+    }
+
+    private hasTimeRange(text: string): boolean {
+        return new RegExp(`(${TIME_TOKEN})\\s*-\\s*(${TIME_TOKEN})`, 'i').test(text)
+            || /\b(?:24\/7|always open|open 24 hours|24 hours|24hrs|24h)\b/.test(text);
+    }
+
+    private parseTimeRange(openText: string, closeText: string): OpeningRange | null {
+        const closeMeridiem = this.meridiem(closeText);
+        const openMeridiem = this.meridiem(openText) ?? this.inferOpenMeridiem(openText, closeText, closeMeridiem);
+        const open = this.parseTimeToken(openText, openMeridiem);
+        const close = this.parseTimeToken(closeText, this.meridiem(closeText) ?? this.inferCloseMeridiem(closeText, openText, openMeridiem));
+
+        if (open === null || close === null || open === close) return null;
+        return { open, close };
+    }
+
+    private meridiem(text: string): 'am' | 'pm' | null {
+        const match = text.toLowerCase().match(/\b(am|pm)\b/);
+        return match ? match[1] as 'am' | 'pm' : null;
+    }
+
+    private inferOpenMeridiem(openText: string, _closeText: string, closeMeridiem: 'am' | 'pm' | null): 'am' | 'pm' | null {
+        if (!closeMeridiem) return null;
+        const openHour = this.rawHour(openText);
+        if (openHour === null) return closeMeridiem;
+
+        if (closeMeridiem === 'am') {
+            return openHour >= 6 ? 'pm' : 'am';
+        }
+
+        if (openHour >= 7 && openHour <= 11) return 'am';
+        return 'pm';
+    }
+
+    private inferCloseMeridiem(closeText: string, openText: string, openMeridiem: 'am' | 'pm' | null): 'am' | 'pm' | null {
+        if (!openMeridiem) return null;
+        const openHour = this.rawHour(openText);
+        const closeHour = this.rawHour(closeText);
+        if (openHour === null || closeHour === null) return openMeridiem;
+
+        if (openMeridiem === 'am' && closeHour <= openHour) return 'pm';
+        return openMeridiem;
+    }
+
+    private rawHour(text: string): number | null {
+        const cleaned = text.toLowerCase().replace(/\b(am|pm)\b/g, '').trim();
+        if (cleaned === 'noon') return 12;
+        if (cleaned === 'midnight') return 12;
+        const digits = cleaned.replace(/\s/g, '');
+        if (/^\d{3,4}$/.test(digits)) return Math.floor(parseInt(digits, 10) / 100);
+        const match = digits.match(/^(\d{1,2})/);
+        return match ? parseInt(match[1], 10) : null;
+    }
+
+    private parseTimeToken(text: string, fallbackMeridiem: 'am' | 'pm' | null = null): number | null {
+        const lower = text.toLowerCase().trim();
+        if (lower === 'noon') return 12 * 60;
+        if (lower === 'midnight') return 0;
+
+        const explicitMeridiem = this.meridiem(lower);
+        const meridiem = explicitMeridiem ?? fallbackMeridiem;
+        const cleaned = lower.replace(/\b(am|pm)\b/g, '').replace(/\s/g, '').trim();
+
+        let hour: number;
+        let minute = 0;
+
+        if (cleaned.includes(':') || cleaned.includes('.')) {
+            const [hourPart, minutePart = '0'] = cleaned.split(/[:.]/);
+            hour = parseInt(hourPart, 10);
+            minute = parseInt(minutePart, 10);
+        } else if (/^\d{3,4}$/.test(cleaned)) {
+            const numeric = parseInt(cleaned, 10);
+            hour = Math.floor(numeric / 100);
+            minute = numeric % 100;
+        } else if (/^\d{1,2}$/.test(cleaned)) {
+            hour = parseInt(cleaned, 10);
+        } else {
+            return null;
+        }
+
+        if (Number.isNaN(hour) || Number.isNaN(minute) || minute < 0 || minute > 59) return null;
+
+        if (meridiem) {
+            if (hour < 1 || hour > 12) return null;
+            if (meridiem === 'pm' && hour !== 12) hour += 12;
+            if (meridiem === 'am' && hour === 12) hour = 0;
+        } else if (hour > 23) {
+            return null;
+        }
+
+        return hour * 60 + minute;
     }
 
     /** Haversine distance in km */
@@ -299,6 +584,7 @@ export class CafeService {
             tags: data.tags || [],
             rating: 0,
             photos: data.photos || [],
+            videoUrl: data.videoUrl,
             addedBy: user.uid,
             submittedBy: user.uid,
             createdAt: new Date().toISOString(),

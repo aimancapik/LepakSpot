@@ -5,6 +5,15 @@ export type WifiSpeed = 'Fast' | 'Average' | 'Slow' | 'None';
 export type OutletAvailability = 'Many' | 'Few' | 'None';
 export type ClaimStatus = 'unclaimed' | 'pending' | 'claimed';
 export type CafeClaimStatus = 'pending' | 'approved' | 'rejected';
+export type DayKey = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
+
+export interface DayHours {
+    open: string;    // "09:00"
+    close: string;   // "22:00"
+    closed: boolean;
+}
+
+export type OperatingHours = Record<DayKey, DayHours>;
 
 export interface Cafe {
     id: string;
@@ -15,6 +24,7 @@ export interface Cafe {
     tags: CafeTag[];
     rating: number;
     photos: string[];
+    videoUrl?: string | null;
     addedBy: string;
     createdAt: string;
     crowdLevel?: CrowdLevel;
@@ -26,6 +36,7 @@ export interface Cafe {
     secretMenu?: string[];
     sceneSnaps?: { url: string; tag: string }[];
     openingHours?: string;
+    operatingHours?: OperatingHours;
     googleMapsUrl?: string;
     socialLinks?: { tiktok?: string; facebook?: string; other?: string };
     pendingApproval?: boolean;

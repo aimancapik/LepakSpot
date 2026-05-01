@@ -51,6 +51,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   appealMessage = signal('');
   appealSubmitting = signal(false);
   profilePhotoFailed = signal(false);
+  pendingClaimsCount = signal(0);
   allBadges = ALL_BADGES;
   private visibilityHandler = () => {
     if (document.visibilityState === 'visible') this.loadCafeClaims(false);
@@ -63,6 +64,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
     if (points >= 100) return 'Brew Buddy';
     return 'Coffee Curious';
   });
+
+  visibleRecentCheckins = computed(() => this.recentCheckins().slice(0, 5));
 
   hasBadge(name: string): boolean {
     return this.authService.currentUser()?.badges?.includes(name) ?? false;
@@ -129,9 +132,12 @@ export class ProfileComponent implements OnInit, OnDestroy {
       this.cafeListService.loadSharedLists();
       this.cafeService.getMySubmissions().then(s => this.mySubmissions.set(s));
       this.loadCafeClaims();
+      if (user.isAdmin) {
+        this.cafeService.getCafeClaims('pending').then(c => this.pendingClaimsCount.set(c.length)).catch(() => {});
+      }
       document.addEventListener('visibilitychange', this.visibilityHandler);
       try {
-        const checkins = await this.checkinService.getUserCheckins(user.uid);
+        const checkins = await this.checkinService.getUserCheckins(user.uid, 10);
         this.recentCheckins.set(checkins);
       } catch {
         this.toastService.show('Could not load your check-in history.', 'error');

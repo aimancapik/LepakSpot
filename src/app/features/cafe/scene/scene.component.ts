@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal, viewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { Location } from '@angular/common';
@@ -18,7 +18,7 @@ import { ToastService } from '../../../shared/components/toast/toast.service';
     imports: [CommonModule, FormsModule, SaveToListModalComponent],
     templateUrl: './scene.component.html',
 })
-export class SceneComponent implements OnInit {
+export class SceneComponent implements OnInit, OnDestroy {
     private route = inject(ActivatedRoute);
     private location = inject(Location);
     private cafeService = inject(CafeService);
@@ -29,6 +29,9 @@ export class SceneComponent implements OnInit {
 
     cafe = signal<Cafe | null>(null);
     showSaveModal = signal(false);
+    snapContainerRef = viewChild<ElementRef>('snapContainer');
+    currentSnapIndex = signal(0);
+    private snapInterval: ReturnType<typeof setInterval> | null = null;
     isCheckedIn = signal(false);
     isPresent = signal(false);
     checkingIn = signal(false);
@@ -58,9 +61,26 @@ export class SceneComponent implements OnInit {
                     this.cafe.set(cafes[0]);
                     this.verifyCheckInStatus(cafes[0].id);
                     this.loadReviews(cafes[0].id);
+                    if ((cafes[0].sceneSnaps?.length ?? 0) > 1) {
+                        this.snapInterval = setInterval(() => {
+                            const snaps = this.cafe()?.sceneSnaps ?? [];
+                            if (!snaps.length) return;
+                            const next = (this.currentSnapIndex() + 1) % snaps.length;
+                            this.currentSnapIndex.set(next);
+                            const container = this.snapContainerRef()?.nativeElement as HTMLElement | undefined;
+                            if (container) {
+                                const itemWidth = container.scrollWidth / snaps.length;
+                                container.scrollTo({ left: next * itemWidth, behavior: 'smooth' });
+                            }
+                        }, 3500);
+                    }
                 }
             });
         }
+    }
+
+    ngOnDestroy() {
+        if (this.snapInterval) clearInterval(this.snapInterval);
     }
 
     private async verifyCheckInStatus(cafeId: string) {

@@ -7,11 +7,11 @@ import { DealService } from '../../../core/services/deal.service';
 import { ReviewService } from '../../../core/services/review.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { ToastService } from '../../../shared/components/toast/toast.service';
-import { Cafe, CafeTag } from '../../../core/models/cafe.model';
+import { Cafe, CafeTag, DayKey, DayHours, OperatingHours } from '../../../core/models/cafe.model';
 import { Deal } from '../../../core/models/deal.model';
 import { Review } from '../../../core/models/review.model';
 import { SupabaseService } from '../../../core/services/supabase.service';
-import { assertValidImageUpload, createUserImagePath } from '../../../core/utils/image-upload';
+import { assertValidImageUpload, assertValidVideoUpload, createUserImagePath, createUserMediaPath } from '../../../core/utils/image-upload';
 
 export type DashboardTab = 'overview' | 'reviews' | 'deals' | 'traffic';
 
@@ -46,6 +46,17 @@ export class OwnerDashboardComponent implements OnInit {
     editName = signal('');
     editAddress = signal('');
     editOpeningHours = signal('');
+    editOperatingHours = signal<Partial<OperatingHours>>({});
+
+    readonly weekDays: { key: DayKey; label: string }[] = [
+        { key: 'mon', label: 'Mon' },
+        { key: 'tue', label: 'Tue' },
+        { key: 'wed', label: 'Wed' },
+        { key: 'thu', label: 'Thu' },
+        { key: 'fri', label: 'Fri' },
+        { key: 'sat', label: 'Sat' },
+        { key: 'sun', label: 'Sun' },
+    ];
     editTags = signal<CafeTag[]>([]);
     editIsLateNight = signal(false);
     editWifiSpeed = signal('');
@@ -53,6 +64,9 @@ export class OwnerDashboardComponent implements OnInit {
     existingPhotoUrls = signal<string[]>([]);
     photoPreviews = signal<string[]>([]);
     photoFiles = signal<File[]>([]);
+    existingVideoUrl = signal('');
+    videoPreview = signal('');
+    videoFile = signal<File | null>(null);
     uploadingPhotos = signal(false);
     sceneSnapFiles = signal<File[]>([]);
     sceneSnapPreviews = signal<string[]>([]);
@@ -106,12 +120,15 @@ export class OwnerDashboardComponent implements OnInit {
         this.editName.set(cafe.name);
         this.editAddress.set(cafe.address);
         this.editOpeningHours.set(cafe.openingHours || '');
+        this.editOperatingHours.set(cafe.operatingHours ? { ...cafe.operatingHours } : this.defaultOperatingHours());
         this.editTags.set([...cafe.tags]);
         this.editIsLateNight.set(cafe.isLateNight || false);
         this.editWifiSpeed.set(cafe.wifiSpeed || '');
         this.editOutletAvailability.set(cafe.outletAvailability || '');
         this.existingPhotoUrls.set(cafe.photos || []);
         this.photoPreviews.set(cafe.photos || []);
+        this.existingVideoUrl.set(cafe.videoUrl || '');
+        this.videoPreview.set(cafe.videoUrl || '');
         this.sceneSnapPreviews.set((cafe.sceneSnaps || []).map(s => s.url));
         this.sceneSnapTags.set((cafe.sceneSnaps || []).map(s => s.tag));
     }
@@ -130,6 +147,7 @@ export class OwnerDashboardComponent implements OnInit {
             this.uploadingPhotos.set(true);
             const newPhotoUrls = await this.uploadFiles(this.photoFiles());
             const finalPhotoUrls = [...this.existingPhotoUrls(), ...newPhotoUrls];
+            const videoUrl = await this.uploadVideo(this.videoFile());
             const existingSnaps = this.sceneSnapPreviews()
                 .map((preview, i) => (!preview.startsWith('data:') ? { url: preview, tag: this.sceneSnapTags()[i] || 'Spot' } : null))
                 .filter(Boolean) as { url: string; tag: string }[];
@@ -142,17 +160,22 @@ export class OwnerDashboardComponent implements OnInit {
                 name: this.editName(),
                 address: this.editAddress(),
                 openingHours: this.editOpeningHours(),
+                operatingHours: this.editOperatingHours() as OperatingHours,
                 tags: this.editTags(),
                 isLateNight: this.editIsLateNight(),
                 wifiSpeed: this.editWifiSpeed() as any || undefined,
                 outletAvailability: this.editOutletAvailability() as any || undefined,
                 photos: finalPhotoUrls,
+                videoUrl,
                 sceneSnaps,
             };
             await this.cafeService.updateCafeAsOwner(cafe.id, updates);
             this.existingPhotoUrls.set(finalPhotoUrls);
             this.photoPreviews.set(finalPhotoUrls);
             this.photoFiles.set([]);
+            this.existingVideoUrl.set(videoUrl || '');
+            this.videoPreview.set(videoUrl || '');
+            this.videoFile.set(null);
             this.sceneSnapPreviews.set(sceneSnaps.map(s => s.url));
             this.sceneSnapTags.set(sceneSnaps.map(s => s.tag));
             this.sceneSnapFiles.set([]);
@@ -198,6 +221,31 @@ export class OwnerDashboardComponent implements OnInit {
             this.photoFiles.update(files => files.filter((_, i) => i !== newFileIndex));
         }
         this.photoPreviews.update(previews => previews.filter((_, i) => i !== index));
+    }
+
+    onVideoSelected(event: Event) {
+        const input = event.target as HTMLInputElement;
+        const file = input.files?.[0];
+        if (!file) return;
+        try {
+            assertValidVideoUpload(file);
+            this.videoFile.set(file);
+            this.videoPreview.set(URL.createObjectURL(file));
+            this.existingVideoUrl.set('');
+        } catch (error) {
+            const msg = error instanceof Error ? error.message : 'Invalid video upload.';
+            this.toastService.show(msg, 'error');
+            this.videoFile.set(null);
+            input.value = '';
+        }
+    }
+
+    removeVideo() {
+        const preview = this.videoPreview();
+        if (preview.startsWith('blob:')) URL.revokeObjectURL(preview);
+        this.videoFile.set(null);
+        this.videoPreview.set('');
+        this.existingVideoUrl.set('');
     }
 
     onSceneSnapSelected(event: Event) {
@@ -259,6 +307,21 @@ export class OwnerDashboardComponent implements OnInit {
             urls.push(urlData.publicUrl);
         }
         return urls;
+    }
+
+    private async uploadVideo(file: File | null): Promise<string | null> {
+        const user = this.authService.currentUser();
+        if (!user || !file) return this.existingVideoUrl() || null;
+        assertValidVideoUpload(file);
+        const path = createUserMediaPath(user.uid, 'cafe-videos', file);
+        const { data, error } = await this.supabase.client.storage
+            .from('cafe-photos')
+            .upload(path, file, { contentType: file.type, upsert: false });
+        if (error) throw error;
+        const { data: urlData } = this.supabase.client.storage
+            .from('cafe-photos')
+            .getPublicUrl(data.path);
+        return urlData.publicUrl;
     }
 
     async createDeal() {
@@ -325,6 +388,32 @@ export class OwnerDashboardComponent implements OnInit {
         return deal.isActive &&
             new Date(deal.validFrom).getTime() <= now &&
             new Date(deal.validUntil).getTime() >= now;
+    }
+
+    private defaultOperatingHours(): Partial<OperatingHours> {
+        const defaults: Partial<OperatingHours> = {};
+        for (const day of this.weekDays) {
+            defaults[day.key] = { open: '09:00', close: '22:00', closed: false };
+        }
+        return defaults;
+    }
+
+    toggleDayHours(key: DayKey) {
+        this.editOperatingHours.update(hours => ({
+            ...hours,
+            [key]: { ...(hours[key] ?? { open: '09:00', close: '22:00' }), closed: !hours[key]?.closed },
+        }));
+    }
+
+    setDayTime(key: DayKey, field: 'open' | 'close', value: string) {
+        this.editOperatingHours.update(hours => ({
+            ...hours,
+            [key]: { ...(hours[key] ?? { open: '09:00', close: '22:00', closed: false }), [field]: value },
+        }));
+    }
+
+    getDayHours(key: DayKey): DayHours {
+        return this.editOperatingHours()[key] ?? { open: '09:00', close: '22:00', closed: false };
     }
 
     goBack() { this.location.back(); }

@@ -111,13 +111,6 @@
                         {{ address() || 'No address provided' }}
                     </p>
 
-                    <div class="flex flex-wrap gap-2">
-                        @for (tag of selectedTags(); track tag) {
-                        <div class="bg-sage text-espresso px-3 py-1 font-marker text-xs zine-border rotate-2">
-                            {{ tag | uppercase }}
-                        </div>
-                        }
-                    </div>
 
                     <div class="grid grid-cols-2 gap-4 mt-6">
                         <div class="zine-border border-2 p-3 rotate-1 bg-white">
@@ -189,6 +182,31 @@
                 <span class="material-symbols-outlined text-3xl text-espresso/50">add_photo_alternate</span>
                 <span class="font-marker text-sm text-espresso/60">Add Gallery Photos</span>
                 <input type="file" accept="image/*" multiple class="sr-only" (change)="onFileSelected($event)" />
+            </label>
+            }
+        </div>
+
+        <!-- Cafe Video -->
+        <div class="space-y-3">
+            <label class="font-zine font-bold text-xs uppercase tracking-widest text-espresso/70">
+                Vibe Video <span class="text-[10px] normal-case">(optional, max 25MB)</span>
+            </label>
+
+            @if (videoPreview()) {
+            <div class="relative aspect-video zine-border overflow-hidden bg-espresso">
+                <video [src]="videoPreview()" class="w-full h-full object-cover" autoplay muted loop playsinline controls></video>
+                <button (click)="removeVideo()"
+                    class="absolute top-1 right-1 w-7 h-7 bg-espresso text-off-white text-xs flex items-center justify-center border border-off-white">
+                    <span class="material-symbols-outlined text-sm" style="font-size:14px">close</span>
+                </button>
+            </div>
+            } @else {
+            <label
+                class="relative w-full flex flex-col items-center justify-center py-6 bg-off-white zine-border cursor-pointer hover:bg-white transition-all gap-2 border-dashed">
+                <span class="material-symbols-outlined text-3xl text-espresso/50">movie</span>
+                <span class="font-marker text-sm text-espresso/60">Add Short Video</span>
+                <span class="font-zine text-[10px] uppercase text-espresso/40">MP4, WebM, or MOV</span>
+                <input type="file" accept="video/mp4,video/webm,video/quicktime" class="sr-only" (change)="onVideoSelected($event)" />
             </label>
             }
         </div>
@@ -278,20 +296,6 @@
             </div>
         </div>
 
-        <!-- ─── VIBES / TAGS ───────────────────────────────────── -->
-        <div class="space-y-3">
-            <label class="font-zine font-bold text-xs uppercase tracking-widest text-espresso/70">Vibes</label>
-            <div class="flex flex-wrap gap-3">
-                @for (chip of allTags; track chip.tag) {
-                <button type="button" (click)="toggleTag(chip.tag)"
-                    class="px-4 py-2 zine-border font-marker text-sm transition-all duration-200 flex items-center gap-1"
-                    [class]="isTagSelected(chip.tag) ? 'bg-primary text-espresso shadow-[3px_3px_0_var(--color-espresso)]' : 'bg-off-white text-espresso/70 hover:shadow-[2px_2px_0_var(--color-espresso)]'">
-                    <span class="material-symbols-outlined text-sm">{{ chip.icon }}</span>
-                    {{ chip.label }}
-                </button>
-                }
-            </div>
-        </div>
 
         <!-- ─── WIFI SPEED ─────────────────────────────────────── -->
         <div class="space-y-2">

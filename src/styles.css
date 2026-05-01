@@ -81,6 +81,34 @@
     border-radius: 255px 15px 225px 15px/15px 225px 15px 255px;
   }
 
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes slide-up-card {
+    from { opacity: 0; transform: translateY(40px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes pop-in {
+    0%   { opacity: 0; transform: scale(0.6) rotate(-6deg); }
+    70%  { transform: scale(1.1) rotate(-4deg); }
+    100% { opacity: 1; transform: scale(1) rotate(-3deg); }
+  }
+
+  .animate-fade-up {
+    animation: fade-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .animate-slide-up-card {
+    animation: slide-up-card 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .animate-pop-in {
+    animation: pop-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+
   @keyframes zine-click {
     0% {
       transform: scale(1);
@@ -207,6 +235,63 @@
     background: rgba(212, 140, 58, 0.4);
     border: 1px solid rgba(0, 0, 0, 0.1);
     z-index: 10;
+  }
+
+  .sticker-cut {
+    position: relative;
+    border: 2.5px solid #2C1810;
+    background: #fff8e8;
+    box-shadow: 4px 5px 0 rgba(44, 24, 16, 0.95);
+    clip-path: polygon(7% 0%, 92% 3%, 100% 13%, 96% 91%, 84% 100%, 9% 96%, 0% 84%, 3% 10%);
+  }
+
+  .sticker-cut::after {
+    content: "";
+    position: absolute;
+    inset: 5px;
+    pointer-events: none;
+    border: 1px dashed rgba(44, 24, 16, 0.16);
+    clip-path: inherit;
+  }
+
+  .sticker-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    border: 2px solid #2C1810;
+    background: #fff8e8;
+    color: #2C1810;
+    box-shadow: 3px 3px 0 #2C1810;
+    clip-path: polygon(9% 0%, 92% 3%, 100% 20%, 95% 88%, 80% 100%, 8% 94%, 0% 76%, 4% 12%);
+  }
+
+  .sticker-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #2C1810;
+    background: #fff8e8;
+    box-shadow: 3px 3px 0 #2C1810;
+    clip-path: polygon(15% 0%, 82% 7%, 100% 25%, 91% 86%, 70% 100%, 12% 90%, 0% 68%, 5% 15%);
+  }
+
+  .sticker-orange {
+    background: #f7c46d;
+  }
+
+  .sticker-sage {
+    background: #a8c6a2;
+  }
+
+  .sticker-cream {
+    background: #fff8e8;
+  }
+
+  .marker-scribble {
+    font-family: 'Permanent Marker', cursive;
+    letter-spacing: 0;
+    text-transform: none;
   }
 
   .grain-overlay {

@@ -12,8 +12,10 @@ import { SupabaseService } from '../../../core/services/supabase.service';
 import {
     assertValidClaimDocument,
     assertValidImageUpload,
+    assertValidVideoUpload,
     createUserDocumentPath,
     createUserImagePath,
+    createUserMediaPath,
 } from '../../../core/utils/image-upload';
 
 @Component({
@@ -69,6 +71,9 @@ export class AddCafeComponent implements OnInit {
     // ─── Photo upload ───────────────────────────────────────────────────
     photoPreviews = signal<string[]>([]);
     photoFiles = signal<File[]>([]);
+    existingVideoUrl = signal('');
+    videoPreview = signal('');
+    videoFile = signal<File | null>(null);
     uploadingPhotos = signal(false);
 
     // ─── Scene Snaps ───────────────────────────────────────────────────
@@ -124,6 +129,8 @@ export class AddCafeComponent implements OnInit {
                 this.otherUrl.set(cafe.socialLinks?.other || '');
                 this.existingPhotoUrls.set(cafe.photos || []);
                 this.photoPreviews.set(cafe.photos || []);
+                this.existingVideoUrl.set(cafe.videoUrl || '');
+                this.videoPreview.set(cafe.videoUrl || '');
                 // pre-fill scene snaps previews (URLs only, no files)
                 if (cafe.sceneSnaps?.length) {
                     this.sceneSnapPreviews.set(cafe.sceneSnaps.map(s => s.url));
@@ -175,6 +182,31 @@ export class AddCafeComponent implements OnInit {
             this.photoFiles.update(f => f.filter((_, i) => i !== newFileIndex));
         }
         this.photoPreviews.update(p => p.filter((_, i) => i !== index));
+    }
+
+    onVideoSelected(event: Event) {
+        const input = event.target as HTMLInputElement;
+        const file = input.files?.[0];
+        if (!file) return;
+        try {
+            assertValidVideoUpload(file);
+            this.videoFile.set(file);
+            this.videoPreview.set(URL.createObjectURL(file));
+            this.existingVideoUrl.set('');
+        } catch (error) {
+            const msg = error instanceof Error ? error.message : 'Invalid video upload.';
+            this.toastService.show(msg, 'error');
+            this.videoFile.set(null);
+            input.value = '';
+        }
+    }
+
+    removeVideo() {
+        const preview = this.videoPreview();
+        if (preview.startsWith('blob:')) URL.revokeObjectURL(preview);
+        this.videoFile.set(null);
+        this.videoPreview.set('');
+        this.existingVideoUrl.set('');
     }
 
     onSceneSnapSelected(event: Event) {
@@ -235,6 +267,21 @@ export class AddCafeComponent implements OnInit {
             urls.push(urlData.publicUrl);
         }
         return urls;
+    }
+
+    async uploadVideo(file: File | null): Promise<string | null> {
+        const user = this.authService.currentUser();
+        if (!user || !file) return this.existingVideoUrl() || null;
+        assertValidVideoUpload(file);
+        const path = createUserMediaPath(user.uid, 'cafe-videos', file);
+        const { data, error } = await this.supabase.client.storage
+            .from('cafe-photos')
+            .upload(path, file, { contentType: file.type, upsert: false });
+        if (error) throw error;
+        const { data: urlData } = this.supabase.client.storage
+            .from('cafe-photos')
+            .getPublicUrl(data.path);
+        return urlData.publicUrl;
     }
 
     extractCoords(url: string): { lat: number; lng: number } | null {
@@ -324,6 +371,7 @@ export class AddCafeComponent implements OnInit {
             // Upload only new files (data URLs), keep existing URLs
             const newPhotoUrls = await this.uploadFiles(this.photoFiles());
             const finalPhotoUrls = [...this.existingPhotoUrls(), ...newPhotoUrls];
+            const videoUrl = await this.uploadVideo(this.videoFile());
 
             // Scene snaps: keep existing URL entries + upload new files
             const existingSnaps = this.sceneSnapPreviews()
@@ -352,6 +400,7 @@ export class AddCafeComponent implements OnInit {
                 isLateNight: this.isLateNight(),
                 perks,
                 photos: finalPhotoUrls,
+                videoUrl,
                 sceneSnaps,
                 googleMapsUrl: mapsUrl || undefined,
                 socialLinks: {

@@ -83,6 +83,15 @@ export const routes: Routes = [
     data: { showBottomNavbar: false }
   },
   {
+    path: 'profile/moves',
+    loadComponent: () =>
+      import('./features/profile/moves/profile-moves.component').then(
+        (m) => m.ProfileMovesComponent
+      ),
+    canActivate: [authOnlyGuard],
+    data: { showBottomNavbar: false, activeTab: 'profile' }
+  },
+  {
     path: 'profile',
     loadComponent: () =>
       import('./features/profile/profile.component').then(
