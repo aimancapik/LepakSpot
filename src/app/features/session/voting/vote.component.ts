@@ -7,11 +7,13 @@ import { CafeListService } from '../../../core/services/cafe-list.service';
 import { ToastService } from '../../../shared/components/toast/toast.service';
 import { Cafe } from '../../../core/models/cafe.model';
 
+import { FadeUpDirective } from '../../../shared/directives/fade-up.directive';
+
 @Component({
   selector: 'app-vote',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink],
+  imports: [RouterLink, FadeUpDirective],
   templateUrl: './vote.component.html',
   styleUrl: './vote.component.scss',
 })

@@ -63,7 +63,9 @@ export class AuthService {
     private saveToCache(user: User): void {
         try {
             localStorage.setItem(USER_CACHE_KEY, JSON.stringify(user));
-        } catch (e) { }
+        } catch {
+            // Silently fail if localStorage is not available
+        }
     }
 
     private loadFromCache(): User | null {
@@ -71,7 +73,7 @@ export class AuthService {
             const raw = localStorage.getItem(USER_CACHE_KEY);
             if (!raw) return null;
             return JSON.parse(raw) as User;
-        } catch (e) {
+        } catch {
             return null;
         }
     }
@@ -79,13 +81,15 @@ export class AuthService {
     private clearCache(): void {
         try {
             localStorage.removeItem(USER_CACHE_KEY);
-        } catch (e) { }
+        } catch {
+            // Silently fail if localStorage is not available
+        }
     }
 
     private async loadOrCreateUser(firebaseUser: UserInfo): Promise<User> {
         const current = this.currentUser();
         if (current?.uid === firebaseUser.uid) {
-            this.refreshFromSupabase(firebaseUser).catch(() => { });
+            this.refreshFromSupabase(firebaseUser).catch(err => console.error('AuthService: silent refresh failed', err));
             return current;
         }
         return this.refreshFromSupabase(firebaseUser);

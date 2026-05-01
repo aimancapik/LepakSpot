@@ -30,7 +30,7 @@ export class ReviewService {
         const user = this.authService.currentUser();
         if (!user) throw new Error('Not authenticated');
 
-        const review: any = {
+        const review: Partial<Review> & Record<string, unknown> = {
             cafeId,
             userId: user.uid,
             displayName: user.displayName || 'Anonymous',
@@ -138,7 +138,7 @@ export class ReviewService {
         const user = this.authService.currentUser();
         if (!user) throw new Error('Not authenticated');
 
-        const updates: any = { rating, text };
+        const updates: Partial<Review> & Record<string, unknown> = { rating, text };
         if (imageUrl !== undefined) updates['imageUrl'] = imageUrl;
 
         await this.supabase.client
@@ -182,6 +182,8 @@ export class ReviewService {
                 .from('cafes')
                 .update({ rating: rounded })
                 .eq('id', cafeId);
-        } catch { }
+        } catch (error: unknown) {
+            console.error('Failed to update cafe rating:', error);
+        }
     }
 }

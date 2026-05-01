@@ -5,6 +5,7 @@ import { RouterLink } from '@angular/router';
 import { CafeClaim, CafeClaimStatus } from '../../../core/models/cafe.model';
 import { CafeService } from '../../../core/services/cafe.service';
 import { ToastService } from '../../../shared/components/toast/toast.service';
+import { FadeUpDirective } from '../../../shared/directives/fade-up.directive';
 
 type ClaimFilter = 'pending' | 'approved' | 'rejected' | 'all';
 
@@ -12,7 +13,7 @@ type ClaimFilter = 'pending' | 'approved' | 'rejected' | 'all';
     selector: 'app-admin-claims',
     standalone: true,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [CommonModule, DatePipe, RouterLink, FormsModule],
+    imports: [CommonModule, DatePipe, RouterLink, FormsModule, FadeUpDirective],
     templateUrl: './admin-claims.component.html',
 })
 export class AdminClaimsComponent implements OnInit {
@@ -41,8 +42,9 @@ export class AdminClaimsComponent implements OnInit {
         try {
             const claims = await this.cafeService.getCafeClaims(filter);
             this.claims.set(claims);
-        } catch (error: any) {
-            this.toastService.show(error?.message || 'Could not load claims.', 'error');
+        } catch (error: unknown) {
+            const msg = error instanceof Error ? error.message : 'Could not load claims.';
+            this.toastService.show(msg, 'error');
         } finally {
             this.loading.set(false);
         }
@@ -55,8 +57,9 @@ export class AdminClaimsComponent implements OnInit {
             await this.cafeService.approveCafeClaim(claim);
             this.updateReviewedClaim(claim.id, 'approved');
             this.toastService.show('Cafe claim approved.', 'success');
-        } catch (error: any) {
-            this.toastService.show(error?.message || 'Could not approve claim.', 'error');
+        } catch (error: unknown) {
+            const msg = error instanceof Error ? error.message : 'Could not approve claim.';
+            this.toastService.show(msg, 'error');
         } finally {
             this.reviewingId.set(null);
         }
@@ -86,8 +89,9 @@ export class AdminClaimsComponent implements OnInit {
             this.updateReviewedClaim(claim.id, 'rejected', { rejectionReason: reason });
             this.cancelReject();
             this.toastService.show('Cafe claim rejected.', 'success');
-        } catch (error: any) {
-            this.toastService.show(error?.message || 'Could not reject claim.', 'error');
+        } catch (error: unknown) {
+            const msg = error instanceof Error ? error.message : 'Could not reject claim.';
+            this.toastService.show(msg, 'error');
         } finally {
             this.reviewingId.set(null);
         }
@@ -96,7 +100,11 @@ export class AdminClaimsComponent implements OnInit {
     toggleClaim(claimId: string) {
         this.expandedClaimIds.update(ids => {
             const next = new Set(ids);
-            next.has(claimId) ? next.delete(claimId) : next.add(claimId);
+            if (next.has(claimId)) {
+                next.delete(claimId);
+            } else {
+                next.add(claimId);
+            }
             return next;
         });
     }
@@ -122,8 +130,9 @@ export class AdminClaimsComponent implements OnInit {
         try {
             const url = await this.cafeService.createClaimDocumentUrl(claim.documentPath);
             window.open(url, '_blank', 'noopener,noreferrer');
-        } catch (error: any) {
-            this.toastService.show(error?.message || 'Could not open document.', 'error');
+        } catch (error: unknown) {
+            const msg = error instanceof Error ? error.message : 'Could not open document.';
+            this.toastService.show(msg, 'error');
         } finally {
             this.openingDocumentId.set(null);
         }

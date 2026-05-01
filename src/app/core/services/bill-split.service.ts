@@ -1,4 +1,5 @@
 import { Injectable, signal, inject } from '@angular/core';
+import { RealtimeChannel } from '@supabase/supabase-js';
 import { Bill, ReceiptItem } from '../models/bill.model';
 import { AuthService } from './auth.service';
 import { SupabaseService } from './supabase.service';
@@ -11,7 +12,7 @@ export class BillSplitService {
     private authService = inject(AuthService);
 
     activeBill = signal<Bill | null>(null);
-    private realtimeChannel: any = null;
+    private realtimeChannel: RealtimeChannel | null = null;
 
     async createBill(sessionId: string, items: ReceiptItem[], subtotal: number, tax: number, serviceCharge: number, total: number): Promise<string> {
         const user = this.authService.currentUser();
@@ -62,7 +63,7 @@ export class BillSplitService {
                 schema: 'public',
                 table: 'bills',
                 filter: `id=eq.${billId}`
-            }, (payload: any) => {
+            }, (payload) => {
                 if (payload.new) {
                     this.activeBill.set(payload.new as Bill);
                 }

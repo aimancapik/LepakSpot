@@ -1,4 +1,4 @@
-import { Injectable, inject, computed } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { MemberLocation } from '../models/session.model';
 import { Cafe } from '../models/cafe.model';
 import { CafeService } from './cafe.service';

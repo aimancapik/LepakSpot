@@ -521,7 +521,7 @@ export class CafeService {
         this.showOpenNowOnly.update(v => !v);
     }
 
-    async getNearby(_lat?: number, _lng?: number, _radiusKm = 5) {
+    async getNearby() {
         try {
             const { data, error } = await this.supabase.client
                 .from('cafes')
@@ -546,7 +546,9 @@ export class CafeService {
                     .eq('id', id)
                     .single();
                 if (data) return data as Cafe;
-            } catch { }
+            } catch (error: unknown) {
+                console.error('Failed to get cafe by id:', error);
+            }
         }
 
         const cached = this.nearbyCafes().find(c => c.id === id);
@@ -567,7 +569,9 @@ export class CafeService {
                 const { data } = await this.supabase.client
                     .from('cafes').select('*').eq('id', id).single();
                 if (data) results.push(data as Cafe);
-            } catch { }
+            } catch (error: unknown) {
+                console.error('Failed to get cafe by id in batch:', error);
+            }
         }
         return results;
     }
@@ -893,7 +897,7 @@ export class CafeService {
                 .eq('cafeId', cafeId),
         ]);
 
-        const ratings = (reviewsResult.data || []).map((r: any) => r.rating);
+        const ratings = (reviewsResult.data || []).map((r: { rating: number }) => r.rating);
         const avgRating = ratings.length
             ? ratings.reduce((a: number, b: number) => a + b, 0) / ratings.length
             : 0;

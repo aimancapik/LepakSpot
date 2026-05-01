@@ -1,4 +1,4 @@
-import { Component, EventEmitter, inject, Input, Output, signal, OnInit } from '@angular/core';
+import { Component, inject, Input, output, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CafeListService } from '../../../core/services/cafe-list.service';
@@ -15,7 +15,7 @@ export class SaveToListModalComponent implements OnInit {
     private toastService = inject(ToastService);
 
     @Input() cafeId!: string;
-    @Output() close = new EventEmitter<void>();
+    readonly closed = output<void>();
 
     isCreatingNew = signal(false);
     newListName = signal('');
@@ -59,6 +59,6 @@ export class SaveToListModalComponent implements OnInit {
     }
 
     closeModal() {
-        this.close.emit();
+        this.closed.emit();
     }
 }

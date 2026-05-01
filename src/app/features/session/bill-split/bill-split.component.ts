@@ -5,16 +5,17 @@ import { ActivatedRoute, RouterLink, Router } from '@angular/router';
 import { BillSplitService } from '../../../core/services/bill-split.service';
 import { OcrService } from '../../../core/services/ocr.service';
 import { SessionService } from '../../../core/services/session.service';
-import { Bill, ReceiptItem } from '../../../core/models/bill.model';
-import { Session } from '../../../core/models/session.model';
+import { ReceiptItem } from '../../../core/models/bill.model';
 import { AuthService } from '../../../core/services/auth.service';
 import { ToastService } from '../../../shared/components/toast/toast.service';
+
+import { FadeUpDirective } from '../../../shared/directives/fade-up.directive';
 
 @Component({
     selector: 'app-bill-split',
     standalone: true,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [CommonModule, FormsModule, RouterLink],
+    imports: [CommonModule, FormsModule, RouterLink, FadeUpDirective],
     templateUrl: './bill-split.component.html',
 })
 export class BillSplitComponent implements OnInit, OnDestroy {
@@ -80,7 +81,7 @@ export class BillSplitComponent implements OnInit, OnDestroy {
             this.rawSubtotal.set(subtotal);
 
             this.viewState.set('CONFIRM_ITEMS');
-        } catch (e) {
+        } catch {
             this.toastService.show('Failed to process image. Please try again or enter manually.', 'error');
             this.viewState.set('INITIAL');
         }

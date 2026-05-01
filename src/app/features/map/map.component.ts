@@ -19,6 +19,7 @@ import { CheckInService, CafeDensity } from '../../core/services/checkin.service
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../shared/components/toast/toast.service';
 import { Cafe } from '../../core/models/cafe.model';
+import { FadeUpDirective } from '../../shared/directives/fade-up.directive';
 
 type DensityLevel = 'empty' | 'chill' | 'moderate' | 'busy' | 'packed';
 
@@ -118,7 +119,7 @@ function createPolaroidIcon(cafe: Cafe, density: { color: string; count: number 
     selector: 'app-map',
     standalone: true,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [FormsModule, RouterLink],
+    imports: [FormsModule, RouterLink, FadeUpDirective],
     templateUrl: './map.component.html',
     styleUrl: './map.component.scss',
 })
@@ -132,7 +133,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     private ngZone = inject(NgZone);
 
     private map!: L.Map;
-    private markers: Map<string, L.Marker> = new Map();
+    private markers = new Map<string, L.Marker>();
 
     selectedCafe = signal<Cafe | null>(null);
     isDrawerOpen = signal(false);
@@ -239,8 +240,9 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
             const center = this.map.getCenter();
             fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${center.lat}&lon=${center.lng}`)
                 .then(r => r.json())
-                .then((data: any) => {
-                    const a = data.address;
+                .then((data) => {
+                    const d = data as { address: { suburb?: string, city_district?: string, town?: string, city?: string, county?: string, state?: string } };
+                    const a = d.address;
                     const name =
                         a.suburb ||
                         a.city_district ||
@@ -251,8 +253,10 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
                         'SOMEWHERE';
                     this.ngZone.run(() => this.cityName.set(name.toUpperCase()));
                 })
-                .catch(() => {});
-        }, 600); // 600 ms debounce — jangan bagi Nominatim kena spam
+                .catch(() => {
+                    // Silently fail if geocoding fails
+                });
+        }, 600);
     }
 
     private addCafeMarkers() {
@@ -299,15 +303,20 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
                     this.ngZone.run(() => this.map.setView([lat, lng], 14));
                     fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
                         .then(r => r.json())
-                        .then((data: any) => {
-                            const a = data.address;
+                        .then((data) => {
+                            const d = data as { address: { city?: string, town?: string, village?: string, county?: string, state?: string } };
+                            const a = d.address;
                             const name = a.city || a.town || a.village || a.county || a.state || 'YOUR AREA';
                             this.ngZone.run(() => this.cityName.set(name.toUpperCase()));
                         })
-                        .catch(() => {});
+                        .catch(() => {
+                            // Geocoding error ignored
+                        });
                 }
             },
-            () => {},
+            () => {
+                // Geolocation error ignored
+            },
             { enableHighAccuracy: true, maximumAge: 10000 }
         );
     }
@@ -330,7 +339,6 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
         this.map.panTo([cafe.lat - 0.003, cafe.lng]);
         this.unsubscribeCafe = this.checkInService.watchCafe(cafe.id);
 
-        // Refresh icons: deselect previous, select new
         if (prevId) this.refreshMarkerIcon(prevId);
         this.refreshMarkerIcon(cafe.id);
 
@@ -359,7 +367,6 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     onSearchInput(query: string) {
         this.cafeService.searchQuery.set(query);
         this.refreshAllMarkers();
-        // Pan to first result
         const results = this.cafeService.filteredCafes();
         if (results.length > 0) {
             this.map.panTo([results[0].lat, results[0].lng], { animate: true });

@@ -10,8 +10,6 @@ export class OcrService {
     progress = signal<number>(0);
     statusText = signal<string>('');
 
-    constructor() { }
-
     async processReceipt(imageFile: File | string): Promise<ReceiptItem[]> {
         this.isProcessing.set(true);
         this.progress.set(0);
@@ -42,7 +40,7 @@ export class OcrService {
             }, 1000);
 
             return items;
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('OCR Error:', error);
             this.statusText.set('Error processing receipt.');
             this.isProcessing.set(false);
@@ -56,14 +54,14 @@ export class OcrService {
 
         // Regex to find a price at the end of a line. 
         // Matches formats like 12.50, 12,50, RM12.50, RM 12.50
-        const priceRegex = /(?:RM\s*)?(\d+[\.,]\d{2})\s*$/i;
+        const priceRegex = /(?:RM\s*)?(\d+[.,]\d{2})\s*$/i;
 
         let idCounter = 1;
 
         for (const line of lines) {
             const match = line.match(priceRegex);
             if (match) {
-                let priceStr = match[1].replace(',', '.'); // Handle comma as decimal separator
+                const priceStr = match[1].replace(',', '.'); // Handle comma as decimal separator
                 const price = parseFloat(priceStr);
 
                 // Name is the part of the line before the price

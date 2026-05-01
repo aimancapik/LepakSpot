@@ -19,7 +19,7 @@
         class="flex-1 px-6 pb-24 flex flex-col items-center justify-center relative z-10 max-w-md mx-auto w-full gap-8">
 
         <!-- Join by code -->
-        <div class="relative w-full rotate-1">
+        <div class="relative w-full rotate-1" appFadeUp>
             <!-- Tape detail -->
             <div
                 class="absolute -top-3 left-1/2 -translate-x-1/2 w-16 h-6 bg-white/40 backdrop-blur-sm border border-white/60 -rotate-3 z-20 shadow-sm mix-blend-overlay">
@@ -77,7 +77,7 @@
 
         <!-- Waiting state (after joining) -->
         @if (joined()) {
-        <div class="relative w-full -rotate-1 mt-4">
+        <div class="relative w-full -rotate-1 mt-4" appFadeUp>
             <div
                 class="absolute -top-3 right-6 w-12 h-6 bg-white/40 backdrop-blur-sm border border-white/60 rotate-6 z-20 shadow-sm mix-blend-overlay">
             </div>

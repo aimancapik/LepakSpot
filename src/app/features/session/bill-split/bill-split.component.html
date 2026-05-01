@@ -22,7 +22,7 @@
 
         <!-- =================== state: INITIAL =================== -->
         @if (viewState() === 'INITIAL') {
-        <div class="flex-1 flex flex-col items-center justify-center text-center">
+        <div class="flex-1 flex flex-col items-center justify-center text-center" appFadeUp>
             <div
                 class="bg-latte p-6 rounded-2xl border-2 border-espresso zine-shadow -rotate-2 w-full max-w-xs mb-8">
                 <span class="material-symbols-outlined text-6xl mb-2 text-espresso">receipt_long</span>
@@ -31,9 +31,9 @@
                     to type.</p>
             </div>
 
-            <label
+            <label for="receipt-camera"
                 class="group relative flex items-center justify-center w-full max-w-xs cursor-pointer active:scale-95 transition-transform rotate-1">
-                <input type="file" accept="image/*" capture="environment" class="hidden"
+                <input id="receipt-camera" type="file" accept="image/*" capture="environment" class="hidden"
                     (change)="onFileSelected($event)">
                 <div
                     class="absolute inset-0 bg-primary border-2 border-espresso rounded-xl zine-shadow group-zine-click-active group- transition-all">
@@ -55,7 +55,7 @@
 
         <!-- =================== state: SCANNING =================== -->
         @if (viewState() === 'SCANNING') {
-        <div class="flex-1 flex flex-col items-center justify-center text-center">
+        <div class="flex-1 flex flex-col items-center justify-center text-center" appFadeUp>
             <div class="relative border-4 border-espresso border-dashed p-8 rounded-xl bg-white w-full max-w-xs">
                 <!-- Scanning line effect -->
                 <div
@@ -75,7 +75,7 @@
 
         <!-- =================== state: CONFIRM_ITEMS =================== -->
         @if (viewState() === 'CONFIRM_ITEMS') {
-        <div class="flex flex-col gap-4">
+        <div class="flex flex-col gap-4" appFadeUp>
             <h3 class="font-marker text-2xl mb-2">Verify Items</h3>
             <p
                 class="text-sm font-bold bg-white border border-espresso p-2 rounded -rotate-1 zine-shadow-sm mb-4">
@@ -139,7 +139,7 @@
 
         <!-- =================== state: ASSIGNING =================== -->
         @if (viewState() === 'ASSIGNING' && activeBill() && session()) {
-        <div class="flex flex-col h-full">
+        <div class="flex flex-col h-full" appFadeUp>
             <h3
                 class="font-marker text-2xl mb-4 bg-latte inline-block px-2 py-1 border-2 border-espresso zine-shadow-sm -rotate-1 w-fit">
                 Assign Items
@@ -176,11 +176,11 @@
                 </div>
             </div>
 
-            <!-- Items List -->
             <div class="flex-1 overflow-y-auto space-y-3 pb-24">
-                @for (item of activeBill()!.items; track item.id) {
+                @for (item of activeBill()!.items; track item.id; let i = $index) {
                 <button (click)="selectItem(item.id)"
                     class="w-full text-left bg-white border-2 border-espresso rounded-xl p-3 transition-all relative block"
+                    [appFadeUp]="i"
                     [ngClass]="selectedItemId() === item.id ? 'shadow-[0px_0px_0px_2px_var(--color-primary)] scale-[1.02] z-10' : 'shadow-[3px_3px_0px_0px_var(--color-espresso)] hover:translate-x-1'">
                     <div class="flex justify-between items-start mb-2">
                         <span class="font-bold text-[15px] leading-tight flex-1 pr-2">{{ item.name }}</span>
@@ -216,7 +216,7 @@
 
         <!-- =================== state: SUMMARY =================== -->
         @if (viewState() === 'SUMMARY' && activeBill() && session()) {
-        <div class="flex flex-col">
+        <div class="flex flex-col" appFadeUp>
             <h3 class="font-marker text-3xl mb-6 text-center">Final Damage 💸</h3>
 
             <div

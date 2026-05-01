@@ -40,7 +40,7 @@
     <main class="flex-1 flex flex-col items-center px-6 pt-6 pb-32 relative z-10 w-full">
 
         <!-- Celebratory Header -->
-        <div class="text-center mb-6 relative w-full">
+        <div class="text-center mb-6 relative w-full" appFadeUp>
             <div class="absolute -top-4 -left-2 text-3xl -rotate-[20deg] select-none">🎉</div>
             <div class="absolute -top-4 -right-2 text-3xl rotate-[15deg] select-none">🎊</div>
             <div class="absolute -bottom-2 left-1/2 -translate-x-1/2 text-2xl select-none">✨</div>
@@ -70,7 +70,7 @@
 
         <!-- Winner Cafe Card -->
         @if (winnerCafe()) {
-        <div class="relative w-full -rotate-1">
+        <div class="relative w-full -rotate-1" [appFadeUp]="1">
             <!-- Tape strips -->
             <div class="absolute -top-3 right-12 w-14 h-6 bg-latte/60 border border-espresso/30 -rotate-6 z-30 shadow-sm"></div>
             <div class="absolute -bottom-3 left-12 w-14 h-6 bg-latte/60 border border-espresso/30 rotate-6 z-30 shadow-sm"></div>
@@ -205,7 +205,7 @@
 
         <!-- Loading state -->
         @if (!winnerCafe()) {
-        <div class="flex flex-col items-center justify-center gap-4 mt-12">
+        <div class="flex flex-col items-center justify-center gap-4 mt-12" appFadeUp>
             <div class="w-16 h-16 border-4 border-espresso border-t-primary rounded-full animate-spin"></div>
             <p class="font-marker text-xl text-espresso animate-pulse">Counting votes...</p>
         </div>

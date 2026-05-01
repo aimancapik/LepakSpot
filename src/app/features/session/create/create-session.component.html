@@ -14,7 +14,7 @@
     </header>
 
     <!-- Swipeable café cards -->
-    <div class="px-6 pt-6">
+    <div class="px-6 pt-6" appFadeUp>
         <h3
             class="inline-block bg-espresso text-off-white px-4 py-1 font-zine font-bold italic uppercase tracking-widest -rotate-2 mb-4">
             Suggested Spots
@@ -24,6 +24,7 @@
     <div class="flex gap-6 px-6 overflow-x-auto snap-x no-scrollbar pb-8 relative">
         @for (cafe of sessionCafes(); track cafe.id; let i = $index) {
         <div class="snap-center shrink-0 w-64 relative group transition-transform duration-200"
+            [appFadeUp]="i"
             [class.scale-105]="spinHighlight() === i"
             [class.ring-4]="spinHighlight() === i"
             [class.ring-primary]="spinHighlight() === i"
@@ -37,7 +38,7 @@
 
                 <div class="tape-effect overflow-hidden zine-border aspect-[4/3] bg-espresso relative mb-3 shrink-0">
                     <img [src]="cafe.photos[0] || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=600&h=400&fit=crop'"
-                        class="w-full h-full object-cover transition-all" />
+                        class="w-full h-full object-cover transition-all" alt="{{ cafe.name }}" />
                     @if (spinHighlight() === i && !isSpinning()) {
                     <div class="absolute inset-0 flex items-center justify-center bg-black/40">
                         <span class="font-marker text-white text-lg font-black rotate-[-12deg] border-4 border-white px-3 py-1 tracking-widest">THE ONE!</span>
@@ -67,13 +68,13 @@
     </div>
 
     <!-- Invite section -->
-    <div class="px-6 pt-4">
+    <div class="px-6 pt-4" appFadeUp>
         <h3
             class="inline-block bg-espresso text-off-white px-4 py-1 font-zine font-bold italic uppercase tracking-widest rotate-1 mb-4">
             The Crew
         </h3>
 
-        <div class="relative bg-off-white zine-border p-6 zine-shadow rotate-[-1deg]">
+        <div class="relative bg-off-white zine-border p-6 zine-shadow rotate-[-1deg]" appFadeUp>
             <!-- Tape -->
             <div class="absolute -top-3 right-6 w-12 h-5 bg-white/70 shadow-sm rotate-[6deg] z-10"></div>
 
@@ -127,7 +128,7 @@
     </div>
 
     <!-- Meet in the Middle Toggle -->
-    <div class="px-6 pt-6">
+    <div class="px-6 pt-6" appFadeUp>
         <button (click)="meetInMiddle.set(!meetInMiddle())"
             class="w-full flex items-center gap-4 bg-off-white zine-border p-4 transition-all active:scale-[0.98]"
             [class.zine-shadow-sm]="meetInMiddle()"
@@ -154,7 +155,7 @@
     </div>
 
     <!-- Roulette Button -->
-    <div class="px-6 pt-6">
+    <div class="px-6 pt-6" appFadeUp>
         <button (click)="spinRoulette()" [disabled]="isSpinning() || sessionCafes().length === 0"
             class="w-full py-3 bg-off-white text-espresso font-black font-zine text-lg italic uppercase zine-border zine-shadow hover:translate-x-1 hover:translate-y-1 hover:shadow-none active:translate-x-2 active:translate-y-2  transition-all duration-200 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed">
             @if (isSpinning()) {
@@ -168,7 +169,7 @@
     </div>
 
     <!-- Start Voting Button -->
-    <div class="px-6 pt-4 pb-28">
+    <div class="px-6 pt-4 pb-28" appFadeUp>
         <button (click)="startVoting()" [disabled]="!sessionId()"
             class="w-full py-4 bg-primary text-espresso font-black font-zine text-2xl italic uppercase zine-border zine-shadow hover:translate-x-1 hover:translate-y-1 hover:shadow-none active:translate-x-2 active:translate-y-2  transition-all duration-200 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed">
             <span class="material-symbols-outlined text-2xl">how_to_vote</span>

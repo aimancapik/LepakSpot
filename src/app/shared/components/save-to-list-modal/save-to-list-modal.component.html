@@ -5,7 +5,7 @@
 
         <!-- Header -->
         <div class="flex justify-between items-center p-4 border-b-4 border-espresso bg-sage">
-            <h2 class="font-marker text-xl text-espresso uppercase mt-1">Save to List</h2>
+            <h2 class="font-zine font-black italic text-xl text-espresso uppercase tracking-wider">Save to List</h2>
             <button (click)="closeModal()"
                 class="w-8 h-8 flex items-center justify-center bg-white zine-border hover:bg-espresso hover:text-white transition-colors">
                 <span class="material-symbols-outlined">close</span>
@@ -19,7 +19,7 @@
                 @for (list of myLists(); track list.id) {
                 <button (click)="addToList(list.id)"
                     class="w-full text-left bg-white zine-border p-3 hover:bg-primary hover:-translate-y-1 transition-all">
-                    <h3 class="font-marker text-lg line-clamp-1">{{ list.title }}</h3>
+                    <h3 class="font-zine font-black italic uppercase text-lg tracking-tight line-clamp-1">{{ list.title }}</h3>
                     @if (list.description) {
                     <p class="font-sans text-xs text-espresso/70 line-clamp-1 mt-1">{{ list.description }}</p>
                     }
@@ -32,7 +32,7 @@
 
                 <div class="pt-4 mt-2 border-t-2 border-espresso/20">
                     <button (click)="isCreatingNew.set(true)"
-                        class="w-full bg-espresso text-white font-marker text-lg px-4 py-3 zine-border hover:-translate-y-1 hover:shadow-[4px_4px_0_var(--color-primary)] transition-all flex items-center justify-center gap-2">
+                        class="w-full bg-espresso text-white font-zine font-black italic uppercase text-sm tracking-widest px-4 py-3 zine-border hover:-translate-y-1 hover:shadow-[4px_4px_0_var(--color-primary)] transition-all flex items-center justify-center gap-2">
                         <span class="material-symbols-outlined pb-0.5">add</span>
                         CREATE NEW LIST
                     </button>
@@ -42,23 +42,23 @@
             <!-- Create New Form -->
             <div class="space-y-4 font-zine font-bold text-sm text-espresso uppercase">
                 <div>
-                    <label class="block mb-1">List Title</label>
-                    <input type="text" [(ngModel)]="newListName" placeholder="e.g. Late Night Study"
+                    <label for="listTitle" class="block mb-1">List Title</label>
+                    <input id="listTitle" type="text" [(ngModel)]="newListName" placeholder="e.g. Late Night Study"
                         class="w-full bg-white zine-border p-3 focus:outline-none focus:ring-2 focus:ring-primary font-sans normal-case text-base">
                 </div>
                 <div>
-                    <label class="block mb-1">Description (Optional)</label>
-                    <input type="text" [(ngModel)]="newListDesc" placeholder="e.g. Open till 2AM with good WiFi"
+                    <label for="listDesc" class="block mb-1">Description (Optional)</label>
+                    <input id="listDesc" type="text" [(ngModel)]="newListDesc" placeholder="e.g. Open till 2AM with good WiFi"
                         class="w-full bg-white zine-border p-3 focus:outline-none focus:ring-2 focus:ring-primary font-sans normal-case text-base">
                 </div>
 
                 <div class="flex gap-2 pt-2">
                     <button (click)="isCreatingNew.set(false)"
-                        class="flex-1 bg-white zine-border py-3 hover:bg-latte transition-colors font-marker text-lg zine-click-active">
+                        class="flex-1 bg-white zine-border py-3 hover:bg-latte transition-colors font-zine font-black italic uppercase text-sm tracking-widest zine-click-active">
                         CANCEL
                     </button>
                     <button (click)="createAndAdd()"
-                        class="flex-[2] bg-primary zine-border py-3 hover:-translate-y-1 shadow-[4px_4px_0_var(--color-espresso)] hover:shadow-none transition-all font-marker text-lg flex items-center justify-center gap-2">
+                        class="flex-[2] bg-primary zine-border py-3 hover:-translate-y-1 shadow-[4px_4px_0_var(--color-espresso)] hover:shadow-none transition-all font-zine font-black italic uppercase text-sm tracking-widest flex items-center justify-center gap-2">
                         <span class="material-symbols-outlined text-xl">save</span>
                         SAVE SPOT
                     </button>

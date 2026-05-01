@@ -23,7 +23,7 @@
     <!-- Main Content -->
     <main class="px-6 py-8 flex flex-col gap-10 animate-slide-up-card">
         <!-- Action Buttons -->
-        <div class="flex justify-center flex-wrap gap-4 -mt-4 z-10 transition-all font-marker text-sm px-2 animate-fade-up" style="animation-delay:0.1s">
+        <div class="flex justify-center flex-wrap gap-4 -mt-4 z-10 transition-all font-marker text-sm px-2" appFadeUp [delay]="0.1">
             <!-- CHECK IN / CHECKOUT BUTTON -->
             @if (isCheckedIn() && isPresent()) {
             <!-- Currently present — show I'm Leaving -->
@@ -65,7 +65,7 @@
 
         <!-- VIP Perks & Secret Menu -->
         @if (cafe()!.perks?.length || cafe()!.secretMenu?.length) {
-        <div class="relative z-10 animate-fade-up" style="animation-delay:0.2s">
+        <div class="relative z-10" appFadeUp [delay]="0.2">
             <!-- Tape decoration -->
             <div
                 class="absolute -top-3 left-1/2 -translate-x-1/2 w-24 h-6 bg-white/60 backdrop-blur-sm border border-espresso -rotate-2 z-20">
@@ -124,7 +124,7 @@
         }
 
         <!-- Horizontal Scene Carousel -->
-        <div class="relative -mt-4 mb-8 animate-fade-up" style="animation-delay:0.25s">
+        <div class="relative -mt-4 mb-8" appFadeUp [delay]="0.25">
             <div class="flex items-center gap-3 px-6 mb-4">
                 <h3 class="bg-espresso text-off-white px-3 py-1 font-zine font-bold italic uppercase tracking-widest -rotate-2">
                     SCENE SNAPS
@@ -146,7 +146,7 @@
                         <div class="relative zine-border p-2 bg-off-white zine-shadow rounded-2xl"
                              [class]="i % 2 === 0 ? 'aspect-square rotate-[-2deg]' : 'aspect-[4/5] bg-espresso rotate-[2deg] shadow-[8px_8px_0_var(--color-primary)] p-3 z-10'">
                             <div class="w-full h-full overflow-hidden border-2 border-espresso bg-espresso cursor-zoom-in"
-                                 (click)="openSnapLightbox(i)">
+                                 (click)="openSnapLightbox(i)" (keyup.enter)="openSnapLightbox(i)" tabindex="0" role="button" aria-label="Open photo lightbox">
                                 <img [src]="snap.url"
                                      class="w-full h-full object-cover transition-all duration-500 hover:scale-105"
                                      [alt]="snap.tag" />
@@ -185,7 +185,7 @@
 
         <!-- Video -->
         @if (cafe()!.videoUrl) {
-        <div class="relative -mt-8 animate-fade-up" style="animation-delay:0.3s">
+        <div class="relative -mt-8" appFadeUp [delay]="0.3">
             <div class="mb-4">
                 <h3 class="inline-block bg-espresso text-off-white px-3 py-1 font-zine font-bold italic uppercase tracking-widest -rotate-2">
                     THE REEL
@@ -201,7 +201,7 @@
 
         <!-- ── Leave / Edit a Review ── -->
         @if (!hasReviewed() && !reviewSubmitted()) {
-        <div class="relative mt-2 animate-fade-up" style="animation-delay:0.35s">
+        <div class="relative mt-2" appFadeUp [delay]="0.35">
             <div class="absolute -top-3 left-8 w-20 h-5 bg-white/60 backdrop-blur-sm border border-espresso rotate-2 z-20"></div>
             <div class="bg-off-white zine-border p-5 shadow-[4px_4px_0_var(--color-espresso)] -rotate-1 relative overflow-hidden">
                 <div class="flex items-center gap-2 mb-4 border-b-2 border-espresso/20 pb-2">
@@ -245,17 +245,17 @@
                         <p class="font-zine text-xs uppercase tracking-widest text-espresso/60 mb-2">Add a Photo <span class="normal-case text-espresso/40">(optional)</span></p>
                         @if (reviewImagePreview()) {
                         <div class="relative inline-block">
-                            <img [src]="reviewImagePreview()" class="w-full max-h-48 object-cover zine-border rounded-xl" />
+                            <img [src]="reviewImagePreview()" alt="Review preview" class="w-full max-h-48 object-cover zine-border rounded-xl" />
                             <button (click)="removeReviewImage()"
                                 class="absolute top-2 right-2 size-7 bg-espresso text-off-white rounded-full flex items-center justify-center border-2 border-off-white shadow-md">
                                 <span class="material-symbols-outlined text-sm">close</span>
                             </button>
                         </div>
                         } @else {
-                        <label class="flex items-center gap-2 cursor-pointer w-full py-3 px-4 border-2 border-dashed border-espresso/40 hover:border-espresso rounded-xl transition-colors group">
+                        <label for="review-photo-new" class="flex items-center gap-2 cursor-pointer w-full py-3 px-4 border-2 border-dashed border-espresso/40 hover:border-espresso rounded-xl transition-colors group">
                             <span class="material-symbols-outlined text-espresso/50 group-hover:text-espresso transition-colors">add_photo_alternate</span>
                             <span class="font-marker text-sm text-espresso/50 group-hover:text-espresso transition-colors uppercase">Tap to add photo</span>
-                            <input type="file" accept="image/*" class="hidden" (change)="onReviewImagePicked($event)" />
+                            <input id="review-photo-new" type="file" accept="image/*" class="hidden" (change)="onReviewImagePicked($event)" />
                         </label>
                         }
                     </div>
@@ -324,17 +324,17 @@
                         <p class="font-zine text-xs uppercase tracking-widest text-espresso/60 mb-2">Photo <span class="normal-case text-espresso/40">(optional)</span></p>
                         @if (reviewImagePreview()) {
                         <div class="relative inline-block w-full">
-                            <img [src]="reviewImagePreview()" class="w-full max-h-48 object-cover zine-border rounded-xl" />
+                            <img [src]="reviewImagePreview()" alt="Review preview" class="w-full max-h-48 object-cover zine-border rounded-xl" />
                             <button (click)="removeReviewImage()"
                                 class="absolute top-2 right-2 size-7 bg-espresso text-off-white rounded-full flex items-center justify-center border-2 border-off-white shadow-md">
                                 <span class="material-symbols-outlined text-sm">close</span>
                             </button>
                         </div>
                         } @else {
-                        <label class="flex items-center gap-2 cursor-pointer w-full py-3 px-4 border-2 border-dashed border-espresso/40 hover:border-espresso rounded-xl transition-colors group">
+                        <label for="review-photo-edit" class="flex items-center gap-2 cursor-pointer w-full py-3 px-4 border-2 border-dashed border-espresso/40 hover:border-espresso rounded-xl transition-colors group">
                             <span class="material-symbols-outlined text-espresso/50 group-hover:text-espresso transition-colors">add_photo_alternate</span>
                             <span class="font-marker text-sm text-espresso/50 group-hover:text-espresso transition-colors uppercase">Tap to add photo</span>
-                            <input type="file" accept="image/*" class="hidden" (change)="onReviewImagePicked($event)" />
+                            <input id="review-photo-edit" type="file" accept="image/*" class="hidden" (change)="onReviewImagePicked($event)" />
                         </label>
                         }
                     </div>
@@ -354,21 +354,21 @@
         </div>
         }
 
-        <!-- ── What Locals Say ── -->
+        <!-- ── Reviews ── -->
         @if (reviews().length > 0) {
-        <div class="relative mt-2 animate-fade-up" style="animation-delay:0.4s">
+        <div class="relative mt-2" appFadeUp [delay]="0.4">
             <!-- tape decoration -->
             <div class="absolute -top-3 right-8 w-20 h-5 bg-primary/60 border border-espresso -rotate-3 z-20">
             </div>
             <div class="bg-latte zine-border p-5 shadow-[4px_4px_0_var(--color-espresso)] rotate-1 relative overflow-hidden">
                 <div class="flex items-center gap-2 mb-4 border-b-2 border-espresso/20 pb-2">
                     <span class="material-symbols-outlined text-espresso text-2xl">forum</span>
-                    <h3 class="font-marker text-xl tracking-widest uppercase text-espresso">What Locals Say</h3>
+                    <h3 class="font-marker text-xl tracking-widest uppercase text-espresso">Reviews</h3>
                     <span class="ml-auto font-zine text-xs text-espresso/40 uppercase tracking-widest">{{ reviews().length }} vibes</span>
                 </div>
                 <div class="space-y-4">
                     @for (review of (showAllReviews() ? reviews() : reviews().slice(0,3)); track review.id; let idx = $index) {
-                    <div class="bg-off-white border-2 border-espresso/20 p-3 space-y-2 rounded-xl">
+                    <div class="bg-off-white border-2 border-espresso/20 p-3 space-y-2 rounded-xl" [appFadeUp]="idx" [delay]="0.1">
                         <!-- Reviewer header -->
                         <div class="flex items-center gap-2">
                             @if (review.photoURL) {
@@ -399,7 +399,7 @@
                         }
                         <!-- Review image -->
                         @if (review.imageUrl) {
-                        <div class="mt-2 cursor-zoom-in" (click)="openReviewLightbox(reviews(), idx)">
+                        <div class="mt-2 cursor-zoom-in" (click)="openReviewLightbox(reviews(), idx)" (keyup.enter)="openReviewLightbox(reviews(), idx)" tabindex="0" role="button" aria-label="View review image">
                             <img [src]="review.imageUrl" [alt]="review.displayName + ' photo'"
                                 class="w-full max-h-48 object-cover zine-border rounded-xl hover:opacity-90 transition-opacity" />
                         </div>
@@ -434,101 +434,150 @@
         </div>
         }
 
-        <!-- Scene Snap Lightbox -->
-        @if (snapLightboxIndex() !== null) {
-        <div class="fixed inset-0 z-[100] bg-espresso/95 backdrop-blur-md flex flex-col animate-in fade-in duration-200"
-             (click)="closeSnapLightbox()">
-            <div class="flex items-center justify-between p-4 pt-10 shrink-0" (click)="$event.stopPropagation()">
-                <p class="font-marker text-primary text-sm uppercase tracking-widest">{{ cafe()?.sceneSnaps?.[snapLightboxIndex()!]?.tag }}</p>
-                <button (click)="closeSnapLightbox()"
-                    class="size-10 bg-off-white border-2 border-espresso zine-shadow-sm flex items-center justify-center zine-click-active">
-                    <span class="material-symbols-outlined font-black">close</span>
-                </button>
-            </div>
-            <div #snapScroll
-                 class="flex-1 flex overflow-x-auto snap-x snap-mandatory no-scrollbar"
-                 (click)="$event.stopPropagation()"
-                 (scroll)="snapLightboxIndex.set(Math.round(snapScroll.scrollLeft / snapScroll.offsetWidth))">
-                @for (snap of cafe()!.sceneSnaps; track $index; let i = $index) {
-                <div [id]="'snap-lb-' + i" class="flex-none w-full h-full snap-center flex items-center justify-center px-4">
-                    <img [src]="snap.url" [alt]="snap.tag"
-                         class="max-w-full max-h-full object-contain zine-border shadow-2xl" />
-                </div>
-                }
-            </div>
-            <div class="shrink-0 flex justify-center gap-2 pb-8 pt-4" (click)="$event.stopPropagation()">
-                @for (snap of cafe()!.sceneSnaps; track $index; let i = $index) {
-                <div class="h-1.5 rounded-full transition-all"
-                     [class]="i === snapLightboxIndex() ? 'w-4 bg-primary' : 'w-1.5 bg-white/30'"></div>
-                }
-            </div>
-        </div>
-        }
-
-        <!-- Review Image Lightbox (rendered outside main flow) -->
-        @if (lightboxReviews(); as lb) {
-        <div class="fixed inset-0 z-[100] bg-espresso/95 backdrop-blur-md flex flex-col"
-             (click)="closeReviewLightbox()">
-            <div class="flex justify-end p-4" (click)="$event.stopPropagation()">
-                <button (click)="closeReviewLightbox()"
-                    class="size-10 bg-off-white border-2 border-espresso zine-shadow-sm flex items-center justify-center zine-click-active">
-                    <span class="material-symbols-outlined font-black">close</span>
-                </button>
-            </div>
-            <!-- Vertical swipe: all reviews with images -->
-            <div class="flex-1 overflow-y-auto snap-y snap-mandatory no-scrollbar" (click)="$event.stopPropagation()">
-                @for (r of lb.reviews; track r.id; let i = $index) {
-                <div class="h-full snap-start flex flex-col items-center justify-center p-6 gap-4"
-                     [id]="'lb-review-' + i">
-                    <img [src]="r.imageUrl" [alt]="r.displayName"
-                        class="max-w-full max-h-[65vh] object-contain zine-border shadow-2xl rounded-xl" />
-                    <div class="flex items-center gap-3">
-                        @if (r.photoURL) {
-                        <img [src]="r.photoURL" class="size-8 rounded-full zine-border" />
-                        }
-                        <div>
-                            <p class="font-marker text-off-white text-sm uppercase">{{ r.displayName }}</p>
-                            @if (r.text) {
-                            <p class="font-marker text-off-white/60 text-xs">"{{ r.text }}"</p>
-                            }
-                        </div>
-                        <div class="flex gap-0.5 ml-auto shrink-0">
-                            @for (s of [1,2,3,4,5]; track s) {
-                            <span class="material-symbols-outlined text-xs"
-                                [class.text-primary]="s <= r.rating"
-                                [class.text-off-white/20]="s > r.rating"
-                                style="font-variation-settings: 'FILL' 1">star</span>
-                            }
-                        </div>
-                    </div>
-                    @if (lb.reviews.length > 1) {
-                    <p class="font-zine text-xs text-off-white/30 uppercase tracking-widest">{{ i + 1 }} / {{ lb.reviews.length }} · swipe up/down</p>
-                    }
-                </div>
-                }
-            </div>
-        </div>
-        }
-
-
     </main>
     } @else {
-    <div class="flex-1 flex items-center justify-center p-12">
-        <div class="relative">
-            <!-- Pulsing Polaroid -->
-            <div class="w-32 h-32 bg-white zine-border zine-shadow flex items-center justify-center -rotate-6 animate-pulse p-4">
-                <span class="material-symbols-outlined text-4xl text-espresso/10">photo_library</span>
+    <!-- Skeleton Loading State -->
+    <main class="px-6 py-8 flex flex-col gap-10">
+        <!-- Action Buttons Skeleton -->
+        <div class="flex justify-center flex-wrap gap-4 -mt-4 z-10 px-2">
+            <div class="flex-1 min-w-[120px] h-11 bg-espresso/5 rounded-full zine-border animate-pulse"></div>
+            <div class="flex-1 min-w-[120px] h-11 bg-espresso/5 rounded-full zine-border animate-pulse"></div>
+        </div>
+
+        <!-- VIP Perks Skeleton -->
+        <div class="relative z-10">
+            <div class="absolute -top-3 left-1/2 -translate-x-1/2 w-24 h-6 bg-white/30 backdrop-blur-sm border border-espresso/20 -rotate-2 z-20"></div>
+            <div class="bg-espresso/5 h-40 rounded-2xl border-2 border-dashed border-espresso/10 animate-pulse rotate-1"></div>
+        </div>
+
+        <!-- Scene Snaps Skeleton -->
+        <div class="relative -mt-4 mb-8">
+            <div class="flex items-center gap-3 px-6 mb-4">
+                <div class="w-32 h-8 bg-espresso/10 -rotate-2 animate-pulse"></div>
+                <div class="h-0.5 flex-1 bg-espresso/5"></div>
             </div>
-            <!-- Sticker label -->
-            <div class="absolute -bottom-2 -right-6 bg-primary text-espresso px-4 py-1 zine-border zine-shadow rotate-12 font-zine font-bold text-xs uppercase tracking-widest animate-bounce">
-                Developing...
+            <div class="flex gap-8 px-8 pb-4">
+                <div class="flex-none w-[85%] relative aspect-square bg-espresso/5 rounded-2xl border-2 border-espresso/10 animate-pulse rotate-[-2deg]"></div>
             </div>
+        </div>
+        
+        <!-- Video Skeleton -->
+        <div class="relative -mt-8">
+            <div class="mb-4">
+                <div class="w-24 h-8 bg-espresso/10 -rotate-2 animate-pulse"></div>
+            </div>
+            <div class="w-full h-[40vh] bg-espresso/5 zine-border rotate-[0.5deg] animate-pulse"></div>
+        </div>
+    </main>
+    }
+
+    @if (showSaveModal() && cafe()) {
+    <app-save-to-list-modal [cafeId]="cafe()!.id!" (closed)="showSaveModal.set(false)" />
+    }
+
+    <!-- Scene Snap Lightbox -->
+    @if (snapLightboxIndex() !== null && cafe()) {
+    <div class="fixed inset-0 bg-espresso/95 backdrop-blur-md flex flex-col animate-in fade-in duration-200" style="z-index: 9999;"
+         (click)="closeSnapLightbox()" (keyup.escape)="closeSnapLightbox()" tabindex="0" role="dialog" aria-modal="true">
+        <!-- Close -->
+        <div class="flex justify-end p-5 pt-10 shrink-0" (click)="$event.stopPropagation()" (keyup)="$event.stopPropagation()" role="presentation">
+            <button (click)="closeSnapLightbox()"
+                class="size-12 bg-off-white border-2 border-espresso zine-shadow-sm flex items-center justify-center zine-click-active">
+                <span class="material-symbols-outlined font-black">close</span>
+            </button>
+        </div>
+
+        <!-- Swipeable images -->
+        <div #snapScroll
+             class="flex-1 flex overflow-x-auto snap-x snap-mandatory no-scrollbar"
+             (click)="$event.stopPropagation()" (keyup)="$event.stopPropagation()" role="presentation"
+             (scroll)="snapScroll.offsetWidth && snapLightboxIndex.set(Math.round(snapScroll.scrollLeft / snapScroll.offsetWidth))">
+            @for (snap of cafe()!.sceneSnaps; track $index; let i = $index) {
+            <div [id]="'snap-lb-' + i" class="flex-none w-full h-full snap-center flex items-center justify-center px-4">
+                <img [src]="snap.url" [alt]="snap.tag"
+                     class="max-w-full max-h-full object-contain zine-border shadow-2xl" />
+            </div>
+            }
+        </div>
+
+        <!-- Dots + counter -->
+        <div class="shrink-0 flex flex-col items-center gap-3 pb-8 pt-4" (click)="$event.stopPropagation()" (keyup)="$event.stopPropagation()" role="presentation">
+            @if ((cafe()?.sceneSnaps?.length ?? 0) > 1) {
+            <div class="flex gap-2">
+                @for (snap of cafe()!.sceneSnaps; track $index; let i = $index) {
+                <div class="w-1.5 h-1.5 rounded-full transition-all"
+                     [class]="i === snapLightboxIndex() ? 'bg-primary w-4' : 'bg-white/40'"></div>
+                }
+            </div>
+            }
+            <p class="font-marker text-primary text-sm uppercase tracking-widest">{{ cafe()?.sceneSnaps?.[snapLightboxIndex()!]?.tag }}</p>
         </div>
     </div>
     }
 
-    @if (showSaveModal() && cafe()) {
-    <app-save-to-list-modal [cafeId]="cafe()!.id!" (close)="showSaveModal.set(false)" />
+    <!-- Review Image Lightbox -->
+    @if (lightboxReviews(); as lb) {
+    <div class="fixed inset-0 bg-espresso/95 backdrop-blur-md flex flex-col animate-in fade-in duration-200" style="z-index: 9999;"
+         (click)="closeReviewLightbox()" (keyup.escape)="closeReviewLightbox()" tabindex="0" role="dialog" aria-modal="true">
+        <!-- Close -->
+        <div class="flex justify-end p-5 pt-10 shrink-0" (click)="$event.stopPropagation()" (keyup)="$event.stopPropagation()" role="presentation">
+            <button (click)="closeReviewLightbox()"
+                class="size-12 bg-off-white border-2 border-espresso zine-shadow-sm flex items-center justify-center zine-click-active">
+                <span class="material-symbols-outlined font-black">close</span>
+            </button>
+        </div>
+        
+        <!-- Swipeable images -->
+        <div #reviewLightboxScroll
+             class="flex-1 flex overflow-x-auto snap-x snap-mandatory no-scrollbar"
+             (click)="$event.stopPropagation()" (keyup)="$event.stopPropagation()" role="presentation"
+             (scroll)="reviewLightboxScroll.offsetWidth && updateReviewLightboxIndex(Math.round(reviewLightboxScroll.scrollLeft / reviewLightboxScroll.offsetWidth))">
+            @for (r of lb.reviews; track r.id; let i = $index) {
+            <div [id]="'review-lb-' + i" class="flex-none w-full h-full snap-center flex flex-col items-center justify-center gap-4 px-5 pb-6">
+                <img [src]="r.imageUrl" [alt]="r.displayName"
+                    class="max-w-full max-h-[55vh] object-contain zine-border shadow-2xl rounded-xl" />
+                <div class="w-full bg-off-white border-2 border-espresso rounded-2xl p-4 space-y-2 shrink-0 max-w-sm">
+                    <div class="flex items-center gap-2">
+                        @if (r.photoURL) {
+                        <img [src]="r.photoURL" [alt]="r.displayName" class="size-9 rounded-full border-2 border-espresso object-cover shrink-0" />
+                        } @else {
+                        <div class="size-9 rounded-full border-2 border-espresso bg-sage flex items-center justify-center shrink-0">
+                            <span class="font-marker text-sm text-espresso uppercase">{{ r.displayName[0] }}</span>
+                        </div>
+                        }
+                        <div class="flex-1 min-w-0">
+                            <p class="font-marker text-sm text-espresso uppercase truncate">{{ r.displayName }}</p>
+                            <div class="flex gap-0.5 mt-0.5">
+                                @for (s of [1,2,3,4,5]; track s) {
+                                <span class="material-symbols-outlined text-sm"
+                                    [class.text-primary]="s <= r.rating"
+                                    [class.text-espresso/20]="s > r.rating"
+                                    style="font-variation-settings:'FILL' 1">star</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    @if (r.text) {
+                    <p class="font-marker text-sm text-espresso/80 leading-relaxed border-t border-espresso/10 pt-2">"{{ r.text }}"</p>
+                    }
+                </div>
+            </div>
+            }
+        </div>
+
+        <!-- Dots -->
+        <div class="shrink-0 flex flex-col items-center gap-3 pb-8 pt-4" (click)="$event.stopPropagation()" (keyup)="$event.stopPropagation()" role="presentation">
+            @if (lb.reviews.length > 1) {
+            <div class="flex gap-2">
+                @for (r of lb.reviews; track r.id; let i = $index) {
+                <div class="w-1.5 h-1.5 rounded-full transition-all"
+                     [class]="i === lb.startIndex ? 'bg-primary w-4' : 'bg-white/30'"></div>
+                }
+            </div>
+            }
+            <p class="font-marker text-primary text-sm uppercase tracking-widest">Community Reviews</p>
+        </div>
+    </div>
     }
 
 </div>

@@ -32,7 +32,7 @@
             <div class="absolute left-1/2 top-0 bottom-0 w-1 -translate-x-1/2 bg-espresso/80"></div>
 
             @for (move of moves(); track move.id; let i = $index) {
-            <article class="relative grid grid-cols-2 gap-4 items-start mb-5">
+            <article class="relative grid grid-cols-2 gap-4 items-start mb-5" [appFadeUp]="i">
                 <div class="absolute left-1/2 top-5 z-20 size-10 -translate-x-1/2 bg-latte border-2 border-espresso rounded-full flex items-center justify-center">
                     <span class="material-symbols-outlined text-espresso text-lg">{{ i % 4 === 0 ? 'local_cafe' : i % 4 === 1 ? 'location_on' : i % 4 === 2 ? 'bolt' : 'favorite' }}</span>
                 </div>

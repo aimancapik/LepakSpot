@@ -2,13 +2,13 @@
     class="relative flex flex-col min-h-[100dvh] bg-latte grain-overlay overflow-x-hidden max-w-md mx-auto border-x-4 border-espresso justify-center px-8 gap-10">
 
     <!-- App name -->
-    <div class="text-center">
+    <div class="text-center" appFadeUp>
         <h1 class="font-marker text-6xl text-espresso leading-none tracking-tight">LepakSpot</h1>
         <p class="font-zine text-sm uppercase tracking-[0.2em] text-espresso/50 mt-3">Find your next spot in KL</p>
     </div>
 
     <!-- Actions -->
-    <div class="flex flex-col gap-4 w-full">
+    <div class="flex flex-col gap-4 w-full" [appFadeUp]="1">
         <!-- Google -->
         <button (click)="authService.signIn()" [disabled]="authService.isSigningIn()"
             class="w-full flex items-center justify-center gap-3 bg-espresso text-off-white font-marker text-base uppercase tracking-wide px-5 py-4 zine-border zine-shadow hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all disabled:opacity-60">
@@ -46,7 +46,8 @@
     </div>
 
     <!-- Terms -->
-    <p class="font-zine text-[9px] uppercase tracking-wider text-espresso/20 text-center leading-relaxed">
+    <p class="font-zine text-[9px] uppercase tracking-wider text-espresso/20 text-center leading-relaxed"
+        [appFadeUp]="2">
         By continuing you agree to our
         <span class="text-espresso/40 underline cursor-pointer">Terms</span> &amp;
         <span class="text-espresso/40 underline cursor-pointer">Privacy</span>

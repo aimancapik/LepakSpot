@@ -6,11 +6,13 @@ import { CheckInService } from '../../../core/services/checkin.service';
 import { CheckIn } from '../../../core/models/checkin.model';
 import { ToastService } from '../../../shared/components/toast/toast.service';
 
+import { FadeUpDirective } from '../../../shared/directives/fade-up.directive';
+
 @Component({
     selector: 'app-profile-moves',
     standalone: true,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [DatePipe, RouterLink],
+    imports: [DatePipe, RouterLink, FadeUpDirective],
     templateUrl: './profile-moves.component.html',
 })
 export class ProfileMovesComponent implements OnInit {

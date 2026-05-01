@@ -54,7 +54,7 @@
             <!-- Photos -->
             <div class="space-y-3">
                 <div class="flex items-center justify-between gap-3">
-                    <label class="font-zine text-xs font-bold uppercase tracking-widest text-espresso/60">Gallery Photos</label>
+                <span class="font-zine text-xs font-bold uppercase tracking-widest text-espresso/60">Gallery Photos</span>
                     <span class="font-marker text-[10px] text-espresso/40 uppercase">{{ photoPreviews().length }}/4</span>
                 </div>
 
@@ -85,7 +85,7 @@
             <!-- Video -->
             <div class="space-y-3">
                 <div class="flex items-center justify-between gap-3">
-                    <label class="font-zine text-xs font-bold uppercase tracking-widest text-espresso/60">Vibe Video</label>
+                    <span class="font-zine text-xs font-bold uppercase tracking-widest text-espresso/60">Vibe Video</span>
                     <span class="font-marker text-[10px] text-espresso/40 uppercase">Optional</span>
                 </div>
 
@@ -110,7 +110,7 @@
             <!-- Scene Snaps -->
             <div class="space-y-3">
                 <div class="flex items-center justify-between gap-3">
-                    <label class="font-zine text-xs font-bold uppercase tracking-widest text-espresso/60">Scene Snaps</label>
+                    <span class="font-zine text-xs font-bold uppercase tracking-widest text-espresso/60">Scene Snaps</span>
                     <span class="font-marker text-[10px] text-espresso/40 uppercase">{{ sceneSnapPreviews().length }}/5</span>
                 </div>
 
@@ -145,21 +145,21 @@
 
             <!-- Name -->
             <div class="space-y-1.5">
-                <label class="font-zine text-xs font-bold uppercase tracking-widest text-espresso/60">Cafe Name</label>
-                <input [ngModel]="editName()" (ngModelChange)="editName.set($event)"
+                <label for="edit-name" class="font-zine text-xs font-bold uppercase tracking-widest text-espresso/60">Cafe Name</label>
+                <input id="edit-name" [ngModel]="editName()" (ngModelChange)="editName.set($event)"
                     class="w-full bg-off-white border-2 border-espresso px-4 py-3 font-zine text-sm font-bold focus:outline-none focus:border-primary" />
             </div>
 
             <!-- Address -->
             <div class="space-y-1.5">
-                <label class="font-zine text-xs font-bold uppercase tracking-widest text-espresso/60">Address</label>
-                <input [ngModel]="editAddress()" (ngModelChange)="editAddress.set($event)"
+                <label for="edit-address" class="font-zine text-xs font-bold uppercase tracking-widest text-espresso/60">Address</label>
+                <input id="edit-address" [ngModel]="editAddress()" (ngModelChange)="editAddress.set($event)"
                     class="w-full bg-off-white border-2 border-espresso px-4 py-3 font-zine text-sm focus:outline-none focus:border-primary" />
             </div>
 
             <!-- Operating Hours -->
             <div class="space-y-2">
-                <label class="font-zine text-xs font-bold uppercase tracking-widest text-espresso/60">Operating Hours</label>
+                <span class="font-zine text-xs font-bold uppercase tracking-widest text-espresso/60 block">Operating Hours</span>
                 <div class="bg-off-white border-2 border-espresso divide-y divide-espresso/10">
                     @for (day of weekDays; track day.key) {
                     @let hours = getDayHours(day.key);
@@ -187,7 +187,7 @@
 
             <!-- Tags -->
             <div class="space-y-2">
-                <label class="font-zine text-xs font-bold uppercase tracking-widest text-espresso/60">Tags</label>
+                <span class="font-zine text-xs font-bold uppercase tracking-widest text-espresso/60 block">Tags</span>
                 <div class="flex flex-wrap gap-2">
                     @for (tag of allTags; track tag) {
                     <button (click)="toggleEditTag(tag)"
@@ -203,16 +203,16 @@
             <!-- WiFi + Outlets -->
             <div class="grid grid-cols-2 gap-3">
                 <div class="space-y-1.5">
-                    <label class="font-zine text-xs font-bold uppercase tracking-widest text-espresso/60">WiFi Speed</label>
-                    <select [ngModel]="editWifiSpeed()" (ngModelChange)="editWifiSpeed.set($event)"
+                    <label for="edit-wifi" class="font-zine text-xs font-bold uppercase tracking-widest text-espresso/60">WiFi Speed</label>
+                    <select id="edit-wifi" [ngModel]="editWifiSpeed()" (ngModelChange)="editWifiSpeed.set($event)"
                         class="w-full bg-off-white border-2 border-espresso px-3 py-2.5 font-zine text-sm focus:outline-none">
                         <option value="">—</option>
                         <option>Fast</option><option>Average</option><option>Slow</option><option>None</option>
                     </select>
                 </div>
                 <div class="space-y-1.5">
-                    <label class="font-zine text-xs font-bold uppercase tracking-widest text-espresso/60">Outlets</label>
-                    <select [ngModel]="editOutletAvailability()" (ngModelChange)="editOutletAvailability.set($event)"
+                    <label for="edit-outlets" class="font-zine text-xs font-bold uppercase tracking-widest text-espresso/60">Outlets</label>
+                    <select id="edit-outlets" [ngModel]="editOutletAvailability()" (ngModelChange)="editOutletAvailability.set($event)"
                         class="w-full bg-off-white border-2 border-espresso px-3 py-2.5 font-zine text-sm focus:outline-none">
                         <option value="">—</option>
                         <option>Many</option><option>Few</option><option>None</option>
@@ -223,7 +223,7 @@
             <!-- Late Night Toggle -->
             <div class="flex items-center justify-between bg-off-white border-2 border-espresso px-4 py-3">
                 <span class="font-zine text-sm font-bold uppercase">Late Night Spot</span>
-                <button (click)="editIsLateNight.update(v => !v)"
+                <button (click)="toggleLateNight()"
                     class="w-12 h-6 rounded-full border-2 border-espresso transition-colors flex items-center px-0.5"
                     [class.bg-primary]="editIsLateNight()"
                     [class.bg-espresso/10]="!editIsLateNight()">
@@ -258,7 +258,7 @@
                 <div class="bg-off-white border-2 border-espresso/20 p-4 space-y-2 rounded-xl">
                     <div class="flex items-center gap-2">
                         @if (review.photoURL) {
-                        <img [src]="review.photoURL" class="w-8 h-8 rounded-full border-2 border-espresso object-cover shrink-0" />
+                        <img [src]="review.photoURL" [alt]="review.displayName" class="w-8 h-8 rounded-full border-2 border-espresso object-cover shrink-0" />
                         } @else {
                         <div class="w-8 h-8 rounded-full border-2 border-espresso bg-sage flex items-center justify-center shrink-0">
                             <span class="font-marker text-sm uppercase">{{ review.displayName[0] }}</span>
@@ -295,7 +295,7 @@
                 <h2 class="inline-block bg-primary text-espresso px-4 py-1 font-zine font-black italic uppercase tracking-widest -rotate-1 border-2 border-espresso zine-shadow-sm">
                     Deals & Promos
                 </h2>
-                <button (click)="showDealForm.update(v => !v)"
+                <button (click)="toggleDealForm()"
                     class="size-10 bg-espresso text-off-white border-2 border-espresso zine-shadow-sm flex items-center justify-center zine-click-active">
                     <span class="material-symbols-outlined text-lg">{{ showDealForm() ? 'close' : 'add' }}</span>
                 </button>
@@ -312,18 +312,16 @@
                     placeholder="Description (optional)"
                     rows="2"
                     class="w-full border-2 border-espresso px-3 py-2 font-zine text-sm focus:outline-none focus:border-primary bg-latte resize-none"></textarea>
-                <div class="grid grid-cols-2 gap-3">
                     <div class="space-y-1">
-                        <label class="font-zine text-[10px] uppercase tracking-widest text-espresso/60">Valid From *</label>
-                        <input type="datetime-local" [ngModel]="newDealValidFrom()" (ngModelChange)="newDealValidFrom.set($event)"
+                        <label for="deal-from" class="font-zine text-[10px] uppercase tracking-widest text-espresso/60">Valid From *</label>
+                        <input id="deal-from" type="datetime-local" [ngModel]="newDealValidFrom()" (ngModelChange)="newDealValidFrom.set($event)"
                             class="w-full border-2 border-espresso px-2 py-2 font-zine text-xs focus:outline-none bg-latte" />
                     </div>
                     <div class="space-y-1">
-                        <label class="font-zine text-[10px] uppercase tracking-widest text-espresso/60">Valid Until *</label>
-                        <input type="datetime-local" [ngModel]="newDealValidUntil()" (ngModelChange)="newDealValidUntil.set($event)"
+                        <label for="deal-until" class="font-zine text-[10px] uppercase tracking-widest text-espresso/60">Valid Until *</label>
+                        <input id="deal-until" type="datetime-local" [ngModel]="newDealValidUntil()" (ngModelChange)="newDealValidUntil.set($event)"
                             class="w-full border-2 border-espresso px-2 py-2 font-zine text-xs focus:outline-none bg-latte" />
                     </div>
-                </div>
                 <button (click)="createDeal()" [disabled]="saving()"
                     class="w-full bg-primary text-espresso py-3 border-2 border-espresso font-zine font-black italic uppercase tracking-wider zine-click-active disabled:opacity-50">
                     Post Deal

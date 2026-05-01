@@ -7,7 +7,7 @@ import { DealService } from '../../../core/services/deal.service';
 import { ReviewService } from '../../../core/services/review.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { ToastService } from '../../../shared/components/toast/toast.service';
-import { Cafe, CafeTag, DayKey, DayHours, OperatingHours } from '../../../core/models/cafe.model';
+import { Cafe, CafeTag, DayKey, DayHours, OperatingHours, WifiSpeed, OutletAvailability } from '../../../core/models/cafe.model';
 import { Deal } from '../../../core/models/deal.model';
 import { Review } from '../../../core/models/review.model';
 import { SupabaseService } from '../../../core/services/supabase.service';
@@ -59,8 +59,8 @@ export class OwnerDashboardComponent implements OnInit {
     ];
     editTags = signal<CafeTag[]>([]);
     editIsLateNight = signal(false);
-    editWifiSpeed = signal('');
-    editOutletAvailability = signal('');
+    editWifiSpeed = signal<WifiSpeed | ''>('');
+    editOutletAvailability = signal<OutletAvailability | ''>('');
     existingPhotoUrls = signal<string[]>([]);
     photoPreviews = signal<string[]>([]);
     photoFiles = signal<File[]>([]);
@@ -139,6 +139,14 @@ export class OwnerDashboardComponent implements OnInit {
         );
     }
 
+    toggleLateNight() {
+        this.editIsLateNight.update(v => !v);
+    }
+
+    toggleDealForm() {
+        this.showDealForm.update(v => !v);
+    }
+
     async saveOverview() {
         const cafe = this.cafe();
         if (!cafe) return;
@@ -163,8 +171,8 @@ export class OwnerDashboardComponent implements OnInit {
                 operatingHours: this.editOperatingHours() as OperatingHours,
                 tags: this.editTags(),
                 isLateNight: this.editIsLateNight(),
-                wifiSpeed: this.editWifiSpeed() as any || undefined,
-                outletAvailability: this.editOutletAvailability() as any || undefined,
+                wifiSpeed: (this.editWifiSpeed() || undefined) as WifiSpeed | undefined,
+                outletAvailability: (this.editOutletAvailability() || undefined) as OutletAvailability | undefined,
                 photos: finalPhotoUrls,
                 videoUrl,
                 sceneSnaps,

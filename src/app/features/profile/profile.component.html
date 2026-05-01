@@ -8,13 +8,13 @@
         <button (click)="authService.signOutUser()"
             class="px-3 py-1 bg-off-white zine-border zine-shadow font-marker text-sm flex items-center gap-1 hover:bg-sage hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all">
             <span class="material-symbols-outlined text-sm">logout</span>
-            BAIL
+            Log Out
         </button>
     </header>
 
-    <main class="px-6 py-8 space-y-12">
+    <main class="px-6 py-8 space-y-12" appFadeUp [delay]="0.05">
         <!-- User Info - Zine ID Card Style -->
-        <div class="relative bg-off-white zine-border p-6 zine-shadow rotate-1">
+        <div class="relative bg-off-white zine-border p-6 zine-shadow rotate-1" appFadeUp [delay]="0.08">
             <!-- Tape -->
             <div class="absolute -top-3 left-1/2 -translate-x-1/2 w-16 h-6 bg-white/70 shadow-sm rotate-[-4deg] z-10">
             </div>
@@ -26,12 +26,13 @@
                     </div>
                     @if (authService.currentUser()?.photoURL && !profilePhotoFailed()) {
                     <img [src]="authService.currentUser()!.photoURL"
-                        class="size-28 rounded-full border-4 border-espresso object-cover bg-white"
-                        alt=""
+                        class="size-28 rounded-full border-4 border-espresso object-cover bg-white" alt=""
                         (error)="profilePhotoFailed.set(true)" />
                     } @else {
-                    <div class="size-28 rounded-full border-4 border-espresso bg-sage flex items-center justify-center overflow-hidden">
-                        <span class="font-zine text-4xl font-black italic text-espresso leading-none">{{ profileInitials() }}</span>
+                    <div
+                        class="size-28 rounded-full border-4 border-espresso bg-sage flex items-center justify-center overflow-hidden">
+                        <span class="font-zine text-4xl font-black italic text-espresso leading-none">{{
+                            profileInitials() }}</span>
                     </div>
                     }
                     <div
@@ -42,7 +43,8 @@
                 <h2 class="text-3xl font-black italic uppercase font-zine mt-2 text-center leading-none">{{
                     authService.currentUser()?.displayName || 'Coffee Lover' }}</h2>
 
-                <div class="inline-block bg-espresso text-off-white px-3 py-1 font-marker text-sm mt-3 -rotate-2">
+                <div
+                    class="inline-block bg-primary text-espresso border-2 border-espresso px-4 py-1 font-zine font-black italic uppercase tracking-widest text-xs mt-3 -rotate-2 zine-shadow-sm">
                     {{ userTitle() }}
                 </div>
 
@@ -61,7 +63,8 @@
             </div>
             <div class="flex items-center gap-2">
                 @if (pendingClaimsCount() > 0) {
-                <span class="min-w-[22px] h-[22px] px-1.5 bg-primary text-espresso rounded-full font-zine font-black text-xs flex items-center justify-center border-2 border-off-white">
+                <span
+                    class="min-w-[22px] h-[22px] px-1.5 bg-primary text-espresso rounded-full font-zine font-black text-xs flex items-center justify-center border-2 border-off-white">
                     {{ pendingClaimsCount() }}
                 </span>
                 }
@@ -94,8 +97,9 @@
                 Trophy Case
             </h3>
             <div class="grid grid-cols-3 gap-4">
-                @for (badge of allBadges; track badge.name) {
+                @for (badge of allBadges; track badge.name; let i = $index) {
                 <div class="bg-off-white zine-border p-3 flex flex-col items-center text-center transition-all duration-200 aspect-square justify-center relative group"
+                    [appFadeUp]="i" [delay]="0.1"
                     [class]="hasBadge(badge.name) ? 'zine-shadow rotate-1' : 'opacity-60 grayscale -rotate-1 border-dashed'">
 
                     @if(hasBadge(badge.name)) {
@@ -109,7 +113,8 @@
                     </div>
                     <p class="font-marker text-[10px] uppercase leading-tight text-espresso z-10">{{ badge.name }}</p>
                     @if (!hasBadge(badge.name)) {
-                    <p class="font-marker text-[8px] text-espresso/40 mt-1 leading-tight z-10">{{ badge.requirement }}</p>
+                    <p class="font-marker text-[8px] text-espresso/40 mt-1 leading-tight z-10">{{ badge.requirement }}
+                    </p>
                     }
                 </div>
                 }
@@ -136,12 +141,13 @@
             <div class="bg-off-white zine-border p-6 text-center rotate-[1deg] zine-shadow">
                 <span class="material-symbols-outlined text-4xl text-espresso/40 mb-2">storefront</span>
                 <p class="font-marker text-lg">No claim requests yet.</p>
-                <p class="font-zine text-sm font-bold uppercase text-espresso/60 mt-1">Claim a cafe from its detail page.</p>
+                <p class="font-zine text-sm font-bold uppercase text-espresso/60 mt-1">Claim a cafe from its detail
+                    page.</p>
             </div>
             } @else {
             <div class="space-y-3">
-                @for (claim of myCafeClaims(); track claim.id) {
-                <div class="block bg-off-white zine-border p-4 zine-shadow-sm">
+                @for (claim of myCafeClaims(); track claim.id; let i = $index) {
+                <div class="block bg-off-white zine-border p-4 zine-shadow-sm" [appFadeUp]="i" [delay]="0.2">
                     <div class="flex items-start justify-between gap-3">
                         <div class="min-w-0">
                             <a [routerLink]="['/cafe', claim.cafeId]"
@@ -155,7 +161,8 @@
                                 {{ claim.role }} · {{ claim.contact }}
                             </p>
                         </div>
-                        <span class="shrink-0 inline-flex items-center gap-1 px-2 py-1 border font-zine text-[10px] font-bold uppercase text-espresso"
+                        <span
+                            class="shrink-0 inline-flex items-center gap-1 px-2 py-1 border font-zine text-[10px] font-bold uppercase text-espresso"
                             [class]="claimStatusClass(claim.status)">
                             <span class="material-symbols-outlined text-xs">{{ claimStatusIcon(claim.status) }}</span>
                             {{ claim.status }}
@@ -175,14 +182,18 @@
                     }
                     @if (claim.status === 'rejected' && claim.rejectionReason) {
                     <div class="mt-3 bg-red-50 border-2 border-red-200 p-3">
-                        <p class="font-zine text-[10px] font-bold uppercase tracking-widest text-espresso/50 mb-1">Reason</p>
-                        <p class="font-zine text-sm text-espresso/80 whitespace-pre-wrap break-words">{{ claim.rejectionReason }}</p>
+                        <p class="font-zine text-[10px] font-bold uppercase tracking-widest text-espresso/50 mb-1">
+                            Reason</p>
+                        <p class="font-zine text-sm text-espresso/80 whitespace-pre-wrap break-words">{{
+                            claim.rejectionReason }}</p>
                     </div>
                     }
                     @if (claim.appealMessage && claim.status !== 'rejected') {
                     <div class="mt-3 bg-primary/10 border-2 border-primary p-3">
-                        <p class="font-zine text-[10px] font-bold uppercase tracking-widest text-espresso/50 mb-1">Your appeal</p>
-                        <p class="font-zine text-sm text-espresso/80 whitespace-pre-wrap break-words">{{ claim.appealMessage }}</p>
+                        <p class="font-zine text-[10px] font-bold uppercase tracking-widest text-espresso/50 mb-1">Your
+                            appeal</p>
+                        <p class="font-zine text-sm text-espresso/80 whitespace-pre-wrap break-words">{{
+                            claim.appealMessage }}</p>
                     </div>
                     }
                     @if (claim.status === 'rejected') {
@@ -196,7 +207,8 @@
                                 class="bg-off-white border-2 border-espresso py-2 font-zine text-xs font-black italic uppercase zine-click-active disabled:opacity-60">
                                 Cancel
                             </button>
-                            <button (click)="submitAppeal(claim)" [disabled]="appealSubmitting() || !appealMessage().trim()"
+                            <button (click)="submitAppeal(claim)"
+                                [disabled]="appealSubmitting() || !appealMessage().trim()"
                                 class="bg-sage border-2 border-espresso py-2 font-zine text-xs font-black italic uppercase zine-click-active disabled:opacity-60">
                                 {{ appealSubmitting() ? 'Sending...' : 'Appeal' }}
                             </button>
@@ -255,8 +267,9 @@
                 <!-- Vertical timeline line -->
                 <div class="absolute left-[22px] top-4 bottom-4 w-1 bg-espresso z-0"></div>
 
-                @for (checkin of visibleRecentCheckins(); track checkin.id) {
+                @for (checkin of visibleRecentCheckins(); track checkin.id; let i = $index) {
                 <div class="relative z-10 flex items-center gap-4 bg-off-white zine-border p-3 zine-shadow hover:translate-x-1 hover:-translate-y-1 transition-transform ml-1"
+                    [appFadeUp]="i" [delay]="0.3"
                     [class]="($even) ? 'rotate-1' : '-rotate-1'">
                     <div
                         class="w-10 h-10 bg-primary border-2 border-espresso flex items-center justify-center shrink-0 -ml-1">
@@ -294,18 +307,22 @@
             </div>
             } @else {
             <div class="grid gap-4">
-                @for (list of cafeListService.myLists(); track list.id) {
+                @for (list of cafeListService.myLists(); track list.id; let i = $index) {
                 <a [routerLink]="['/list', list.id]"
-                    class="block bg-off-white zine-border p-4 zine-shadow hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all group">
+                    class="block bg-off-white zine-border p-4 zine-shadow hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all group"
+                    [appFadeUp]="i" [delay]="0.4">
                     <div class="flex items-center justify-between gap-3">
                         <div class="flex-1 min-w-0">
-                            <h4 class="font-zine text-xl font-bold italic uppercase tracking-tight text-espresso truncate">
+                            <h4
+                                class="font-zine text-xl font-bold italic uppercase tracking-tight text-espresso truncate">
                                 {{ list.title }}</h4>
                             <p class="text-[10px] sm:text-xs text-espresso/60 font-bold uppercase mt-1 tracking-wider">
                                 {{ list.cafeIds.length }} spots • {{ list.isPublic ? 'Public' : 'Private' }}</p>
                         </div>
-                        <div class="shrink-0 w-9 h-9 rounded-full bg-primary border-2 border-espresso flex items-center justify-center group-hover:bg-espresso transition-colors">
-                            <span class="material-symbols-outlined text-espresso text-base group-hover:text-primary transition-colors">arrow_forward</span>
+                        <div
+                            class="shrink-0 w-9 h-9 rounded-full bg-primary border-2 border-espresso flex items-center justify-center group-hover:bg-espresso transition-colors">
+                            <span
+                                class="material-symbols-outlined text-espresso text-base group-hover:text-primary transition-colors">arrow_forward</span>
                         </div>
                     </div>
                 </a>
@@ -313,19 +330,24 @@
 
                 @if (cafeListService.sharedLists().length > 0) {
                 <h4 class="font-marker text-sm text-espresso/60 uppercase mt-4 mb-2">Shared With Me</h4>
-                @for (list of cafeListService.sharedLists(); track list.id) {
+                @for (list of cafeListService.sharedLists(); track list.id; let i = $index) {
                 <a [routerLink]="['/list', list.id]"
-                    class="block bg-sage/20 zine-border p-4 zine-shadow hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all group">
+                    class="block bg-sage/20 zine-border p-4 zine-shadow hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all group"
+                    [appFadeUp]="i" [delay]="0.5">
                     <div class="flex items-center justify-between gap-3">
                         <div class="flex-1 min-w-0">
-                            <h4 class="font-zine text-xl font-bold italic uppercase tracking-tight text-espresso flex items-center gap-2 truncate">
+                            <h4
+                                class="font-zine text-xl font-bold italic uppercase tracking-tight text-espresso flex items-center gap-2 truncate">
                                 <span class="material-symbols-outlined text-sm shrink-0">group</span>
                                 <span class="truncate">{{ list.title }}</span>
                             </h4>
-                            <p class="text-xs text-espresso/60 font-bold uppercase mt-1 tracking-wider">{{ list.cafeIds.length }} spots</p>
+                            <p class="text-xs text-espresso/60 font-bold uppercase mt-1 tracking-wider">{{
+                                list.cafeIds.length }} spots</p>
                         </div>
-                        <div class="shrink-0 w-9 h-9 rounded-full bg-sage border-2 border-espresso flex items-center justify-center group-hover:bg-espresso transition-colors">
-                            <span class="material-symbols-outlined text-espresso text-base group-hover:text-primary transition-colors">arrow_forward</span>
+                        <div
+                            class="shrink-0 w-9 h-9 rounded-full bg-sage border-2 border-espresso flex items-center justify-center group-hover:bg-espresso transition-colors">
+                            <span
+                                class="material-symbols-outlined text-espresso text-base group-hover:text-primary transition-colors">arrow_forward</span>
                         </div>
                     </div>
                 </a>
@@ -333,58 +355,72 @@
                 }
             </div>
             }
-        <!-- My Submissions -->
-        @if (mySubmissions().length > 0) {
-        <div class="mt-6 border-t-4 border-espresso pt-6">
-            <div class="flex items-baseline gap-2 mb-4">
-                <h3 class="font-zine font-black italic uppercase text-lg text-espresso">My Submissions</h3>
-                <span class="font-marker text-[10px] text-espresso/40 uppercase">{{ mySubmissions().length }} spot{{ mySubmissions().length > 1 ? 's' : '' }}</span>
-            </div>
-            <div class="space-y-3">
-                @for (cafe of mySubmissions(); track cafe.id) {
-                @if (cafe.claimStatus === 'claimed') {
-                <div class="bg-off-white zine-border p-4 zine-shadow-sm flex items-center gap-3 opacity-80 cursor-not-allowed">
-                    <div class="w-14 h-14 shrink-0 zine-border overflow-hidden bg-latte">
-                        <img [src]="cafe.photos[0] || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=100&fit=crop'"
-                            [alt]="cafe.name" class="w-full h-full object-cover" />
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <p class="font-zine font-black italic uppercase text-espresso text-sm leading-tight truncate">{{ cafe.name }}</p>
-                        <p class="font-marker text-[10px] text-espresso/50 mt-0.5 truncate">{{ cafe.address }}</p>
-                    </div>
-                    <span class="shrink-0 px-2 py-1 bg-espresso/10 border border-espresso/30 font-zine text-[10px] font-bold uppercase text-espresso/60">Claimed</span>
+            <!-- My Submissions -->
+            @if (mySubmissions().length > 0) {
+            <div class="mt-6 border-t-4 border-espresso pt-6">
+                <div class="flex items-baseline gap-2 mb-4">
+                    <h3 class="font-zine font-black italic uppercase text-lg text-espresso">My Submissions</h3>
+                    <span class="font-marker text-[10px] text-espresso/40 uppercase">{{ mySubmissions().length }} spot{{
+                        mySubmissions().length > 1 ? 's' : '' }}</span>
                 </div>
-                } @else {
-                <a [routerLink]="['/cafe', cafe.id]" class="bg-off-white zine-border p-4 zine-shadow-sm flex items-center gap-3 hover:bg-latte transition-colors">
-                    <div class="w-14 h-14 shrink-0 zine-border overflow-hidden bg-latte">
-                        <img [src]="cafe.photos[0] || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=100&fit=crop'"
-                            [alt]="cafe.name" class="w-full h-full object-cover" />
+                <div class="space-y-3">
+                    @for (cafe of mySubmissions(); track cafe.id; let i = $index) {
+                    @if (cafe.claimStatus === 'claimed') {
+                    <div
+                        class="bg-off-white zine-border p-4 zine-shadow-sm flex items-center gap-3 opacity-80 cursor-not-allowed"
+                        [appFadeUp]="i" [delay]="0.6">
+                        <div class="w-14 h-14 shrink-0 zine-border overflow-hidden bg-latte">
+                            <img [src]="cafe.photos[0] || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=100&fit=crop'"
+                                [alt]="cafe.name" class="w-full h-full object-cover" />
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p
+                                class="font-zine font-black italic uppercase text-espresso text-sm leading-tight truncate">
+                                {{ cafe.name }}</p>
+                            <p class="font-marker text-[10px] text-espresso/50 mt-0.5 truncate">{{ cafe.address }}</p>
+                        </div>
+                        <span
+                            class="shrink-0 px-2 py-1 bg-espresso/10 border border-espresso/30 font-zine text-[10px] font-bold uppercase text-espresso/60">Claimed</span>
                     </div>
-                    <div class="flex-1 min-w-0">
-                        <p class="font-zine font-black italic uppercase text-espresso text-sm leading-tight truncate">{{ cafe.name }}</p>
-                        <p class="font-marker text-[10px] text-espresso/50 mt-0.5 truncate">{{ cafe.address }}</p>
-                    </div>
-                    <div class="flex items-center gap-2 shrink-0">
-                        @if (cafe.pendingApproval) {
-                        <span class="px-2 py-1 bg-primary/20 border border-primary font-zine text-[10px] font-bold uppercase text-espresso">Pending</span>
-                        } @else if (cafe.claimStatus === 'pending') {
-                        <span class="px-2 py-1 bg-espresso/10 border border-espresso/30 font-zine text-[10px] font-bold uppercase text-espresso/60">Claim Review</span>
-                        } @else {
-                        <span class="px-2 py-1 bg-sage/40 border border-sage font-zine text-[10px] font-bold uppercase text-espresso">Live</span>
-                        }
-                        @if (!cafe.claimStatus || cafe.claimStatus === 'unclaimed') {
-                        <a [routerLink]="['/cafe', cafe.id, 'edit']" (click)="$event.stopPropagation()"
-                            class="w-7 h-7 bg-espresso text-off-white border-2 border-espresso flex items-center justify-center zine-shadow-sm zine-click-active">
-                            <span class="material-symbols-outlined text-sm">edit</span>
-                        </a>
-                        }
-                    </div>
-                </a>
-                }
-                }
+                    } @else {
+                    <a [routerLink]="['/cafe', cafe.id]"
+                        class="bg-off-white zine-border p-4 zine-shadow-sm flex items-center gap-3 hover:bg-latte transition-colors"
+                        [appFadeUp]="i" [delay]="0.6">
+                        <div class="w-14 h-14 shrink-0 zine-border overflow-hidden bg-latte">
+                            <img [src]="cafe.photos[0] || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=100&fit=crop'"
+                                [alt]="cafe.name" class="w-full h-full object-cover" />
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p
+                                class="font-zine font-black italic uppercase text-espresso text-sm leading-tight truncate">
+                                {{ cafe.name }}</p>
+                            <p class="font-marker text-[10px] text-espresso/50 mt-0.5 truncate">{{ cafe.address }}</p>
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0">
+                            @if (cafe.pendingApproval) {
+                            <span
+                                class="px-2 py-1 bg-primary/20 border border-primary font-zine text-[10px] font-bold uppercase text-espresso">Pending</span>
+                            } @else if (cafe.claimStatus === 'pending') {
+                            <span
+                                class="px-2 py-1 bg-espresso/10 border border-espresso/30 font-zine text-[10px] font-bold uppercase text-espresso/60">Claim
+                                Review</span>
+                            } @else {
+                            <span
+                                class="px-2 py-1 bg-sage/40 border border-sage font-zine text-[10px] font-bold uppercase text-espresso">Live</span>
+                            }
+                            @if (!cafe.claimStatus || cafe.claimStatus === 'unclaimed') {
+                            <a [routerLink]="['/cafe', cafe.id, 'edit']" (click)="$event.stopPropagation()"
+                                class="w-7 h-7 bg-espresso text-off-white border-2 border-espresso flex items-center justify-center zine-shadow-sm zine-click-active">
+                                <span class="material-symbols-outlined text-sm">edit</span>
+                            </a>
+                            }
+                        </div>
+                    </a>
+                    }
+                    }
+                </div>
             </div>
-        </div>
-        }
+            }
         </div>
     </main>
 </div>

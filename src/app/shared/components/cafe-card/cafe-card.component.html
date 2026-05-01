@@ -66,5 +66,5 @@
 </div>
 
 @if (showSaveModal()) {
-<app-save-to-list-modal [cafeId]="cafe().id!" (close)="showSaveModal.set(false)" />
+<app-save-to-list-modal [cafeId]="cafe().id!" (closed)="showSaveModal.set(false)" />
 }

@@ -20,8 +20,17 @@ export class CafeListService {
             .select('*')
             .eq('ownerId', user.uid)
             .order('updatedAt', { ascending: false })
-            .then(({ data }) => {
-                this.myLists.set((data || []) as CafeList[]);
+            .then(async ({ data }) => {
+                const lists = (data || []) as CafeList[];
+                const validLists = [];
+                for (const list of lists) {
+                    if (!list.cafeIds || list.cafeIds.length === 0) {
+                        await this.deleteList(list.id);
+                    } else {
+                        validLists.push(list);
+                    }
+                }
+                this.myLists.set(validLists);
             });
     }
 
@@ -35,11 +44,12 @@ export class CafeListService {
             .filter('collaboratorIds', 'cs', JSON.stringify([user.uid]))
             .order('updatedAt', { ascending: false })
             .then(({ data }) => {
-                this.sharedLists.set((data || []) as CafeList[]);
+                const lists = (data || []) as CafeList[];
+                this.sharedLists.set(lists.filter(l => l.cafeIds && l.cafeIds.length > 0));
             });
     }
 
-    async createList(title: string, description: string = '', isPublic: boolean = false) {
+    async createList(title: string, description = '', isPublic = false) {
         const user = this.authService.currentUser();
         if (!user) throw new Error('Must be logged in to create a list');
 
@@ -103,10 +113,19 @@ export class CafeListService {
 
         if (data) {
             const cafeIds = ((data.cafeIds as string[]) || []).filter(id => id !== cafeId);
-            await this.supabase.client
-                .from('cafe_lists')
-                .update({ cafeIds, updatedAt: new Date().toISOString() })
-                .eq('id', listId);
+            
+            if (cafeIds.length === 0) {
+                // Auto delete the list if it's empty
+                await this.deleteList(listId);
+                // Also update local state
+                this.myLists.update(lists => lists.filter(l => l.id !== listId));
+                this.sharedLists.update(lists => lists.filter(l => l.id !== listId));
+            } else {
+                await this.supabase.client
+                    .from('cafe_lists')
+                    .update({ cafeIds, updatedAt: new Date().toISOString() })
+                    .eq('id', listId);
+            }
         }
     }
 

@@ -1,4 +1,5 @@
 import { Injectable, inject, signal } from '@angular/core';
+import { RealtimeChannel } from '@supabase/supabase-js';
 import { Broadcast } from '../models/broadcast.model';
 import { AuthService } from './auth.service';
 import { SupabaseService } from './supabase.service';
@@ -9,7 +10,7 @@ export class BroadcastService {
     private authService = inject(AuthService);
 
     activeBroadcasts = signal<Broadcast[]>([]);
-    private realtimeChannel: any = null;
+    private realtimeChannel: RealtimeChannel | null = null;
 
     constructor() {
         this.listenToActiveBroadcasts();
@@ -46,7 +47,7 @@ export class BroadcastService {
             .subscribe();
     }
 
-    async createBroadcast(cafeId: string, cafeName: string, message: string, hoursValid: number = 3) {
+    async createBroadcast(cafeId: string, cafeName: string, message: string, hoursValid = 3) {
         const user = this.authService.currentUser();
         if (!user) throw new Error('Must be logged in to broadcast');
 

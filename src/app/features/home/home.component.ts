@@ -8,11 +8,13 @@ import { ToastService } from '../../shared/components/toast/toast.service';
 import { CafeTag, Cafe } from '../../core/models/cafe.model';
 import { SaveToListModalComponent } from '../../shared/components/save-to-list-modal/save-to-list-modal.component';
 
+import { FadeUpDirective } from '../../shared/directives/fade-up.directive';
+
 @Component({
   selector: 'app-home',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, SaveToListModalComponent],
+  imports: [RouterLink, SaveToListModalComponent, FadeUpDirective],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })
@@ -34,9 +36,6 @@ export class HomeComponent implements OnInit, OnDestroy {
   // Bookmark modal
   bookmarkCafeId = signal<string | null>(null);
 
-  // For You info sheet
-  showSuggestedInfo = signal(false);
-
   // New This Week deck
   activeNewCafeIndex = signal(0);
 
@@ -57,37 +56,6 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   private unsubscribeDensity?: () => void;
 
-  /** Smart "For You" suggestions based on time of day */
-  suggestedCafes = computed(() => {
-    const allCafes = this.cafeService.nearbyCafes().filter(c => !c.pendingApproval);
-    const hour = new Date().getHours();
-    const isWeekend = [0, 6].includes(new Date().getDay());
-
-    let preferredTags: CafeTag[];
-    if (hour >= 5 && hour < 12) {
-      preferredTags = ['wifi', 'study']; // morning = work mode
-    } else if (hour >= 12 && hour < 17) {
-      preferredTags = ['chill', 'halal']; // afternoon = lunch/chill
-    } else {
-      preferredTags = ['aesthetic', 'chill']; // evening = hangout
-    }
-
-    if (isWeekend) {
-      preferredTags = ['aesthetic', 'chill']; // weekend = explore
-    }
-
-    // Score cafes by tag match + rating
-    const scored = allCafes.map(cafe => {
-      const tagScore = cafe.tags.filter(t => preferredTags.includes(t)).length;
-      const ratingScore = (cafe.rating ?? 0) / 5;
-      return { cafe, score: tagScore * 2 + ratingScore };
-    });
-
-    return scored
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 5)
-      .map(s => s.cafe);
-  });
 
   /** Cafes with people checked in right now */
   liveCafes = computed(() => {

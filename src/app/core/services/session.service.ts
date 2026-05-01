@@ -1,4 +1,5 @@
 import { Injectable, inject, signal } from '@angular/core';
+import { RealtimeChannel } from '@supabase/supabase-js';
 import { Session } from '../models/session.model';
 import { AuthService } from './auth.service';
 import { SupabaseService } from './supabase.service';
@@ -9,7 +10,7 @@ export class SessionService {
     private authService = inject(AuthService);
 
     activeSession = signal<Session | null>(null);
-    private realtimeChannel: any = null;
+    private realtimeChannel: RealtimeChannel | null = null;
 
     private generateCode(): string {
         const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -132,7 +133,7 @@ export class SessionService {
                 schema: 'public',
                 table: 'sessions',
                 filter: `id=eq.${id}`
-            }, (payload: any) => {
+            }, (payload) => {
                 if (payload.new) {
                     this.activeSession.set(payload.new as Session);
                 }

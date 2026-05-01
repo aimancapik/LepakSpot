@@ -26,11 +26,13 @@ const ALL_BADGES: Badge[] = [
   { name: 'Streak Master', icon: 'bolt', description: '7-day check-in streak', requirement: '7-day streak' },
 ];
 
+import { FadeUpDirective } from '../../shared/directives/fade-up.directive';
+
 @Component({
   selector: 'app-profile',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DatePipe, RouterModule, FormsModule],
+  imports: [DatePipe, RouterModule, FormsModule, FadeUpDirective],
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.scss',
 })
@@ -59,10 +61,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   userTitle = computed(() => {
     const points = this.authService.currentUser()?.points || 0;
-    if (points >= 1000) return 'Caffeine King';
-    if (points >= 500) return 'Kopi Kaki';
-    if (points >= 100) return 'Brew Buddy';
-    return 'Coffee Curious';
+    if (points >= 1000) return 'Master Brewer';
+    if (points >= 500) return 'Daily Grinder';
+    if (points >= 100) return 'Cafe Hopper';
+    return 'First Sip';
   });
 
   visibleRecentCheckins = computed(() => this.recentCheckins().slice(0, 5));
@@ -108,8 +110,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
       ));
       this.cancelAppeal();
       this.toastService.show('Appeal sent for review.', 'success');
-    } catch (error: any) {
-      this.toastService.show(error?.message || 'Could not submit appeal.', 'error');
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Could not submit appeal.';
+      this.toastService.show(errorMessage, 'error');
     } finally {
       this.appealSubmitting.set(false);
     }
@@ -133,7 +136,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
       this.cafeService.getMySubmissions().then(s => this.mySubmissions.set(s));
       this.loadCafeClaims();
       if (user.isAdmin) {
-        this.cafeService.getCafeClaims('pending').then(c => this.pendingClaimsCount.set(c.length)).catch(() => {});
+        this.cafeService.getCafeClaims('pending').then(c => this.pendingClaimsCount.set(c.length));
       }
       document.addEventListener('visibilitychange', this.visibilityHandler);
       try {

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal, OnInit, WritableSignal } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CafeService } from '../../../core/services/cafe.service';
@@ -18,11 +18,13 @@ import {
     createUserMediaPath,
 } from '../../../core/utils/image-upload';
 
+import { FadeUpDirective } from '../../../shared/directives/fade-up.directive';
+
 @Component({
     selector: 'app-add-cafe',
     standalone: true,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [FormsModule],
+    imports: [FormsModule, FadeUpDirective],
     templateUrl: './add-cafe.component.html',
 })
 export class AddCafeComponent implements OnInit {
@@ -140,11 +142,17 @@ export class AddCafeComponent implements OnInit {
         }
     }
 
+    onInput(event: Event, targetSignal: WritableSignal<string>) {
+        const input = event.target as HTMLInputElement;
+        targetSignal.set(input.value);
+    }
+
     toggleTag(tag: CafeTag) {
         this.selectedTags.update(tags =>
             tags.includes(tag) ? tags.filter(t => t !== tag) : [...tags, tag]
         );
     }
+
     isTagSelected(tag: CafeTag): boolean {
         return this.selectedTags().includes(tag);
     }
@@ -242,7 +250,9 @@ export class AddCafeComponent implements OnInit {
         this.sceneSnapTags.update(t => t.filter((_, i) => i !== index));
     }
 
-    updateSceneSnapTag(index: number, tag: string) {
+    updateSceneSnapTag(index: number, event: Event) {
+        const input = event.target as HTMLInputElement;
+        const tag = input.value;
         this.sceneSnapTags.update(tags => {
             const newTags = [...tags];
             newTags[index] = tag;
@@ -297,7 +307,7 @@ export class AddCafeComponent implements OnInit {
         return null;
     }
 
-    onMapsUrlInput(value: string) { this.googleMapsUrl.set(value); }
+
 
     useCurrentLocation() {
         if (!navigator.geolocation) {

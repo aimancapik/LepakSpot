@@ -11,7 +11,7 @@
              [style.transform]="'translateX(-' + currentPhotoIndex() * 100 + '%)'">
             @for (photo of cafeData.photos; track $index) {
             <div class="flex-none w-full h-full cursor-zoom-in"
-                 (click)="lightboxIndex.set($index)">
+                 (click)="lightboxIndex.set($index)" (keyup.enter)="lightboxIndex.set($index)" tabindex="0" role="button" [attr.aria-label]="'View photo ' + ($index + 1)">
                 <img [src]="photo" class="w-full h-full object-cover" [alt]="cafeData.name" />
             </div>
             }
@@ -58,7 +58,7 @@
     <div class="relative -mt-8 bg-latte rounded-t-[2rem] border-t-4 border-x-4 border-espresso z-10 px-6 pt-8 pb-40 space-y-8 animate-slide-up-card">
 
         <!-- Name + Rating + Address + Tags + Socials — compact header block -->
-        <div class="space-y-2 animate-fade-up" style="animation-delay:0.1s">
+        <div class="space-y-2" appFadeUp [delay]="0.1">
             <!-- Row 1: Name + Rating badge -->
             <div class="flex items-start gap-2">
                 <h1 class="text-4xl font-black italic tracking-tighter uppercase font-zine text-espresso leading-none drop-shadow-sm flex-1">
@@ -108,7 +108,7 @@
 
         <!-- Operating Hours -->
         @if (cafeData.operatingHours || cafeData.openingHours) {
-        <div class="animate-fade-up" style="animation-delay:0.2s">
+        <div appFadeUp [delay]="0.2">
 
             @if (cafeData.operatingHours) {
             <!-- Structured hours — dropdown -->
@@ -165,7 +165,7 @@
 
         <!-- Active Deals -->
         @if (activeDeals().length > 0) {
-        <div class="space-y-3 animate-fade-up" style="animation-delay:0.3s">
+        <div class="space-y-3" appFadeUp [delay]="0.3">
             <h3 class="inline-block bg-primary text-espresso px-4 py-1 font-zine font-bold italic uppercase tracking-widest -rotate-1 border-2 border-espresso zine-shadow-sm">
                 DEALS ON NOW
             </h3>
@@ -206,35 +206,35 @@
 
             @if (claimFormOpen()) {
             <form class="space-y-3 pt-3 border-t-2 border-espresso/10" (ngSubmit)="claimCafe()">
-                <label class="block">
+                <label for="claim-name" class="block">
                     <span class="block font-zine text-[10px] font-bold uppercase tracking-widest text-espresso/50 mb-1">Your name</span>
-                    <input type="text" [ngModel]="claimantName()" (ngModelChange)="claimantName.set($event)" name="claimantName"
+                    <input id="claim-name" type="text" [ngModel]="claimantName()" (ngModelChange)="claimantName.set($event)" name="claimantName"
                         class="w-full bg-[#FAFAF7] border-2 border-espresso px-3 py-2 font-zine text-sm outline-none focus:bg-white focus:border-primary"
                         placeholder="e.g. Aiman" required />
                 </label>
 
-                <label class="block">
+                <label for="claim-role" class="block">
                     <span class="block font-zine text-[10px] font-bold uppercase tracking-widest text-espresso/50 mb-1">Role at cafe</span>
-                    <input type="text" [ngModel]="claimantRole()" (ngModelChange)="claimantRole.set($event)" name="claimantRole"
+                    <input id="claim-role" type="text" [ngModel]="claimantRole()" (ngModelChange)="claimantRole.set($event)" name="claimantRole"
                         class="w-full bg-[#FAFAF7] border-2 border-espresso px-3 py-2 font-zine text-sm outline-none focus:bg-white focus:border-primary"
                         placeholder="Owner, manager, staff" required />
                 </label>
 
-                <label class="block">
+                <label for="claim-contact" class="block">
                     <span class="block font-zine text-[10px] font-bold uppercase tracking-widest text-espresso/50 mb-1">Contact</span>
-                    <input type="text" [ngModel]="claimantContact()" (ngModelChange)="claimantContact.set($event)" name="claimantContact"
+                    <input id="claim-contact" type="text" [ngModel]="claimantContact()" (ngModelChange)="claimantContact.set($event)" name="claimantContact"
                         class="w-full bg-[#FAFAF7] border-2 border-espresso px-3 py-2 font-zine text-sm outline-none focus:bg-white focus:border-primary"
                         placeholder="Business email or phone number" required />
                 </label>
 
-                <label class="block">
+                <label for="claim-ssm" class="block">
                     <span class="block font-zine text-[10px] font-bold uppercase tracking-widest text-espresso/50 mb-1">SSM / business reg no.</span>
-                    <input type="text" [ngModel]="claimantSsmNumber()" (ngModelChange)="claimantSsmNumber.set($event)" name="claimantSsmNumber"
+                    <input id="claim-ssm" type="text" [ngModel]="claimantSsmNumber()" (ngModelChange)="claimantSsmNumber.set($event)" name="claimantSsmNumber"
                         class="w-full bg-[#FAFAF7] border-2 border-espresso px-3 py-2 font-zine text-sm outline-none focus:bg-white focus:border-primary"
                         placeholder="e.g. 202401012345" required />
                 </label>
 
-                <label class="block">
+                <label for="claim-file" class="block">
                     <span class="block font-zine text-[10px] font-bold uppercase tracking-widest text-espresso/50 mb-1">Business document</span>
                     <div class="bg-[#FAFAF7] border-2 border-dashed border-espresso px-3 py-3 flex items-center justify-between gap-3">
                         <div class="min-w-0">
@@ -245,20 +245,20 @@
                         </div>
                         <span class="material-symbols-outlined text-espresso/50 shrink-0">upload_file</span>
                     </div>
-                    <input type="file" accept=".pdf,image/jpeg,image/png,image/webp" class="sr-only"
+                    <input id="claim-file" type="file" accept=".pdf,image/jpeg,image/png,image/webp" class="sr-only"
                         (change)="onClaimDocumentSelected($event)" required />
                 </label>
 
-                <label class="block">
+                <label for="claim-proof" class="block">
                     <span class="block font-zine text-[10px] font-bold uppercase tracking-widest text-espresso/50 mb-1">Public proof link</span>
-                    <input type="url" [ngModel]="claimProofUrl()" (ngModelChange)="claimProofUrl.set($event)" name="claimProofUrl"
+                    <input id="claim-proof" type="url" [ngModel]="claimProofUrl()" (ngModelChange)="claimProofUrl.set($event)" name="claimProofUrl"
                         class="w-full bg-[#FAFAF7] border-2 border-espresso px-3 py-2 font-zine text-sm outline-none focus:bg-white focus:border-primary"
                         placeholder="Google Business, Instagram, or official website" />
                 </label>
 
-                <label class="block">
+                <label for="claim-note" class="block">
                     <span class="block font-zine text-[10px] font-bold uppercase tracking-widest text-espresso/50 mb-1">Note</span>
-                    <textarea [ngModel]="claimMessage()" (ngModelChange)="claimMessage.set($event)" name="claimMessage" rows="3"
+                    <textarea id="claim-note" [ngModel]="claimMessage()" (ngModelChange)="claimMessage.set($event)" name="claimMessage" rows="3"
                         class="w-full bg-[#FAFAF7] border-2 border-espresso px-3 py-2 font-zine text-sm outline-none focus:bg-white focus:border-primary resize-none"
                         placeholder="Anything admins should know?"></textarea>
                 </label>
@@ -294,7 +294,7 @@
         }
 
         <!-- Reviews -->
-        <div class="space-y-6 animate-fade-up" style="animation-delay:0.35s">
+        <div class="space-y-6" appFadeUp [delay]="0.35">
             <div class="flex items-center justify-between">
                 <h3 class="inline-block bg-sage text-espresso px-4 py-1 font-zine font-bold italic uppercase tracking-widest rotate-2 border-2 border-espresso">
                     LATEST REVIEWS
@@ -312,13 +312,14 @@
             <div class="columns-2 gap-3">
                 @for (review of reviews(); track review.id; let i = $index) {
                 <div class="break-inside-avoid mb-3 bg-off-white border-2 border-espresso overflow-hidden"
+                     [appFadeUp]="i" [delay]="0.4"
                      [class]="i % 2 === 0 ? 'rotate-[0.4deg]' : '-rotate-[0.4deg]'">
 
                     <!-- Review image -->
                     @if (review.imageUrl) {
-                    <div class="relative h-36">
+                    <div class="relative h-36 cursor-zoom-in" (click)="openReviewLightbox(reviews(), i)" (keyup.enter)="openReviewLightbox(reviews(), i)" tabindex="0" role="button" [attr.aria-label]="'View review photo ' + (i + 1)">
                         <img [src]="review.imageUrl" [alt]="review.displayName + ' photo'"
-                            class="w-full h-full object-cover" />
+                            class="w-full h-full object-cover transition-opacity hover:opacity-90" />
                         <!-- Rating overlay bottom-right -->
                         <div class="absolute bottom-2 right-2 bg-espresso/80 backdrop-blur-sm px-2 py-0.5 flex items-center gap-1">
                             <span class="material-symbols-outlined text-[11px] text-primary" style="font-variation-settings:'FILL' 1">star</span>
@@ -427,6 +428,73 @@
             </div>
             }
             <p class="font-marker text-primary text-sm uppercase tracking-widest">{{ cafe()?.name }}</p>
+        </div>
+    </div>
+    }
+
+    <!-- Review Image Lightbox -->
+    @if (lightboxReviews(); as lb) {
+    <div class="fixed inset-0 bg-espresso/95 backdrop-blur-md flex flex-col animate-in fade-in duration-200" style="z-index: 9999;"
+         (click)="closeReviewLightbox()" (keyup.escape)="closeReviewLightbox()" tabindex="0" role="dialog" aria-modal="true">
+        <!-- Close -->
+        <div class="flex justify-end p-5 pt-10 shrink-0" (click)="$event.stopPropagation()" (keyup)="$event.stopPropagation()" role="presentation">
+            <button (click)="closeReviewLightbox()"
+                class="size-12 bg-off-white border-2 border-espresso zine-shadow-sm flex items-center justify-center zine-click-active">
+                <span class="material-symbols-outlined font-black">close</span>
+            </button>
+        </div>
+        
+        <!-- Swipeable images -->
+        <div #reviewLightboxScroll
+             class="flex-1 flex overflow-x-auto snap-x snap-mandatory no-scrollbar"
+             (click)="$event.stopPropagation()"
+             (keyup)="$event.stopPropagation()"
+             role="presentation"
+             (scroll)="reviewLightboxScroll.offsetWidth && updateReviewLightboxIndex(Math.round(reviewLightboxScroll.scrollLeft / reviewLightboxScroll.offsetWidth))">
+            @for (r of lb.reviews; track r.id; let i = $index) {
+            <div [id]="'review-lb-detail-' + i" class="flex-none w-full h-full snap-center flex flex-col items-center justify-center gap-4 px-5 pb-6">
+                <img [src]="r.imageUrl" [alt]="r.displayName"
+                    class="max-w-full max-h-[55vh] object-contain zine-border shadow-2xl rounded-xl" />
+                <div class="w-full bg-off-white border-2 border-espresso rounded-2xl p-4 space-y-2 shrink-0 max-w-sm">
+                    <div class="flex items-center gap-2">
+                        @if (r.photoURL) {
+                        <img [src]="r.photoURL" class="size-9 rounded-full border-2 border-espresso object-cover shrink-0" [alt]="r.displayName" />
+                        } @else {
+                        <div class="size-9 rounded-full border-2 border-espresso bg-sage flex items-center justify-center shrink-0">
+                            <span class="font-marker text-sm text-espresso uppercase">{{ r.displayName[0] }}</span>
+                        </div>
+                        }
+                        <div class="flex-1 min-w-0">
+                            <p class="font-marker text-sm text-espresso uppercase truncate">{{ r.displayName }}</p>
+                            <div class="flex gap-0.5 mt-0.5">
+                                @for (s of [1,2,3,4,5]; track s) {
+                                <span class="material-symbols-outlined text-sm"
+                                    [class.text-primary]="s <= r.rating"
+                                    [class.text-espresso/20]="s > r.rating"
+                                    style="font-variation-settings:'FILL' 1">star</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    @if (r.text) {
+                    <p class="font-marker text-sm text-espresso/80 leading-relaxed border-t border-espresso/10 pt-2">"{{ r.text }}"</p>
+                    }
+                </div>
+            </div>
+            }
+        </div>
+
+        <!-- Dots -->
+        <div class="shrink-0 flex flex-col items-center gap-3 pb-8 pt-4" (click)="$event.stopPropagation()" (keyup)="$event.stopPropagation()" role="presentation">
+            @if (lb.reviews.length > 1) {
+            <div class="flex gap-2">
+                @for (r of lb.reviews; track r.id; let i = $index) {
+                <div class="w-1.5 h-1.5 rounded-full transition-all"
+                     [class]="i === lb.startIndex ? 'bg-primary w-4' : 'bg-white/30'"></div>
+                }
+            </div>
+            }
+            <p class="font-marker text-primary text-sm uppercase tracking-widest">Community Reviews</p>
         </div>
     </div>
     }

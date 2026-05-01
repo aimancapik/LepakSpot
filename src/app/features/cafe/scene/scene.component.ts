@@ -7,15 +7,16 @@ import { CafeService } from '../../../core/services/cafe.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { CheckInService } from '../../../core/services/checkin.service';
 import { ReviewService } from '../../../core/services/review.service';
-import { Cafe, CrowdLevel, NoiseLevel } from '../../../core/models/cafe.model';
+import { Cafe } from '../../../core/models/cafe.model';
 import { Review } from '../../../core/models/review.model';
 import { SaveToListModalComponent } from '../../../shared/components/save-to-list-modal/save-to-list-modal.component';
 import { ToastService } from '../../../shared/components/toast/toast.service';
+import { FadeUpDirective } from '../../../shared/directives/fade-up.directive';
 
 @Component({
     selector: 'app-scene',
     standalone: true,
-    imports: [CommonModule, FormsModule, SaveToListModalComponent],
+    imports: [CommonModule, FormsModule, SaveToListModalComponent, FadeUpDirective],
     templateUrl: './scene.component.html',
 })
 export class SceneComponent implements OnInit, OnDestroy {
@@ -231,17 +232,32 @@ export class SceneComponent implements OnInit, OnDestroy {
     closeSnapLightbox() { this.snapLightboxIndex.set(null); }
 
     // Lightbox for review images
-    lightboxReviews = signal<{ reviews: import('../../../core/models/review.model').Review[], startIndex: number } | null>(null);
-
-    openReviewLightbox(reviews: import('../../../core/models/review.model').Review[], startIndex: number) {
+    lightboxReviews = signal<{ reviews: Review[], startIndex: number } | null>(null);
+    
+    openReviewLightbox(reviews: Review[], startIndex: number) {
         const withImages = reviews.filter(r => r.imageUrl);
-        const adjustedIndex = withImages.indexOf(reviews[startIndex]);
-        this.lightboxReviews.set({ reviews: withImages, startIndex: adjustedIndex >= 0 ? adjustedIndex : 0 });
+        const targetReview = reviews[startIndex];
+        const adjustedIndex = targetReview ? withImages.findIndex(r => r.id === targetReview.id) : 0;
+        const finalIndex = adjustedIndex >= 0 ? adjustedIndex : 0;
+        this.lightboxReviews.set({ reviews: withImages, startIndex: finalIndex });
+        setTimeout(() => {
+            const el = document.getElementById(`review-lb-${finalIndex}`);
+            if (el?.parentElement) {
+                el.parentElement.scrollLeft = el.parentElement.offsetWidth * finalIndex;
+            }
+        }, 50);
     }
 
     closeReviewLightbox() { this.lightboxReviews.set(null); }
 
-    formatDate(ts: any): string {
+    updateReviewLightboxIndex(index: number) {
+        const current = this.lightboxReviews();
+        if (current) {
+            this.lightboxReviews.set({ ...current, startIndex: index });
+        }
+    }
+
+    formatDate(ts: string | number | Date): string {
         if (!ts) return '';
         const date = new Date(ts);
         return date.toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' });

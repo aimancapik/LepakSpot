@@ -20,7 +20,7 @@
 
     @if (submitted()) {
     <!-- ── SUCCESS SCREEN ── -->
-    <div class="flex flex-col items-center justify-center min-h-[80vh] px-8 text-center gap-8 py-12">
+    <div class="flex flex-col items-center justify-center min-h-[80vh] px-8 text-center gap-8 py-12" appFadeUp>
 
         <!-- Polaroid-style photo card -->
         <div class="relative">
@@ -78,7 +78,7 @@
 
     } @else if (isPreview()) {
     <!-- ── PREVIEW MODE ── -->
-    <main class="px-6 py-12 pb-32 space-y-8">
+    <main class="px-6 py-12 pb-32 space-y-8" appFadeUp>
         <div class="relative">
             <div class="absolute inset-0 bg-primary/20 rotate-1 rounded-xl translate-x-3 translate-y-3"></div>
             <div class="relative bg-off-white zine-border p-4 rotate-[-1deg] zine-shadow">
@@ -145,7 +145,7 @@
 
     } @else {
     <!-- ── FORM ── -->
-    <main class="px-6 py-8 pb-32 space-y-8">
+    <main class="px-6 py-8 pb-32 space-y-8" appFadeUp>
 
         <!-- Intro card -->
         <div class="bg-sage zine-border p-4 shadow-[4px_4px_0_var(--color-espresso)] rotate-1 relative overflow-hidden">
@@ -156,9 +156,9 @@
         </div>
         <!-- ─── PHOTOS ─────────────────────────────────────────── -->
         <div class="space-y-3">
-            <label class="font-zine font-bold text-xs uppercase tracking-widest text-espresso/70">
+            <span class="font-zine font-bold text-xs uppercase tracking-widest text-espresso/70">
                 Gallery Photos <span class="text-[10px] normal-case">(up to 4)</span>
-            </label>
+            </span>
 
             <!-- Preview grid -->
             @if (photoPreviews().length > 0) {
@@ -188,9 +188,9 @@
 
         <!-- Cafe Video -->
         <div class="space-y-3">
-            <label class="font-zine font-bold text-xs uppercase tracking-widest text-espresso/70">
+            <span class="font-zine font-bold text-xs uppercase tracking-widest text-espresso/70">
                 Vibe Video <span class="text-[10px] normal-case">(optional, max 25MB)</span>
-            </label>
+            </span>
 
             @if (videoPreview()) {
             <div class="relative aspect-video zine-border overflow-hidden bg-espresso">
@@ -213,15 +213,16 @@
 
         <!-- ─── SCENE SNAPS (TAGGED) ────────────────────────────── -->
         <div class="space-y-4">
-            <label class="font-zine font-bold text-xs uppercase tracking-widest text-espresso/70 flex justify-between">
+            <span class="font-zine font-bold text-xs uppercase tracking-widest text-espresso/70 flex justify-between">
                 <span>Scene Snaps <span class="text-[10px] normal-case">(Polaroid Style, up to 3)</span></span>
                 <span class="text-primary font-black italic">BETA</span>
-            </label>
+            </span>
 
             <!-- Scene Preview Grid -->
             <div class="grid grid-cols-1 gap-6">
                 @for (url of sceneSnapPreviews(); track url; let i = $index) {
-                <div class="relative bg-off-white p-3 zine-border shadow-[4px_4px_0_var(--color-espresso)] rotate-[-1deg] group">
+                <div class="relative bg-off-white p-3 zine-border shadow-[4px_4px_0_var(--color-espresso)] rotate-[-1deg] group"
+                    [appFadeUp]="i" [delay]="0.1">
                     <div class="aspect-square bg-espresso overflow-hidden border-2 border-espresso">
                         <img [src]="url" alt="Scene Snap" class="w-full h-full object-cover transition-all duration-500" />
                     </div>
@@ -231,7 +232,7 @@
                         <div class="absolute -top-6 -right-2 bg-primary text-espresso px-3 py-1 font-marker text-[10px] rotate-6 zine-border shadow-sm">
                             TAG IT
                         </div>
-                        <input type="text" [value]="sceneSnapTags()[i]" (input)="updateSceneSnapTag(i, $any($event.target).value)"
+                        <input type="text" [value]="sceneSnapTags()[i]" (input)="updateSceneSnapTag(i, $event)"
                             placeholder="e.g. Cozy Corner, Hidden Spot..."
                             class="w-full bg-white border-b-2 border-espresso/20 focus:border-espresso p-2 font-marker text-sm text-espresso outline-none" />
                     </div>
@@ -257,10 +258,10 @@
 
         <!-- ─── CAFE NAME ───────────────────────────────────────── -->
         <div class="space-y-2">
-            <label class="font-zine font-bold text-xs uppercase tracking-widest text-espresso/70">Cafe Name *</label>
+            <label for="cafe-name" class="font-zine font-bold text-xs uppercase tracking-widest text-espresso/70">Cafe Name *</label>
             <div class="relative">
                 <div class="absolute inset-0 bg-espresso translate-x-1 translate-y-1"></div>
-                <input [value]="name()" (input)="name.set($any($event.target).value)"
+                <input id="cafe-name" [value]="name()" (input)="onInput($event, name)"
                     placeholder="e.g. Uncle Bob's Brew"
                     class="relative w-full bg-off-white border-2 border-espresso p-3 font-marker text-espresso placeholder:text-espresso/30 focus:outline-none focus:ring-2 focus:ring-primary"
                     [class.border-primary]="nameErr" [class.border-4]="nameErr" />
@@ -272,10 +273,10 @@
 
         <!-- ─── ADDRESS ────────────────────────────────────────── -->
         <div class="space-y-2">
-            <label class="font-zine font-bold text-xs uppercase tracking-widest text-espresso/70">Address *</label>
+            <label for="cafe-address" class="font-zine font-bold text-xs uppercase tracking-widest text-espresso/70">Address *</label>
             <div class="relative">
                 <div class="absolute inset-0 bg-espresso translate-x-1 translate-y-1"></div>
-                <textarea [value]="address()" (input)="address.set($any($event.target).value)" rows="2"
+                <textarea id="cafe-address" [value]="address()" (input)="onInput($event, address)" rows="2"
                     placeholder="e.g. Jalan Mesui, Bukit Bintang, KL"
                     class="relative w-full bg-off-white border-2 border-espresso p-3 font-marker text-espresso placeholder:text-espresso/30 focus:outline-none focus:ring-2 focus:ring-primary resize-none"
                     [class.border-primary]="addressErr" [class.border-4]="addressErr"></textarea>
@@ -287,10 +288,10 @@
 
         <!-- ─── OPENING HOURS ──────────────────────────────────── -->
         <div class="space-y-2">
-            <label class="font-zine font-bold text-xs uppercase tracking-widest text-espresso/70">Opening Hours</label>
+            <label for="opening-hours" class="font-zine font-bold text-xs uppercase tracking-widest text-espresso/70">Opening Hours</label>
             <div class="relative">
                 <div class="absolute inset-0 bg-espresso translate-x-1 translate-y-1"></div>
-                <input [value]="openingHours()" (input)="openingHours.set($any($event.target).value)"
+                <input id="opening-hours" [value]="openingHours()" (input)="onInput($event, openingHours)"
                     placeholder="e.g. 8am – 10pm, Daily"
                     class="relative w-full bg-off-white border-2 border-espresso p-3 font-marker text-espresso placeholder:text-espresso/30 focus:outline-none focus:ring-2 focus:ring-primary" />
             </div>
@@ -299,7 +300,7 @@
 
         <!-- ─── WIFI SPEED ─────────────────────────────────────── -->
         <div class="space-y-2">
-            <label class="font-zine font-bold text-xs uppercase tracking-widest text-espresso/70">WiFi Speed</label>
+            <span class="font-zine font-bold text-xs uppercase tracking-widest text-espresso/70">WiFi Speed</span>
             <div class="flex gap-2 flex-wrap">
                 @for (opt of wifiOptions; track opt) {
                 <button type="button" (click)="wifiSpeed.set(opt)"
@@ -313,7 +314,7 @@
 
         <!-- ─── CROWD LEVEL ────────────────────────────────────── -->
         <div class="space-y-2">
-            <label class="font-zine font-bold text-xs uppercase tracking-widest text-espresso/70">Typical Crowd</label>
+            <span class="font-zine font-bold text-xs uppercase tracking-widest text-espresso/70">Typical Crowd</span>
             <div class="flex gap-2 flex-wrap">
                 @for (opt of crowdOptions; track opt) {
                 <button type="button" (click)="crowdLevel.set(opt)"
@@ -329,7 +330,7 @@
 
         <!-- ─── NOISE LEVEL ────────────────────────────────────── -->
         <div class="space-y-2">
-            <label class="font-zine font-bold text-xs uppercase tracking-widest text-espresso/70">Noise Level</label>
+            <span class="font-zine font-bold text-xs uppercase tracking-widest text-espresso/70">Noise Level</span>
             <div class="flex gap-2 flex-wrap">
                 @for (opt of noiseOptions; track opt) {
                 <button type="button" (click)="noiseLevel.set(opt)"
@@ -345,7 +346,7 @@
 
         <!-- ─── OUTLET AVAILABILITY ────────────────────────────── -->
         <div class="space-y-2">
-            <label class="font-zine font-bold text-xs uppercase tracking-widest text-espresso/70">Power Outlets</label>
+            <span class="font-zine font-bold text-xs uppercase tracking-widest text-espresso/70">Power Outlets</span>
             <div class="flex gap-2">
                 @for (opt of outletOptions; track opt) {
                 <button type="button" (click)="outletAvailability.set(opt)"
@@ -375,13 +376,13 @@
 
         <!-- ─── PERKS ──────────────────────────────────────────── -->
         <div class="space-y-2">
-            <label class="font-zine font-bold text-xs uppercase tracking-widest text-espresso/70">
+            <label for="special-perks" class="font-zine font-bold text-xs uppercase tracking-widest text-espresso/70">
                 Special Perks
                 <span class="text-[10px] normal-case">(comma-separated)</span>
             </label>
             <div class="relative">
                 <div class="absolute inset-0 bg-espresso translate-x-1 translate-y-1"></div>
-                <textarea [value]="perksText()" (input)="perksText.set($any($event.target).value)" rows="2"
+                <textarea id="special-perks" [value]="perksText()" (input)="onInput($event, perksText)" rows="2"
                     placeholder="e.g. Free upsize on Mondays, 10% off for students"
                     class="relative w-full bg-off-white border-2 border-espresso p-3 font-marker text-sm text-espresso placeholder:text-espresso/30 focus:outline-none focus:ring-2 focus:ring-primary resize-none"></textarea>
             </div>
@@ -390,7 +391,7 @@
         <!-- ─── GOOGLE MAPS LINK ────────────────────────────────── -->
         <div class="space-y-4">
             <div class="flex justify-between items-end">
-                <label class="font-zine font-bold text-xs uppercase tracking-widest text-espresso/70">
+                <label for="maps-link" class="font-zine font-bold text-xs uppercase tracking-widest text-espresso/70">
                     Google Maps Link
                     <span class="text-[10px] normal-case">(coordinates auto-extracted)</span>
                 </label>
@@ -401,7 +402,7 @@
             <div class="relative">
                 <div class="absolute inset-0 bg-espresso translate-x-1 translate-y-1"></div>
                 <div class="relative flex">
-                    <input [value]="googleMapsUrl()" (input)="onMapsUrlInput($any($event.target).value)"
+                    <input [value]="googleMapsUrl()" (input)="onInput($event, googleMapsUrl)"
                         placeholder="https://maps.google.com/..."
                         class="w-full bg-off-white border-2 border-espresso p-3 font-marker text-sm text-espresso placeholder:text-espresso/30 focus:outline-none focus:ring-2 focus:ring-primary" />
                     <button (click)="useCurrentLocation()"
@@ -426,10 +427,10 @@
 
         <!-- ─── SOCIAL LINKS ──────────────────────────────────── -->
         <div class="space-y-4">
-            <label class="font-zine font-bold text-xs uppercase tracking-widest text-espresso/70">
+            <span class="font-zine font-bold text-xs uppercase tracking-widest text-espresso/70 block mb-2">
                 Social Links
                 <span class="text-[10px] normal-case">(optional — shown on cafe page)</span>
-            </label>
+            </span>
 
             <div class="space-y-3">
                 <!-- TikTok -->
@@ -439,7 +440,7 @@
                     </div>
                     <div class="relative flex-1">
                         <div class="absolute inset-0 bg-espresso translate-x-1 translate-y-1"></div>
-                        <input [value]="tiktokUrl()" (input)="tiktokUrl.set($any($event.target).value)"
+                        <input [value]="tiktokUrl()" (input)="onInput($event, tiktokUrl)"
                             placeholder="https://www.tiktok.com/@yourcafe"
                             class="relative w-full bg-off-white border-2 border-espresso p-3 font-marker text-sm text-espresso placeholder:text-espresso/30 focus:outline-none focus:ring-2 focus:ring-primary" />
                     </div>
@@ -452,7 +453,7 @@
                     </div>
                     <div class="relative flex-1">
                         <div class="absolute inset-0 bg-espresso translate-x-1 translate-y-1"></div>
-                        <input [value]="facebookUrl()" (input)="facebookUrl.set($any($event.target).value)"
+                        <input [value]="facebookUrl()" (input)="onInput($event, facebookUrl)"
                             placeholder="https://www.facebook.com/yourcafe"
                             class="relative w-full bg-off-white border-2 border-espresso p-3 font-marker text-sm text-espresso placeholder:text-espresso/30 focus:outline-none focus:ring-2 focus:ring-primary" />
                     </div>
@@ -465,7 +466,7 @@
                     </div>
                     <div class="relative flex-1">
                         <div class="absolute inset-0 bg-espresso translate-x-1 translate-y-1"></div>
-                        <input [value]="otherUrl()" (input)="otherUrl.set($any($event.target).value)"
+                        <input [value]="otherUrl()" (input)="onInput($event, otherUrl)"
                             placeholder="Instagram, website, etc."
                             class="relative w-full bg-off-white border-2 border-espresso p-3 font-marker text-sm text-espresso placeholder:text-espresso/30 focus:outline-none focus:ring-2 focus:ring-primary" />
                     </div>

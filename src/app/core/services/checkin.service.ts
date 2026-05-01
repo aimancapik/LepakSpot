@@ -1,4 +1,5 @@
 import { Injectable, inject, signal } from '@angular/core';
+import { RealtimeChannel } from '@supabase/supabase-js';
 import { CheckIn } from '../models/checkin.model';
 import { AuthService } from './auth.service';
 import { SupabaseService } from './supabase.service';
@@ -37,8 +38,8 @@ export class CheckInService {
     densityMap = signal<Map<string, CafeDensity>>(new Map());
     activePeopleAtCafe = signal<ActiveCheckIn[]>([]);
 
-    private realtimeChannel: any = null;
-    private densityChannel: any = null;
+    private realtimeChannel: RealtimeChannel | null = null;
+    private densityChannel: RealtimeChannel | null = null;
 
     async checkIn(cafeId: string, cafeName: string): Promise<void> {
         const user = this.authService.currentUser();
@@ -156,8 +157,9 @@ export class CheckInService {
                 .gte('timestamp', twoHoursAgo)
                 .then(({ data }) => {
                     const countMap = new Map<string, number>();
-                    (data || []).forEach((d: any) => {
-                        countMap.set(d.cafeId, (countMap.get(d.cafeId) || 0) + 1);
+                    (data || []).forEach((d) => {
+                        const checkin = d as ActiveCheckIn;
+                        countMap.set(checkin.cafeId, (countMap.get(checkin.cafeId) || 0) + 1);
                     });
                     const densityMap = new Map<string, CafeDensity>();
                     countMap.forEach((count, cafeId) => {
@@ -226,7 +228,7 @@ export class CheckInService {
                 .from('checkins')
                 .select('cafeId')
                 .eq('userId', uid);
-            const uniqueCafeIds = [...new Set((checkinData || []).map((c: any) => c.cafeId))];
+            const uniqueCafeIds = [...new Set((checkinData || []).map((c) => (c as { cafeId: string }).cafeId))];
             if (uniqueCafeIds.length > 0) {
                 const { data: halalCafes } = await this.supabase.client
                     .from('cafes')

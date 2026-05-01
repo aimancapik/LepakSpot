@@ -13,11 +13,13 @@ import { assertValidClaimDocument, createUserDocumentPath } from '../../../core/
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
+import { FadeUpDirective } from '../../../shared/directives/fade-up.directive';
+
 @Component({
     selector: 'app-cafe-detail',
     standalone: true,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [RouterLink, CommonModule, FormsModule],
+    imports: [RouterLink, CommonModule, FormsModule, FadeUpDirective],
     templateUrl: './cafe-detail.component.html',
     styleUrl: './cafe-detail.component.scss',
 })
@@ -47,6 +49,7 @@ export class CafeDetailComponent implements OnInit, OnDestroy {
     claimMessage = signal('');
 
     lightboxIndex = signal<number | null>(null);
+    lightboxReviews = signal<{ reviews: import('../../../core/models/review.model').Review[], startIndex: number } | null>(null);
     failedAvatars = signal(new Set<string>());
     onAvatarError(url: string) { this.failedAvatars.update(s => new Set(s).add(url)); }
     hoursExpanded = signal(false);
@@ -164,8 +167,9 @@ export class CafeDetailComponent implements OnInit, OnDestroy {
             } : c);
             this.claimFormOpen.set(false);
             this.toastService.show('Claim request sent for review.', 'success');
-        } catch (e: any) {
-            this.toastService.show(e?.message || 'Claim failed.', 'error');
+        } catch (e) {
+            const error = e as { message?: string };
+            this.toastService.show(error?.message || 'Claim failed.', 'error');
         } finally {
             this.claiming.set(false);
         }
@@ -235,6 +239,31 @@ export class CafeDetailComponent implements OnInit, OnDestroy {
             }
         } catch {
             // user cancelled share
+        }
+    }
+
+    openReviewLightbox(reviews: import('../../../core/models/review.model').Review[], startIndex: number) {
+        const withImages = reviews.filter(r => r.imageUrl);
+        const targetReview = reviews[startIndex];
+        const adjustedIndex = targetReview ? withImages.findIndex(r => r.id === targetReview.id) : 0;
+        const finalIndex = adjustedIndex >= 0 ? adjustedIndex : 0;
+        this.lightboxReviews.set({ reviews: withImages, startIndex: finalIndex });
+        setTimeout(() => {
+            const el = document.getElementById(`review-lb-detail-${finalIndex}`);
+            if (el?.parentElement) {
+                el.parentElement.scrollLeft = el.parentElement.offsetWidth * finalIndex;
+            }
+        }, 50);
+    }
+
+    closeReviewLightbox() {
+        this.lightboxReviews.set(null);
+    }
+
+    updateReviewLightboxIndex(index: number) {
+        const current = this.lightboxReviews();
+        if (current) {
+            this.lightboxReviews.set({ ...current, startIndex: index });
         }
     }
 }

@@ -7,7 +7,7 @@
             </button>
             <div class="min-w-0">
                 <p class="font-zine text-[10px] uppercase tracking-widest text-espresso/50 font-bold">Admin</p>
-                <h1 class="font-zine text-3xl font-black italic uppercase leading-none">Cafe Claims</h1>
+                <h1 class="font-zine text-3xl font-black italic uppercase leading-none" appFadeUp>Cafe Claims</h1>
             </div>
         </div>
     </header>
@@ -40,8 +40,8 @@
         </div>
         } @else {
         <div class="space-y-5">
-            @for (claim of claims(); track claim.id) {
-            <article class="bg-off-white zine-border zine-shadow overflow-hidden">
+            @for (claim of claims(); track claim.id; let i = $index) {
+            <article class="bg-off-white zine-border zine-shadow overflow-hidden" [appFadeUp]="i" [delay]="0.05">
                 <button type="button" (click)="toggleClaim(claim.id)"
                     class="w-full text-left p-5 zine-click-active hover:bg-primary/5">
                     <div class="flex items-start justify-between gap-3">
@@ -184,9 +184,9 @@
                     @if (claim.status === 'pending') {
                     @if (rejectingClaimId() === claim.id) {
                     <div class="space-y-3 pt-2 border-t-2 border-espresso/10">
-                        <label class="block">
+                        <label for="reject-reason-{{claim.id}}" class="block">
                             <span class="block font-zine text-[10px] font-bold uppercase tracking-widest text-espresso/50 mb-1">Reason for rejection</span>
-                            <textarea [ngModel]="rejectionReason()" (ngModelChange)="rejectionReason.set($event)" rows="3"
+                            <textarea id="reject-reason-{{claim.id}}" [ngModel]="rejectionReason()" (ngModelChange)="rejectionReason.set($event)" rows="3"
                                 class="w-full bg-[#FAFAF7] border-2 border-espresso px-3 py-2 font-zine text-sm outline-none focus:bg-white focus:border-primary resize-none"
                                 placeholder="Tell the owner what they need to fix or provide."></textarea>
                         </label>

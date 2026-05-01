@@ -23,7 +23,7 @@
     </div>
 
     <!-- Progress Section -->
-    <div class="px-6 py-4 bg-latte border-b-2 border-espresso relative z-10 w-full">
+    <div class="px-6 py-4 bg-latte border-b-2 border-espresso relative z-10 w-full" appFadeUp>
         <div class="flex justify-between items-center mb-2">
             <p class="font-marker text-base uppercase tracking-wider text-espresso rotate-1">Voting Progress</p>
             <div
@@ -48,7 +48,7 @@
     <!-- Voting Card -->
     <main class="flex-1 p-6 flex flex-col justify-center relative z-10 w-full">
         @if (currentCafe()) {
-        <div class="relative w-full -rotate-1 z-10 mb-8">
+        <div class="relative w-full -rotate-1 z-10 mb-8" [appFadeUp]="1">
             <!-- Tape detail -->
             <div
                 class="absolute -top-4 left-1/2 -translate-x-1/2 w-20 h-8 bg-white/40 backdrop-blur-sm border border-white/60 rotate-2 z-20 shadow-sm mix-blend-overlay">
@@ -167,7 +167,7 @@
         </div>
         } @else {
         <!-- Finished Voting State -->
-        <div class="relative w-full rotate-2">
+        <div class="relative w-full rotate-2" appFadeUp>
             <!-- Tape -->
             <div
                 class="absolute -top-4 left-1/2 -translate-x-1/2 w-16 h-8 bg-white/40 backdrop-blur-sm border border-white/60 -rotate-3 z-20 shadow-sm mix-blend-overlay">

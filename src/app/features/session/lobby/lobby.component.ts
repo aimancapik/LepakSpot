@@ -5,11 +5,13 @@ import { SessionService } from '../../../core/services/session.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { SupabaseService } from '../../../core/services/supabase.service';
 
+import { FadeUpDirective } from '../../../shared/directives/fade-up.directive';
+
 @Component({
   selector: 'app-lobby',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule],
+  imports: [FormsModule, FadeUpDirective],
   templateUrl: './lobby.component.html',
   styleUrl: './lobby.component.scss',
 })

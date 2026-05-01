@@ -4,14 +4,16 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CafeListService } from '../../core/services/cafe-list.service';
 import { CafeService } from '../../core/services/cafe.service';
 import { AuthService } from '../../core/services/auth.service';
-import { CafeCardComponent } from '../../shared/components/cafe-card/cafe-card.component';
 import { Cafe } from '../../core/models/cafe.model';
 import { CafeList } from '../../core/models/cafe-list.model';
+import { ToastService } from '../../shared/components/toast/toast.service';
+
+import { FadeUpDirective } from '../../shared/directives/fade-up.directive';
 
 @Component({
     selector: 'app-list-detail',
     standalone: true,
-    imports: [CommonModule, RouterModule],
+    imports: [CommonModule, RouterModule, FadeUpDirective],
     templateUrl: './list-detail.component.html',
 })
 export class ListDetailComponent implements OnInit {
@@ -20,6 +22,7 @@ export class ListDetailComponent implements OnInit {
     private cafeListService = inject(CafeListService);
     private cafeService = inject(CafeService);
     private authService = inject(AuthService);
+    private toastService = inject(ToastService);
 
     listId = signal<string | null>(null);
     currentList = signal<CafeList | null>(null);
@@ -82,10 +85,19 @@ export class ListDetailComponent implements OnInit {
         try {
             await this.cafeListService.removeCafeFromList(listId, cafeId);
             // Update local state
-            this.cafes.update(cafes => cafes.filter(c => c.id !== cafeId));
+            const updatedCafes = this.cafes().filter(c => c.id !== cafeId);
+            this.cafes.set(updatedCafes);
             this.currentList.update(list => list ? { ...list, cafeIds: list.cafeIds.filter(id => id !== cafeId) } : list);
+            
+            if (updatedCafes.length === 0) {
+                this.toastService.show('List was empty and has been deleted', 'success');
+                this.router.navigate(['/profile']);
+            } else {
+                this.toastService.show('Spot removed from list', 'success');
+            }
         } catch (error) {
             console.error('Error removing cafe:', error);
+            this.toastService.show('Failed to remove spot', 'error');
         }
     }
 

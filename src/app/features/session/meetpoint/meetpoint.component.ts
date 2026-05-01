@@ -23,11 +23,13 @@ import { MemberLocation } from '../../../core/models/session.model';
 
 const MEMBER_COLORS = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F'];
 
+import { FadeUpDirective } from '../../../shared/directives/fade-up.directive';
+
 @Component({
     selector: 'app-meetpoint',
     standalone: true,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [KeyValuePipe, UpperCasePipe],
+    imports: [KeyValuePipe, UpperCasePipe, FadeUpDirective],
     templateUrl: './meetpoint.component.html',
 })
 export class MeetpointComponent implements OnInit, AfterViewInit, OnDestroy {
