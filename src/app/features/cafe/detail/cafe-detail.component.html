@@ -316,9 +316,9 @@
 
                     <!-- Review image -->
                     @if (review.imageUrl) {
-                    <div class="relative">
+                    <div class="relative h-36">
                         <img [src]="review.imageUrl" [alt]="review.displayName + ' photo'"
-                            class="w-full object-cover" style="max-height: 180px;" />
+                            class="w-full h-full object-cover" />
                         <!-- Rating overlay bottom-right -->
                         <div class="absolute bottom-2 right-2 bg-espresso/80 backdrop-blur-sm px-2 py-0.5 flex items-center gap-1">
                             <span class="material-symbols-outlined text-[11px] text-primary" style="font-variation-settings:'FILL' 1">star</span>
