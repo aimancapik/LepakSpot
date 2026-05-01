@@ -72,15 +72,6 @@
             Late Night
         </button>
 
-        @for (chip of chips; track chip.tag) {
-        <button (click)="cafeService.toggleTag(chip.tag)"
-            class="shrink-0 px-3 py-1.5 border-2 border-espresso rounded-full font-marker text-xs transition-all zine-click-active"
-            [class]="isTagActive(chip.tag)
-                ? 'bg-primary text-espresso shadow-none translate-x-0.5 translate-y-0.5'
-                : 'bg-off-white text-espresso/70 zine-shadow-sm'">
-            {{ chip.label }}
-        </button>
-        }
     </div>
 
     <!-- New This Week -->
