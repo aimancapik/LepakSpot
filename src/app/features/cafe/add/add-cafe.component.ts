@@ -7,7 +7,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import {
     CafeTag, WifiSpeed, CrowdLevel, NoiseLevel, OutletAvailability
 } from '../../../core/models/cafe.model';
-import { Location, UpperCasePipe } from '@angular/common';
+import { Location } from '@angular/common';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import {
     assertValidClaimDocument,
@@ -22,7 +22,7 @@ import {
     selector: 'app-add-cafe',
     standalone: true,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [FormsModule, UpperCasePipe],
+    imports: [FormsModule],
     templateUrl: './add-cafe.component.html',
 })
 export class AddCafeComponent implements OnInit {
