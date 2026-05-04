@@ -249,20 +249,54 @@ export class CafeDetailComponent implements OnInit, OnDestroy {
         const cafe = this.cafe();
         if (!cafe) return;
         const url = `${window.location.origin}/cafe/${cafe.id}`;
-        const shareData = {
-            title: cafe.name,
+        const shareText = [
+            `${cafe.name} on LepakSpot`,
+            cafe.address,
+            '',
+            'Looks like a solid lepak spot. Check the vibe, menu, reviews, and directions here:',
+        ].join('\n');
+        const shareData: ShareData = {
+            title: `${cafe.name} | LepakSpot`,
             text: `Check out ${cafe.name} on LepakSpot! Great spot for lepak-ing 🍵`,
             url,
         };
         try {
             if (navigator.share) {
-                await navigator.share(shareData);
+                const imageFile = await this.createShareImageFile(cafe);
+                const dataWithImage: ShareData = imageFile
+                    ? { ...shareData, files: [imageFile] }
+                    : shareData;
+
+                if (!imageFile || !navigator.canShare || navigator.canShare(dataWithImage)) {
+                    await navigator.share(dataWithImage);
+                } else {
+                    await navigator.share(shareData);
+                }
             } else {
-                await navigator.clipboard.writeText(url);
+                await navigator.clipboard.writeText(`${shareText}\n${url}`);
                 this.toastService.show('Link copied to clipboard!', 'success');
             }
         } catch {
             // user cancelled share
+        }
+    }
+
+    private async createShareImageFile(cafe: Cafe): Promise<File | null> {
+        const imageUrl = cafe.photos?.[0] || cafe.sceneSnaps?.[0]?.url || cafe.menu?.find(item => item.photoUrl)?.photoUrl;
+        if (!imageUrl || typeof File === 'undefined') return null;
+
+        try {
+            const response = await fetch(imageUrl);
+            if (!response.ok) return null;
+
+            const blob = await response.blob();
+            if (!blob.type.startsWith('image/')) return null;
+
+            const extension = blob.type.split('/')[1] || 'jpg';
+            const safeName = cafe.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'lepakspot';
+            return new File([blob], `${safeName}.${extension}`, { type: blob.type });
+        } catch {
+            return null;
         }
     }
 
