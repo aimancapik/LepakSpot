@@ -644,19 +644,19 @@
         </div>
 
         <div #menuLightboxScroll
-             class="flex-1 flex overflow-x-auto snap-x snap-mandatory no-scrollbar"
+             class="flex-1 flex overflow-x-auto overflow-y-auto snap-x snap-mandatory no-scrollbar"
              (click)="$event.stopPropagation()" (keyup)="$event.stopPropagation()" role="presentation"
              (scroll)="menuLightboxScroll.offsetWidth && menuLightboxIndex.set(Math.round(menuLightboxScroll.scrollLeft / menuLightboxScroll.offsetWidth))">
             @for (item of menuItemsWithPhotos(); track $index; let i = $index) {
-            <div [id]="'menu-lb-' + i" class="flex-none w-full h-full snap-center flex items-center justify-center p-6">
-                <div class="max-w-md w-full">
+            <div [id]="'menu-lb-' + i" class="flex-none w-full min-h-full h-auto snap-center flex items-center justify-center p-3 sm:p-6">
+                <div class="max-w-md w-full flex flex-col">
                     <img [src]="item.photoUrl" [alt]="item.name"
-                        class="w-full max-h-[70vh] object-contain border-4 border-off-white zine-shadow-2xl bg-espresso" />
-                    <div class="bg-off-white border-x-4 border-b-4 border-off-white p-4 text-center">
-                        <p class="font-zine font-black italic uppercase text-espresso text-base">
+                        class="w-full max-h-[50vh] sm:max-h-[60vh] object-contain border-4 border-off-white zine-shadow-2xl bg-espresso" />
+                    <div class="bg-off-white border-x-4 border-b-4 border-off-white p-3 sm:p-4 text-center h-auto shrink-0">
+                        <p class="font-zine font-black italic uppercase text-espresso text-sm sm:text-base break-words">
                             {{ item.name }}
                         </p>
-                        <p class="font-marker text-primary text-sm sm:text-lg mt-1">
+                        <p class="font-marker text-primary text-base sm:text-lg mt-1 break-words">
                             {{ formatPrice(item) }}
                         </p>
                     </div>
