@@ -21,7 +21,7 @@
         } @else if (moves().length === 0) {
         <div class="bg-off-white border-4 border-espresso zine-shadow p-10 text-center rotate-[-1deg] mt-10">
             <span class="material-symbols-outlined text-5xl text-espresso/30">history</span>
-            <p class="font-marker text-xl text-espresso/70 mt-3">No moves yet...</p>
+            <p class="font-hand text-xl text-espresso/70 mt-3">No moves yet...</p>
             <a routerLink="/home"
                 class="mt-6 inline-flex items-center justify-center bg-primary border-2 border-espresso px-6 py-2 font-zine text-xs font-black uppercase tracking-widest zine-shadow-sm zine-click-active">
                 Find Coffee
@@ -41,7 +41,7 @@
                 <div class="col-start-1">
                     <div class="relative bg-off-white border-2 border-espresso p-3 min-h-24 zine-shadow"
                         [class]="i % 4 === 0 ? 'rotate-[-1deg]' : 'rotate-[1deg]'">
-                        <p class="font-marker text-3xl text-primary leading-none">+{{ move.pointsEarned }}</p>
+                        <p class="font-hand text-3xl text-primary leading-none">+{{ move.pointsEarned }}</p>
                         <h2 class="font-zine font-black italic uppercase text-base leading-tight mt-2 break-words line-clamp-2">{{ move.cafeName }}</h2>
                         <p class="font-marker text-[10px] uppercase text-espresso/50 mt-2">{{ move.timestamp | date:'d MMM, h:mm a' }}</p>
                     </div>
@@ -52,7 +52,7 @@
                 <div class="col-start-2">
                     <div class="relative bg-sage border-2 border-espresso p-3 min-h-24 zine-shadow"
                         [class]="i % 3 === 0 ? 'rotate-[1deg]' : 'rotate-[-1deg]'">
-                        <p class="font-marker text-3xl text-espresso leading-none">+{{ move.pointsEarned }}</p>
+                        <p class="font-hand text-3xl text-espresso leading-none">+{{ move.pointsEarned }}</p>
                         <h2 class="font-zine font-black italic uppercase text-base leading-tight mt-2 break-words line-clamp-2">{{ move.cafeName }}</h2>
                         <p class="font-marker text-[10px] uppercase text-espresso/60 mt-2">{{ move.timestamp | date:'d MMM, h:mm a' }}</p>
                     </div>

@@ -167,28 +167,7 @@
         </div>
         }
 
-        <!-- Menu lightbox -->
-        @if (menuLightboxIndex() !== null && menuItemsWithPhotos().length > 0) {
-        <div class="fixed inset-0 z-50 bg-espresso/95 flex items-center justify-center p-6"
-            (click)="closeMenuLightbox()" (keyup.escape)="closeMenuLightbox()" tabindex="0" role="button">
-            <button type="button" (click)="closeMenuLightbox()"
-                class="absolute top-6 right-6 size-11 bg-off-white border-2 border-espresso flex items-center justify-center zine-shadow-sm">
-                <span class="material-symbols-outlined">close</span>
-            </button>
-            <div class="max-w-md w-full" (click)="$event.stopPropagation()" (keyup)="$event.stopPropagation()" tabindex="-1" role="presentation">
-                <img [src]="menuItemsWithPhotos()[menuLightboxIndex()!].photoUrl" [alt]="menuItemsWithPhotos()[menuLightboxIndex()!].name"
-                    class="w-full max-h-[70vh] object-contain border-4 border-off-white" />
-                <div class="bg-off-white border-x-4 border-b-4 border-off-white p-4 text-center">
-                    <p class="font-zine font-black italic uppercase text-espresso text-base">
-                        {{ menuItemsWithPhotos()[menuLightboxIndex()!].name }}
-                    </p>
-                    <p class="font-marker text-primary text-lg mt-1">
-                        {{ formatPrice(menuItemsWithPhotos()[menuLightboxIndex()!]) }}
-                    </p>
-                </div>
-            </div>
-        </div>
-        }
+
 
         <!-- Horizontal Scene Carousel -->
         <div class="relative -mt-4 mb-8" appFadeUp [delay]="0.25">
@@ -200,14 +179,19 @@
             </div>
 
             <!-- Horizontal Scroll Container -->
-            <div #snapContainer class="flex overflow-x-auto gap-8 px-8 pb-4 snap-x snap-mandatory no-scrollbar">
+            <div #snapContainer class="flex overflow-x-auto gap-8 px-8 pt-6 pb-4 snap-x snap-mandatory no-scrollbar"
+                 (scroll)="onSnapScroll()"
+                 (touchstart)="pauseSnapInterval()"
+                 (touchend)="resumeSnapInterval()"
+                 (mouseenter)="pauseSnapInterval()"
+                 (mouseleave)="resumeSnapInterval()">
                 @if (cafe()!.sceneSnaps?.length) {
                     @for (snap of cafe()!.sceneSnaps; track $index; let i = $index) {
                     <!-- Dynamic Scene Snap -->
                     <div class="flex-none w-[85%] snap-center relative" [class.pt-4]="i % 2 !== 0">
                         <!-- Tape Decoration -->
                         <div class="absolute w-16 h-6 bg-white/70 backdrop-blur-sm border-2 border-espresso z-20 shadow-sm mix-blend-overlay"
-                             [class]="i % 2 === 0 ? '-top-4 -left-3 rotate-[15deg]' : '-top-3 right-6 -rotate-[8deg] bg-white/50 border-white'"></div>
+                             [class]="i % 2 === 0 ? 'top-1 -left-3 rotate-[15deg]' : 'top-2 right-6 -rotate-[8deg] bg-white/50 border-white'"></div>
 
                         <!-- Photo Frame -->
                         <div class="relative zine-border p-2 bg-off-white zine-shadow rounded-2xl"
@@ -538,6 +522,8 @@
     </main>
     }
 
+</div>
+
     @if (showSaveModal() && cafe()) {
     <app-save-to-list-modal [cafeId]="cafe()!.id!" (closed)="showSaveModal.set(false)" />
     }
@@ -647,4 +633,51 @@
     </div>
     }
 
-</div>
+    <!-- Menu lightbox -->
+    @if (menuLightboxIndex() !== null && menuItemsWithPhotos().length > 0) {
+    <div class="fixed inset-0 bg-espresso/95 backdrop-blur-md flex flex-col animate-in fade-in duration-200" style="z-index: 9999;"
+        (click)="closeMenuLightbox()" (keyup.escape)="closeMenuLightbox()" tabindex="0" role="dialog" aria-modal="true">
+        <div class="flex justify-end p-5 pt-10 shrink-0" (click)="$event.stopPropagation()" (keyup)="$event.stopPropagation()" role="presentation">
+            <button type="button" (click)="closeMenuLightbox()"
+                class="size-12 bg-off-white border-2 border-espresso flex items-center justify-center zine-shadow-sm zine-click-active">
+                <span class="material-symbols-outlined font-black">close</span>
+            </button>
+        </div>
+
+        <div #menuLightboxScroll
+             class="flex-1 flex overflow-x-auto snap-x snap-mandatory no-scrollbar"
+             (click)="$event.stopPropagation()" (keyup)="$event.stopPropagation()" role="presentation"
+             (scroll)="menuLightboxScroll.offsetWidth && menuLightboxIndex.set(Math.round(menuLightboxScroll.scrollLeft / menuLightboxScroll.offsetWidth))">
+            @for (item of menuItemsWithPhotos(); track $index; let i = $index) {
+            <div [id]="'menu-lb-' + i" class="flex-none w-full h-full snap-center flex items-center justify-center p-6">
+                <div class="max-w-md w-full">
+                    <img [src]="item.photoUrl" [alt]="item.name"
+                        class="w-full max-h-[70vh] object-contain border-4 border-off-white zine-shadow-2xl bg-espresso" />
+                    <div class="bg-off-white border-x-4 border-b-4 border-off-white p-4 text-center">
+                        <p class="font-zine font-black italic uppercase text-espresso text-base">
+                            {{ item.name }}
+                        </p>
+                        <p class="font-marker text-primary text-lg mt-1">
+                            {{ formatPrice(item) }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            }
+        </div>
+
+        <div class="shrink-0 flex flex-col items-center gap-3 pb-8 pt-2" (click)="$event.stopPropagation()" (keyup)="$event.stopPropagation()" role="presentation">
+            @if (menuItemsWithPhotos().length > 1) {
+            <div class="flex gap-2">
+                @for (item of menuItemsWithPhotos(); track $index; let i = $index) {
+                <div class="w-1.5 h-1.5 rounded-full transition-all"
+                     [class]="i === menuLightboxIndex() ? 'bg-primary w-4' : 'bg-white/40'"></div>
+                }
+            </div>
+            }
+            <p class="font-marker text-primary text-sm uppercase tracking-widest">
+                {{ (menuLightboxIndex() ?? 0) + 1 }} / {{ menuItemsWithPhotos().length }}
+            </p>
+        </div>
+    </div>
+    }

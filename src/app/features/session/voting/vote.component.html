@@ -10,7 +10,7 @@
             <span class="material-symbols-outlined text-espresso font-bold">arrow_back</span>
         </a>
         <div class="flex flex-col items-center relative rotate-1">
-            <h2 class="font-marker text-2xl tracking-wide text-espresso">Coffee Time</h2>
+            <h2 class="font-hand text-2xl tracking-wide text-espresso">Coffee Time</h2>
             <div
                 class="bg-primary border-2 border-espresso px-2 py-0.5 rounded shadow-[1px_1px_0px_0px_var(--color-espresso)] -mt-1 -rotate-2">
                 <p class="text-espresso text-[10px] font-bold uppercase tracking-wider">Group Vote</p>
@@ -25,7 +25,7 @@
     <!-- Progress Section -->
     <div class="px-6 py-4 bg-latte border-b-2 border-espresso relative z-10 w-full" appFadeUp>
         <div class="flex justify-between items-center mb-2">
-            <p class="font-marker text-base uppercase tracking-wider text-espresso rotate-1">Voting Progress</p>
+            <p class="font-hand text-base uppercase tracking-wider text-espresso rotate-1">Voting Progress</p>
             <div
                 class="flex items-center gap-1 bg-white border-2 border-espresso px-2 py-0.5 rounded zine-shadow-sm -rotate-1">
                 <span class="text-espresso font-bold">{{ votedCount() }}/{{ totalMembers() }}</span>
@@ -66,7 +66,7 @@
                     <div class="flex flex-col items-center gap-1"
                         [style.transform]="'scale(' + (0.7 + swipeGlassOpacity() * 0.5) + ')'">
                         <span class="material-symbols-outlined text-5xl text-green-400 drop-shadow-lg" style="filter: drop-shadow(0 0 12px rgba(74,222,128,0.8))">thumb_up</span>
-                        <span class="font-marker text-green-300 text-xl tracking-wider" style="text-shadow: 0 0 10px rgba(74,222,128,0.9)">VOTE</span>
+                        <span class="font-hand text-green-300 text-xl tracking-wider" style="text-shadow: 0 0 10px rgba(74,222,128,0.9)">VOTE</span>
                     </div>
                 </div>
 
@@ -77,7 +77,7 @@
                     <div class="flex flex-col items-center gap-1"
                         [style.transform]="'scale(' + (0.7 + swipeGlassOpacity() * 0.5) + ')'">
                         <span class="material-symbols-outlined text-5xl text-red-400 drop-shadow-lg" style="filter: drop-shadow(0 0 12px rgba(248,113,113,0.8))">thumb_down</span>
-                        <span class="font-marker text-red-300 text-xl tracking-wider" style="text-shadow: 0 0 10px rgba(248,113,113,0.9)">SKIP</span>
+                        <span class="font-hand text-red-300 text-xl tracking-wider" style="text-shadow: 0 0 10px rgba(248,113,113,0.9)">SKIP</span>
                     </div>
                 </div>
 
@@ -179,7 +179,7 @@
                     class="w-20 h-20 bg-sage border-2 border-espresso rounded-full flex items-center justify-center shadow-[inset_2px_2px_0px_rgba(0,0,0,0.1)] mb-4 -rotate-6">
                     <span class="material-symbols-outlined text-5xl text-espresso font-bold">check_circle</span>
                 </div>
-                <h3 class="font-marker text-2xl text-espresso">You're All Set!</h3>
+                <h3 class="font-hand text-2xl text-espresso">You're All Set!</h3>
                 <p class="text-espresso/70 font-bold text-sm mt-2">Waiting for the rest of the crew to finish voting...
                 </p>
 
@@ -199,7 +199,7 @@
     @if (!currentCafe()) {
     <div
         class="px-4 py-3 bg-espresso text-white relative z-20 flex justify-center items-center gap-3 border-t-2 border-white">
-        <span class="font-marker text-lg tracking-wider">Hang Tight</span>
+        <span class="font-hand text-lg tracking-wider">Hang Tight</span>
         <span class="material-symbols-outlined animate-spin text-primary">sync</span>
     </div>
     }

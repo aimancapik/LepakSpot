@@ -73,9 +73,6 @@ export class SceneComponent implements OnInit, OnDestroy {
     }
 
     menuLightboxIndex = signal<number | null>(null);
-    openMenuLightbox(globalIndex: number) {
-        this.menuLightboxIndex.set(globalIndex);
-    }
     closeMenuLightbox() {
         this.menuLightboxIndex.set(null);
     }
@@ -136,20 +133,62 @@ export class SceneComponent implements OnInit, OnDestroy {
                     this.verifyCheckInStatus(cafes[0].id);
                     this.loadReviews(cafes[0].id);
                     if ((cafes[0].sceneSnaps?.length ?? 0) > 1) {
-                        this.snapInterval = setInterval(() => {
-                            const snaps = this.cafe()?.sceneSnaps ?? [];
-                            if (!snaps.length) return;
-                            const next = (this.currentSnapIndex() + 1) % snaps.length;
-                            this.currentSnapIndex.set(next);
-                            const container = this.snapContainerRef()?.nativeElement as HTMLElement | undefined;
-                            if (container) {
-                                const itemWidth = container.scrollWidth / snaps.length;
-                                container.scrollTo({ left: next * itemWidth, behavior: 'smooth' });
-                            }
-                        }, 3500);
+                        this.startSnapInterval();
                     }
                 }
             });
+        }
+    }
+
+    private startSnapInterval() {
+        if (this.snapInterval) clearInterval(this.snapInterval);
+        this.snapInterval = setInterval(() => {
+            const snaps = this.cafe()?.sceneSnaps ?? [];
+            if (!snaps.length) return;
+            const next = (this.currentSnapIndex() + 1) % snaps.length;
+            this.currentSnapIndex.set(next);
+            const container = this.snapContainerRef()?.nativeElement as HTMLElement | undefined;
+            if (container && container.children.length > next) {
+                const child = container.children[next] as HTMLElement;
+                const offset = child.offsetLeft - (container.clientWidth / 2) + (child.clientWidth / 2);
+                container.scrollTo({ left: offset, behavior: 'smooth' });
+            }
+        }, 3500);
+    }
+
+    pauseSnapInterval() {
+        if (this.snapInterval) {
+            clearInterval(this.snapInterval);
+            this.snapInterval = null;
+        }
+    }
+
+    resumeSnapInterval() {
+        if ((this.cafe()?.sceneSnaps?.length ?? 0) > 1) {
+            this.startSnapInterval();
+        }
+    }
+
+    onSnapScroll() {
+        const container = this.snapContainerRef()?.nativeElement as HTMLElement | undefined;
+        if (!container) return;
+        
+        const center = container.scrollLeft + (container.clientWidth / 2);
+        let closestIndex = 0;
+        let minDiff = Infinity;
+        
+        for (let i = 0; i < container.children.length; i++) {
+            const child = container.children[i] as HTMLElement;
+            const childCenter = child.offsetLeft + (child.clientWidth / 2);
+            const diff = Math.abs(childCenter - center);
+            if (diff < minDiff) {
+                minDiff = diff;
+                closestIndex = i;
+            }
+        }
+        
+        if (this.currentSnapIndex() !== closestIndex) {
+            this.currentSnapIndex.set(closestIndex);
         }
     }
 
@@ -300,6 +339,16 @@ export class SceneComponent implements OnInit, OnDestroy {
     // Lightbox for scene snaps
     snapLightboxIndex = signal<number | null>(null);
     readonly Math = Math;
+
+    openMenuLightbox(index: number) {
+        this.menuLightboxIndex.set(index);
+        setTimeout(() => {
+            const el = document.getElementById(`menu-lb-${index}`);
+            if (el?.parentElement) {
+                el.parentElement.scrollLeft = el.parentElement.offsetWidth * index;
+            }
+        }, 50);
+    }
 
     openSnapLightbox(index: number) {
         this.snapLightboxIndex.set(index);

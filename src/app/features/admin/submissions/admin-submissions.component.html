@@ -32,7 +32,7 @@
         <div class="space-y-5">
             @for (cafe of cafes(); track cafe.id; let i = $index) {
             <article class="bg-off-white zine-border zine-shadow overflow-hidden" [appFadeUp]="i" [delay]="0.05">
-                @if (cafe.photos?.length) {
+                @if (cafe.photos.length) {
                 <div class="aspect-video bg-latte border-b-2 border-espresso overflow-hidden">
                     <img [src]="cafe.photos[0]" [alt]="cafe.name" class="w-full h-full object-cover" />
                 </div>
@@ -48,7 +48,7 @@
                         </p>
                     </div>
 
-                    @if (cafe.tags?.length) {
+                    @if (cafe.tags.length) {
                     <div class="flex flex-wrap gap-1.5">
                         @for (tag of cafe.tags; track tag) {
                         <span class="border-2 border-espresso/30 bg-[#FAFAF7] px-2 py-1 font-zine text-[10px] font-bold uppercase">{{ tag }}</span>

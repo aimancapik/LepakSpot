@@ -20,17 +20,17 @@
             </div>
 
             <div class="flex flex-col items-center">
-                <div class="relative mb-4">
+                <div class="relative mb-4 isolate">
                     <div
-                        class="absolute inset-0 bg-primary translate-x-2 translate-y-2 rounded-full -z-10 border-2 border-espresso">
+                        class="absolute inset-0 bg-primary translate-x-1.5 translate-y-1.5 rounded-full -z-10">
                     </div>
                     @if (authService.currentUser()?.photoURL && !profilePhotoFailed()) {
                     <img [src]="authService.currentUser()!.photoURL"
-                        class="size-28 rounded-full border-4 border-espresso object-cover bg-white" alt=""
+                        class="w-28 h-28 aspect-square rounded-full border-4 border-espresso object-cover bg-white block" alt=""
                         (error)="profilePhotoFailed.set(true)" />
                     } @else {
                     <div
-                        class="size-28 rounded-full border-4 border-espresso bg-sage flex items-center justify-center overflow-hidden">
+                        class="w-28 h-28 aspect-square rounded-full border-4 border-espresso bg-sage flex items-center justify-center overflow-hidden">
                         <span class="font-zine text-4xl font-black italic text-espresso leading-none">{{
                             profileInitials() }}</span>
                     </div>
@@ -44,11 +44,11 @@
                     authService.currentUser()?.displayName || 'Coffee Lover' }}</h2>
 
                 <div
-                    class="inline-block bg-primary text-espresso border-2 border-espresso px-4 py-1 font-zine font-black italic uppercase tracking-widest text-xs mt-3 -rotate-2 zine-shadow-sm">
+                    class="inline-block bg-primary text-espresso border-2 border-espresso px-4 py-1 font-marker font-bold uppercase tracking-widest text-xs mt-3 -rotate-2 zine-shadow-sm">
                     {{ userTitle() }}
                 </div>
 
-                <div class="font-marker text-primary text-xl mt-3 rotate-1">
+                <div class="font-hand text-primary text-xl mt-3 rotate-1">
                     {{ authService.currentUser()?.points || 0 }} PTS
                 </div>
             </div>
@@ -156,7 +156,7 @@
             } @else if (myCafeClaims().length === 0) {
             <div class="bg-off-white zine-border p-6 text-center rotate-[1deg] zine-shadow">
                 <span class="material-symbols-outlined text-4xl text-espresso/40 mb-2">storefront</span>
-                <p class="font-marker text-lg">No claim requests yet.</p>
+                <p class="font-hand text-lg">No claim requests yet.</p>
                 <p class="font-zine text-sm font-bold uppercase text-espresso/60 mt-1">Claim a cafe from its detail
                     page.</p>
             </div>
@@ -274,7 +274,7 @@
             } @else if (recentCheckins().length === 0) {
             <div class="bg-off-white zine-border p-8 text-center rotate-[-1deg] zine-shadow">
                 <span class="material-symbols-outlined text-5xl text-espresso mb-2">history</span>
-                <p class="font-marker text-lg">No moves yet...</p>
+                <p class="font-hand text-lg">No moves yet...</p>
                 <p class="font-zine text-sm font-bold uppercase text-espresso/60 mt-2 tracking-tighter">Get out there
                     and explore!</p>
             </div>
@@ -298,7 +298,7 @@
                             'd MMM, h:mm a' }}</p>
                     </div>
                     <div class="shrink-0 bg-sage border-2 border-espresso px-2 py-1 rotate-3">
-                        <span class="font-marker text-sm">+{{ checkin.pointsEarned }}</span>
+                        <span class="font-hand text-sm">+{{ checkin.pointsEarned }}</span>
                     </div>
                 </div>
                 }
@@ -318,7 +318,7 @@
             @if (cafeListService.myLists().length === 0 && cafeListService.sharedLists().length === 0) {
             <div class="bg-off-white zine-border p-6 text-center rotate-[1deg] zine-shadow">
                 <span class="material-symbols-outlined text-4xl text-espresso/40 mb-2">format_list_bulleted_add</span>
-                <p class="font-marker text-lg">No lists yet.</p>
+                <p class="font-hand text-lg">No lists yet.</p>
                 <p class="font-zine text-sm font-bold uppercase text-espresso/60 mt-1">Save cafes to start building!</p>
             </div>
             } @else {

@@ -119,12 +119,36 @@ export class CafeDetailComponent implements OnInit, OnDestroy {
                 const deals = await this.dealService.getActiveDealsForCafe(id);
                 this.activeDeals.set(deals);
                 if (cafe.photos.length > 1) {
-                    this.slideInterval = setInterval(() => {
-                        this.currentPhotoIndex.update(i => (i + 1) % cafe.photos.length);
-                    }, 4000);
+                    this.startSlideInterval();
                 }
             }
         }
+    }
+
+    private startSlideInterval() {
+        const cafe = this.cafe();
+        if (!cafe || cafe.photos.length <= 1) return;
+        if (this.slideInterval) clearInterval(this.slideInterval);
+        
+        this.slideInterval = setInterval(() => {
+            const next = (this.currentPhotoIndex() + 1) % cafe.photos.length;
+            this.currentPhotoIndex.set(next);
+            const el = document.getElementById(`hero-photo-${next}`);
+            if (el?.parentElement) {
+                el.parentElement.scrollTo({ left: el.parentElement.offsetWidth * next, behavior: 'smooth' });
+            }
+        }, 4000);
+    }
+
+    pauseSlideInterval() {
+        if (this.slideInterval) {
+            clearInterval(this.slideInterval);
+            this.slideInterval = null;
+        }
+    }
+
+    resumeSlideInterval() {
+        this.startSlideInterval();
     }
 
     ngOnDestroy() {
