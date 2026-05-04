@@ -171,11 +171,10 @@
 
         <!-- Horizontal Scene Carousel -->
         <div class="relative -mt-4 mb-8" appFadeUp [delay]="0.25">
-            <div class="flex items-center gap-3 px-6 mb-4">
-                <h3 class="bg-espresso text-off-white px-3 py-1 font-zine font-bold italic uppercase tracking-widest -rotate-2">
+            <div class="mb-4">
+                <h3 class="inline-block bg-espresso text-off-white px-3 py-1 font-zine font-bold italic uppercase tracking-widest -rotate-2">
                     SCENE SNAPS
                 </h3>
-                <div class="h-0.5 flex-1 bg-espresso/10"></div>
             </div>
 
             <!-- Horizontal Scroll Container -->
@@ -333,7 +332,7 @@
                     <p class="font-marker text-sm text-espresso uppercase tracking-wide">
                         {{ reviewSubmitted() ? 'Review Posted!' : 'You reviewed this cafe' }}
                     </p>
-                    <p class="font-zine text-xs text-espresso/70">Thanks for keeping the zine alive 🌿</p>
+                    <p class="font-zine text-xs text-espresso/70">Thanks for your review 🌿</p>
                 </div>
                 @if (!showReviewForm()) {
                 <button (click)="startEditReview()"
