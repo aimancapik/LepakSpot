@@ -1,4 +1,5 @@
-<div class="relative max-w-md mx-auto w-full min-h-screen bg-latte border-x-4 border-espresso grain-overlay font-display text-espresso">
+<div
+    class="relative max-w-md mx-auto w-full min-h-screen bg-latte border-x-4 border-espresso grain-overlay font-display text-espresso">
 
     @if (loading()) {
     <div class="flex items-center justify-center min-h-screen">
@@ -14,7 +15,8 @@
         </button>
         <div class="pl-12">
             <p class="font-zine text-[10px] uppercase tracking-widest text-off-white/50 mb-1">Owner Dashboard</p>
-            <h1 class="font-zine font-black italic uppercase text-2xl leading-tight tracking-tight">{{ cafeData.name }}</h1>
+            <h1 class="font-zine font-black italic uppercase text-2xl leading-tight tracking-tight">{{ cafeData.name }}
+            </h1>
             <p class="font-marker text-off-white/60 text-xs mt-1 flex items-center gap-1">
                 <span class="material-symbols-outlined text-xs">verified</span>
                 Claimed by you
@@ -25,16 +27,15 @@
     <!-- Tab Bar -->
     <div class="flex border-b-4 border-espresso bg-off-white sticky top-0 z-30">
         @for (tab of [
-            {id: 'overview', icon: 'edit', label: 'Info'},
-            {id: 'reviews', icon: 'rate_review', label: 'Reviews'},
-            {id: 'menu', icon: 'restaurant_menu', label: 'Menu'},
-            {id: 'deals', icon: 'local_offer', label: 'Deals'},
-            {id: 'traffic', icon: 'bar_chart', label: 'Traffic'}
+        {id: 'overview', icon: 'edit', label: 'Info'},
+        {id: 'reviews', icon: 'rate_review', label: 'Reviews'},
+        {id: 'menu', icon: 'restaurant_menu', label: 'Menu'},
+        {id: 'deals', icon: 'local_offer', label: 'Deals'},
+        {id: 'traffic', icon: 'bar_chart', label: 'Traffic'}
         ]; track tab.id) {
         <button (click)="activeTab.set($any(tab.id))"
             class="flex-1 flex flex-col items-center gap-0.5 py-3 font-zine text-[10px] font-bold uppercase tracking-wider transition-colors"
-            [class.bg-espresso]="activeTab() === tab.id"
-            [class.text-off-white]="activeTab() === tab.id"
+            [class.bg-espresso]="activeTab() === tab.id" [class.text-off-white]="activeTab() === tab.id"
             [class.text-espresso]="activeTab() !== tab.id">
             <span class="material-symbols-outlined text-base">{{ tab.icon }}</span>
             {{ tab.label }}
@@ -48,21 +49,25 @@
         <!-- ── OVERVIEW TAB ── -->
         @if (activeTab() === 'overview') {
         <div class="space-y-5">
-            <h2 class="inline-block bg-primary text-espresso px-4 py-1 font-zine font-black italic uppercase tracking-widest -rotate-1 border-2 border-espresso zine-shadow-sm">
+            <h2
+                class="inline-block bg-primary text-espresso px-4 py-1 font-zine font-black italic uppercase tracking-widest -rotate-1 border-2 border-espresso zine-shadow-sm">
                 Cafe Info
             </h2>
 
             <!-- Photos -->
             <div class="space-y-3">
                 <div class="flex items-center justify-between gap-3">
-                <span class="font-zine text-xs font-bold uppercase tracking-widest text-espresso/60">Gallery Photos</span>
-                    <span class="font-marker text-[10px] text-espresso/40 uppercase">{{ photoPreviews().length }}/4</span>
+                    <span class="font-zine text-xs font-bold uppercase tracking-widest text-espresso/60">Gallery
+                        Photos</span>
+                    <span class="font-marker text-[10px] text-espresso/40 uppercase">{{ photoPreviews().length
+                        }}/4</span>
                 </div>
 
                 @if (photoPreviews().length > 0) {
                 <div class="grid grid-cols-2 gap-3">
                     @for (url of photoPreviews(); track url; let i = $index) {
-                    <div class="relative aspect-[4/3] bg-off-white border-2 border-espresso overflow-hidden zine-shadow-sm">
+                    <div
+                        class="relative aspect-[4/3] bg-off-white border-2 border-espresso overflow-hidden zine-shadow-sm">
                         <img [src]="url" alt="Cafe photo" class="w-full h-full object-cover" />
                         <button (click)="removePhoto(i)"
                             class="absolute top-2 right-2 size-8 bg-espresso text-off-white border-2 border-off-white flex items-center justify-center zine-click-active">
@@ -73,26 +78,28 @@
                 </div>
                 }
 
-                @if (photoPreviews().length < 4) {
-                <label
+                @if (photoPreviews().length < 4) { <label
                     class="relative w-full flex items-center justify-center gap-2 py-4 bg-off-white border-2 border-dashed border-espresso cursor-pointer hover:bg-white transition-all zine-click-active">
                     <span class="material-symbols-outlined text-espresso/50">add_photo_alternate</span>
-                    <span class="font-zine text-xs font-black uppercase tracking-widest text-espresso/60">Add Photos</span>
+                    <span class="font-zine text-xs font-black uppercase tracking-widest text-espresso/60">Add
+                        Photos</span>
                     <input type="file" accept="image/*" multiple class="sr-only" (change)="onPhotoSelected($event)" />
-                </label>
-                }
+                    </label>
+                    }
             </div>
 
             <!-- Video -->
             <div class="space-y-3">
                 <div class="flex items-center justify-between gap-3">
-                    <span class="font-zine text-xs font-bold uppercase tracking-widest text-espresso/60">Vibe Video</span>
+                    <span class="font-zine text-xs font-bold uppercase tracking-widest text-espresso/60">Vibe
+                        Video</span>
                     <span class="font-marker text-[10px] text-espresso/40 uppercase">Optional</span>
                 </div>
 
                 @if (videoPreview()) {
                 <div class="relative aspect-video bg-espresso border-2 border-espresso overflow-hidden zine-shadow-sm">
-                    <video [src]="videoPreview()" class="w-full h-full object-cover" autoplay muted loop playsinline controls></video>
+                    <video [src]="videoPreview()" class="w-full h-full object-cover" autoplay muted loop playsinline
+                        controls></video>
                     <button (click)="removeVideo()"
                         class="absolute top-2 right-2 size-8 bg-espresso text-off-white border-2 border-off-white flex items-center justify-center zine-click-active">
                         <span class="material-symbols-outlined text-sm">close</span>
@@ -102,8 +109,10 @@
                 <label
                     class="relative w-full flex items-center justify-center gap-2 py-4 bg-off-white border-2 border-dashed border-espresso cursor-pointer hover:bg-white transition-all zine-click-active">
                     <span class="material-symbols-outlined text-espresso/50">movie</span>
-                    <span class="font-zine text-xs font-black uppercase tracking-widest text-espresso/60">Add Short Video</span>
-                    <input type="file" accept="video/mp4,video/webm,video/quicktime" class="sr-only" (change)="onVideoSelected($event)" />
+                    <span class="font-zine text-xs font-black uppercase tracking-widest text-espresso/60">Add Short
+                        Video</span>
+                    <input type="file" accept="video/mp4,video/webm,video/quicktime" class="sr-only"
+                        (change)="onVideoSelected($event)" />
                 </label>
                 }
             </div>
@@ -111,8 +120,10 @@
             <!-- Scene Snaps -->
             <div class="space-y-3">
                 <div class="flex items-center justify-between gap-3">
-                    <span class="font-zine text-xs font-bold uppercase tracking-widest text-espresso/60">Scene Snaps</span>
-                    <span class="font-marker text-[10px] text-espresso/40 uppercase">{{ sceneSnapPreviews().length }}/5</span>
+                    <span class="font-zine text-xs font-bold uppercase tracking-widest text-espresso/60">Scene
+                        Snaps</span>
+                    <span class="font-marker text-[10px] text-espresso/40 uppercase">{{ sceneSnapPreviews().length
+                        }}/5</span>
                 </div>
 
                 @if (sceneSnapPreviews().length > 0) {
@@ -126,7 +137,8 @@
                             class="absolute top-1 right-1 size-8 bg-espresso text-off-white border-2 border-off-white flex items-center justify-center zine-click-active">
                             <span class="material-symbols-outlined text-sm">close</span>
                         </button>
-                        <input type="text" [value]="sceneSnapTags()[i]" (input)="updateSceneSnapTag(i, $any($event.target).value)"
+                        <input type="text" [value]="sceneSnapTags()[i]"
+                            (input)="updateSceneSnapTag(i, $any($event.target).value)"
                             placeholder="e.g. Cozy Corner, Matcha Bar"
                             class="mt-3 w-full bg-white border-2 border-espresso/20 focus:border-espresso p-2 font-zine text-sm text-espresso outline-none" />
                     </div>
@@ -134,51 +146,55 @@
                 </div>
                 }
 
-                @if (sceneSnapPreviews().length < 5) {
-                <label
+                @if (sceneSnapPreviews().length < 5) { <label
                     class="relative w-full flex items-center justify-center gap-2 py-4 bg-off-white border-2 border-dashed border-espresso cursor-pointer hover:bg-white transition-all zine-click-active">
                     <span class="material-symbols-outlined text-espresso/50">photo_camera</span>
-                    <span class="font-zine text-xs font-black uppercase tracking-widest text-espresso/60">Add Scene Snap</span>
-                    <input type="file" accept="image/*" multiple class="sr-only" (change)="onSceneSnapSelected($event)" />
-                </label>
-                }
+                    <span class="font-zine text-xs font-black uppercase tracking-widest text-espresso/60">Add Scene
+                        Snap</span>
+                    <input type="file" accept="image/*" multiple class="sr-only"
+                        (change)="onSceneSnapSelected($event)" />
+                    </label>
+                    }
             </div>
 
             <!-- Name -->
             <div class="space-y-1.5">
-                <label for="edit-name" class="font-zine text-xs font-bold uppercase tracking-widest text-espresso/60">Cafe Name</label>
+                <label for="edit-name"
+                    class="font-zine text-xs font-bold uppercase tracking-widest text-espresso/60">Cafe Name</label>
                 <input id="edit-name" [ngModel]="editName()" (ngModelChange)="editName.set($event)"
                     class="w-full bg-off-white border-2 border-espresso px-4 py-3 font-zine text-sm font-bold focus:outline-none focus:border-primary" />
             </div>
 
             <!-- Address -->
             <div class="space-y-1.5">
-                <label for="edit-address" class="font-zine text-xs font-bold uppercase tracking-widest text-espresso/60">Address</label>
+                <label for="edit-address"
+                    class="font-zine text-xs font-bold uppercase tracking-widest text-espresso/60">Address</label>
                 <input id="edit-address" [ngModel]="editAddress()" (ngModelChange)="editAddress.set($event)"
                     class="w-full bg-off-white border-2 border-espresso px-4 py-3 font-zine text-sm focus:outline-none focus:border-primary" />
             </div>
 
             <!-- Operating Hours -->
             <div class="space-y-2">
-                <span class="font-zine text-xs font-bold uppercase tracking-widest text-espresso/60 block">Operating Hours</span>
+                <span class="font-zine text-xs font-bold uppercase tracking-widest text-espresso/60 block">Operating
+                    Hours</span>
                 <div class="bg-off-white border-2 border-espresso divide-y divide-espresso/10">
                     @for (day of weekDays; track day.key) {
                     @let hours = getDayHours(day.key);
                     <div class="flex items-center gap-2 px-3 py-2">
-                        <span class="font-zine text-xs font-black uppercase w-8 shrink-0 text-espresso/70">{{ day.label }}</span>
+                        <span class="font-zine text-xs font-black uppercase w-8 shrink-0 text-espresso/70">{{ day.label
+                            }}</span>
                         <button type="button" (click)="toggleDayHours(day.key)"
                             class="px-2 py-1 border-2 border-espresso font-zine text-[10px] font-black uppercase tracking-wider shrink-0 transition-colors w-16"
-                            [class.bg-espresso]="hours.closed"
-                            [class.text-off-white]="hours.closed"
-                            [class.bg-latte]="!hours.closed"
-                            [class.text-espresso]="!hours.closed">
+                            [class.bg-espresso]="hours.closed" [class.text-off-white]="hours.closed"
+                            [class.bg-latte]="!hours.closed" [class.text-espresso]="!hours.closed">
                             {{ hours.closed ? 'Closed' : 'Open' }}
                         </button>
                         @if (!hours.closed) {
                         <input type="time" [ngModel]="hours.open" (ngModelChange)="setDayTime(day.key, 'open', $event)"
                             class="flex-1 min-w-0 bg-latte border-2 border-espresso/20 focus:border-espresso px-2 py-1 font-zine text-xs outline-none" />
                         <span class="font-marker text-xs text-espresso/30 shrink-0">–</span>
-                        <input type="time" [ngModel]="hours.close" (ngModelChange)="setDayTime(day.key, 'close', $event)"
+                        <input type="time" [ngModel]="hours.close"
+                            (ngModelChange)="setDayTime(day.key, 'close', $event)"
                             class="flex-1 min-w-0 bg-latte border-2 border-espresso/20 focus:border-espresso px-2 py-1 font-zine text-xs outline-none" />
                         }
                     </div>
@@ -193,8 +209,7 @@
                     @for (tag of allTags; track tag) {
                     <button (click)="toggleEditTag(tag)"
                         class="px-3 py-1 border-2 border-espresso font-marker text-sm uppercase transition-colors"
-                        [class.bg-primary]="editTags().includes(tag)"
-                        [class.bg-off-white]="!editTags().includes(tag)">
+                        [class.bg-primary]="editTags().includes(tag)" [class.bg-off-white]="!editTags().includes(tag)">
                         #{{ tag }}
                     </button>
                     }
@@ -204,19 +219,28 @@
             <!-- WiFi + Outlets -->
             <div class="grid grid-cols-2 gap-3">
                 <div class="space-y-1.5">
-                    <label for="edit-wifi" class="font-zine text-xs font-bold uppercase tracking-widest text-espresso/60">WiFi Speed</label>
+                    <label for="edit-wifi"
+                        class="font-zine text-xs font-bold uppercase tracking-widest text-espresso/60">WiFi
+                        Speed</label>
                     <select id="edit-wifi" [ngModel]="editWifiSpeed()" (ngModelChange)="editWifiSpeed.set($event)"
                         class="w-full bg-off-white border-2 border-espresso px-3 py-2.5 font-zine text-sm focus:outline-none">
                         <option value="">—</option>
-                        <option>Fast</option><option>Average</option><option>Slow</option><option>None</option>
+                        <option>Fast</option>
+                        <option>Average</option>
+                        <option>Slow</option>
+                        <option>None</option>
                     </select>
                 </div>
                 <div class="space-y-1.5">
-                    <label for="edit-outlets" class="font-zine text-xs font-bold uppercase tracking-widest text-espresso/60">Outlets</label>
-                    <select id="edit-outlets" [ngModel]="editOutletAvailability()" (ngModelChange)="editOutletAvailability.set($event)"
+                    <label for="edit-outlets"
+                        class="font-zine text-xs font-bold uppercase tracking-widest text-espresso/60">Outlets</label>
+                    <select id="edit-outlets" [ngModel]="editOutletAvailability()"
+                        (ngModelChange)="editOutletAvailability.set($event)"
                         class="w-full bg-off-white border-2 border-espresso px-3 py-2.5 font-zine text-sm focus:outline-none">
                         <option value="">—</option>
-                        <option>Many</option><option>Few</option><option>None</option>
+                        <option>Many</option>
+                        <option>Few</option>
+                        <option>None</option>
                     </select>
                 </div>
             </div>
@@ -226,8 +250,7 @@
                 <span class="font-zine text-sm font-bold uppercase">Late Night Spot</span>
                 <button (click)="toggleLateNight()"
                     class="w-12 h-6 rounded-full border-2 border-espresso transition-colors flex items-center px-0.5"
-                    [class.bg-primary]="editIsLateNight()"
-                    [class.bg-espresso/10]="!editIsLateNight()">
+                    [class.bg-primary]="editIsLateNight()" [class.bg-espresso/10]="!editIsLateNight()">
                     <span class="w-4 h-4 rounded-full bg-espresso transition-transform"
                         [class.translate-x-6]="editIsLateNight()"></span>
                 </button>
@@ -236,7 +259,8 @@
             <!-- Save -->
             <button (click)="saveOverview()" [disabled]="saving()"
                 class="w-full bg-espresso text-off-white py-4 border-4 border-espresso zine-shadow font-zine font-black italic uppercase text-lg tracking-widest zine-click-active disabled:opacity-50 flex items-center justify-center gap-2">
-                @if (saving()) { <span class="animate-spin material-symbols-outlined text-base">progress_activity</span> }
+                @if (saving()) { <span class="animate-spin material-symbols-outlined text-base">progress_activity</span>
+                }
                 {{ uploadingPhotos() ? 'Uploading Photos...' : 'Save Changes' }}
             </button>
         </div>
@@ -245,7 +269,8 @@
         <!-- ── REVIEWS TAB ── -->
         @if (activeTab() === 'reviews') {
         <div class="space-y-4">
-            <h2 class="inline-block bg-sage text-espresso px-4 py-1 font-zine font-black italic uppercase tracking-widest rotate-1 border-2 border-espresso zine-shadow-sm">
+            <h2
+                class="inline-block bg-sage text-espresso px-4 py-1 font-zine font-black italic uppercase tracking-widest rotate-1 border-2 border-espresso zine-shadow-sm">
                 Customer Reviews
             </h2>
             @if (reviews().length === 0) {
@@ -259,22 +284,23 @@
                 <div class="bg-off-white border-2 border-espresso/20 p-4 space-y-2 rounded-xl">
                     <div class="flex items-center gap-2">
                         @if (review.photoURL) {
-                        <img [src]="review.photoURL" [alt]="review.displayName" class="w-8 h-8 rounded-full border-2 border-espresso object-cover shrink-0" />
+                        <img [src]="review.photoURL" [alt]="review.displayName"
+                            class="w-8 h-8 rounded-full border-2 border-espresso object-cover shrink-0" />
                         } @else {
-                        <div class="w-8 h-8 rounded-full border-2 border-espresso bg-sage flex items-center justify-center shrink-0">
+                        <div
+                            class="w-8 h-8 rounded-full border-2 border-espresso bg-sage flex items-center justify-center shrink-0">
                             <span class="font-marker text-sm uppercase">{{ review.displayName[0] }}</span>
                         </div>
                         }
                         <div class="flex-1 min-w-0">
                             <p class="font-marker text-sm text-espresso truncate">{{ review.displayName }}</p>
-                            <p class="font-zine text-[10px] text-espresso/50 uppercase">{{ review.createdAt | date:'d MMM yyyy' }}</p>
+                            <p class="font-zine text-[10px] text-espresso/50 uppercase">{{ review.createdAt | date:'d
+                                MMM yyyy' }}</p>
                         </div>
                         <div class="flex gap-0.5 shrink-0">
                             @for (s of [1,2,3,4,5]; track s) {
-                            <span class="material-symbols-outlined text-sm"
-                                [class.text-primary]="s <= review.rating"
-                                [class.text-espresso]="s > review.rating"
-                                style="font-variation-settings:'FILL' 1"
+                            <span class="material-symbols-outlined text-sm" [class.text-primary]="s <= review.rating"
+                                [class.text-espresso]="s > review.rating" style="font-variation-settings:'FILL' 1"
                                 [style.opacity]="s > review.rating ? '0.2' : '1'">star</span>
                             }
                         </div>
@@ -291,9 +317,10 @@
 
         <!-- ── MENU TAB ── -->
         @if (activeTab() === 'menu') {
-        <div class="p-5 space-y-5">
+        <div class="space-y-5">
             <div class="flex items-center justify-between">
-                <h2 class="inline-block bg-primary text-espresso px-4 py-1 font-zine font-black italic uppercase tracking-widest -rotate-1 border-2 border-espresso zine-shadow-sm">
+                <h2
+                    class="inline-block bg-primary text-espresso px-4 py-1 font-zine font-black italic uppercase tracking-widest -rotate-1 border-2 border-espresso zine-shadow-sm">
                     Menu
                 </h2>
                 <span class="font-marker text-[10px] text-espresso/40 uppercase">{{ menuItems().length }} items</span>
@@ -318,22 +345,25 @@
                             </button>
                         </div>
                         } @else {
-                        <label class="w-20 h-20 shrink-0 border-2 border-dashed border-espresso/40 bg-latte/50 flex flex-col items-center justify-center cursor-pointer hover:bg-latte">
+                        <label
+                            class="w-20 h-20 shrink-0 border-2 border-dashed border-espresso/40 bg-latte/50 flex flex-col items-center justify-center cursor-pointer hover:bg-latte">
                             <span class="material-symbols-outlined text-espresso/40 text-xl">add_a_photo</span>
                             <span class="font-marker text-[9px] text-espresso/40 uppercase mt-0.5">Photo</span>
-                            <input type="file" accept="image/*" class="hidden" (change)="onMenuItemPhotoSelected(i, $event)" />
+                            <input type="file" accept="image/*" class="hidden"
+                                (change)="onMenuItemPhotoSelected(i, $event)" />
                         </label>
                         }
                         <div class="flex-1 min-w-0 space-y-2">
-                            <input type="text" [value]="item.name" (input)="updateMenuItemField(i, 'name', $any($event.target).value)"
+                            <input type="text" [value]="item.name"
+                                (input)="updateMenuItemField(i, 'name', $any($event.target).value)"
                                 placeholder="Item name"
                                 class="w-full bg-latte/50 border-2 border-espresso px-2 py-1.5 font-marker text-sm text-espresso placeholder:text-espresso/30 focus:outline-none focus:ring-2 focus:ring-primary" />
                             <div class="flex gap-2">
                                 <div class="flex items-center bg-latte/50 border-2 border-espresso flex-1 min-w-0">
-                                    <span class="font-zine text-[10px] font-bold uppercase text-espresso/50 px-2">RM</span>
+                                    <span
+                                        class="font-zine text-[10px] font-bold uppercase text-espresso/50 px-2">RM</span>
                                     <input type="number" min="0" step="0.10" [value]="item.price || ''"
-                                        (input)="updateMenuItemPrice(i, $any($event.target).value)"
-                                        placeholder="0.00"
+                                        (input)="updateMenuItemPrice(i, $any($event.target).value)" placeholder="0.00"
                                         class="w-full bg-transparent py-1.5 pr-2 font-marker text-sm text-espresso placeholder:text-espresso/30 focus:outline-none" />
                                 </div>
                                 <input type="text" list="owner-menu-categories" [value]="item.category || ''"
@@ -368,7 +398,8 @@
         @if (activeTab() === 'deals') {
         <div class="space-y-5">
             <div class="flex items-center justify-between">
-                <h2 class="inline-block bg-primary text-espresso px-4 py-1 font-zine font-black italic uppercase tracking-widest -rotate-1 border-2 border-espresso zine-shadow-sm">
+                <h2
+                    class="inline-block bg-primary text-espresso px-4 py-1 font-zine font-black italic uppercase tracking-widest -rotate-1 border-2 border-espresso zine-shadow-sm">
                     Deals & Promos
                 </h2>
                 <button (click)="toggleDealForm()"
@@ -381,23 +412,25 @@
             @if (showDealForm()) {
             <div class="bg-off-white border-4 border-espresso zine-shadow p-5 space-y-4 rotate-[0.5deg]">
                 <p class="font-zine font-black italic uppercase tracking-wider text-sm">New Deal</p>
-                <input [ngModel]="newDealTitle()" (ngModelChange)="newDealTitle.set($event)"
-                    placeholder="Deal title *"
+                <input [ngModel]="newDealTitle()" (ngModelChange)="newDealTitle.set($event)" placeholder="Deal title *"
                     class="w-full border-2 border-espresso px-3 py-2 font-zine text-sm focus:outline-none focus:border-primary bg-latte" />
                 <textarea [ngModel]="newDealDescription()" (ngModelChange)="newDealDescription.set($event)"
-                    placeholder="Description (optional)"
-                    rows="2"
+                    placeholder="Description (optional)" rows="2"
                     class="w-full border-2 border-espresso px-3 py-2 font-zine text-sm focus:outline-none focus:border-primary bg-latte resize-none"></textarea>
-                    <div class="space-y-1">
-                        <label for="deal-from" class="font-zine text-[10px] uppercase tracking-widest text-espresso/60">Valid From *</label>
-                        <input id="deal-from" type="datetime-local" [ngModel]="newDealValidFrom()" (ngModelChange)="newDealValidFrom.set($event)"
-                            class="w-full border-2 border-espresso px-2 py-2 font-zine text-xs focus:outline-none bg-latte" />
-                    </div>
-                    <div class="space-y-1">
-                        <label for="deal-until" class="font-zine text-[10px] uppercase tracking-widest text-espresso/60">Valid Until *</label>
-                        <input id="deal-until" type="datetime-local" [ngModel]="newDealValidUntil()" (ngModelChange)="newDealValidUntil.set($event)"
-                            class="w-full border-2 border-espresso px-2 py-2 font-zine text-xs focus:outline-none bg-latte" />
-                    </div>
+                <div class="space-y-1">
+                    <label for="deal-from"
+                        class="font-zine text-[10px] uppercase tracking-widest text-espresso/60">Valid From *</label>
+                    <input id="deal-from" type="datetime-local" [ngModel]="newDealValidFrom()"
+                        (ngModelChange)="newDealValidFrom.set($event)"
+                        class="w-full border-2 border-espresso px-2 py-2 font-zine text-xs focus:outline-none bg-latte" />
+                </div>
+                <div class="space-y-1">
+                    <label for="deal-until"
+                        class="font-zine text-[10px] uppercase tracking-widest text-espresso/60">Valid Until *</label>
+                    <input id="deal-until" type="datetime-local" [ngModel]="newDealValidUntil()"
+                        (ngModelChange)="newDealValidUntil.set($event)"
+                        class="w-full border-2 border-espresso px-2 py-2 font-zine text-xs focus:outline-none bg-latte" />
+                </div>
                 <button (click)="createDeal()" [disabled]="saving()"
                     class="w-full bg-primary text-espresso py-3 border-2 border-espresso font-zine font-black italic uppercase tracking-wider zine-click-active disabled:opacity-50">
                     Post Deal
@@ -421,27 +454,31 @@
                             <div class="flex items-center gap-2 flex-wrap">
                                 <p class="font-zine font-black text-sm uppercase">{{ deal.title }}</p>
                                 @if (isDealActive(deal)) {
-                                <span class="px-2 py-0.5 bg-primary border border-espresso font-zine text-[9px] font-bold uppercase tracking-widest text-espresso">LIVE</span>
+                                <span
+                                    class="px-2 py-0.5 bg-primary border border-espresso font-zine text-[9px] font-bold uppercase tracking-widest text-espresso">LIVE</span>
                                 } @else if (!deal.isActive) {
-                                <span class="px-2 py-0.5 bg-espresso/10 border border-espresso/30 font-zine text-[9px] font-bold uppercase tracking-widest text-espresso/50">PAUSED</span>
+                                <span
+                                    class="px-2 py-0.5 bg-espresso/10 border border-espresso/30 font-zine text-[9px] font-bold uppercase tracking-widest text-espresso/50">PAUSED</span>
                                 } @else {
-                                <span class="px-2 py-0.5 bg-espresso/10 border border-espresso/30 font-zine text-[9px] font-bold uppercase tracking-widest text-espresso/50">EXPIRED</span>
+                                <span
+                                    class="px-2 py-0.5 bg-espresso/10 border border-espresso/30 font-zine text-[9px] font-bold uppercase tracking-widest text-espresso/50">EXPIRED</span>
                                 }
                             </div>
                             @if (deal.description) {
                             <p class="font-marker text-xs text-espresso/70 mt-0.5">{{ deal.description }}</p>
                             }
                             <p class="font-zine text-[10px] text-espresso/50 mt-1 uppercase">
-                                {{ deal.validFrom | date:'d MMM, h:mm a' }} — {{ deal.validUntil | date:'d MMM, h:mm a' }}
+                                {{ deal.validFrom | date:'d MMM, h:mm a' }} — {{ deal.validUntil | date:'d MMM, h:mm a'
+                                }}
                             </p>
                         </div>
                         <div class="flex gap-2 shrink-0">
                             <button (click)="toggleDeal(deal)"
                                 class="size-8 border-2 border-espresso flex items-center justify-center zine-click-active"
-                                [class.bg-sage]="deal.isActive"
-                                [class.bg-off-white]="!deal.isActive"
+                                [class.bg-sage]="deal.isActive" [class.bg-off-white]="!deal.isActive"
                                 [title]="deal.isActive ? 'Pause' : 'Activate'">
-                                <span class="material-symbols-outlined text-sm">{{ deal.isActive ? 'pause' : 'play_arrow' }}</span>
+                                <span class="material-symbols-outlined text-sm">{{ deal.isActive ? 'pause' :
+                                    'play_arrow' }}</span>
                             </button>
                             <button (click)="deleteDeal(deal)"
                                 class="size-8 bg-off-white border-2 border-espresso flex items-center justify-center zine-click-active hover:bg-red-100">
@@ -459,7 +496,8 @@
         <!-- ── TRAFFIC TAB ── -->
         @if (activeTab() === 'traffic') {
         <div class="space-y-5">
-            <h2 class="inline-block bg-espresso text-off-white px-4 py-1 font-zine font-black italic uppercase tracking-widest -rotate-1 zine-shadow-sm">
+            <h2
+                class="inline-block bg-espresso text-off-white px-4 py-1 font-zine font-black italic uppercase tracking-widest -rotate-1 zine-shadow-sm">
                 Traffic Overview
             </h2>
 
@@ -483,7 +521,8 @@
                 <p class="font-zine font-bold text-sm uppercase tracking-wider">What the numbers mean</p>
                 <div class="space-y-2 font-marker text-sm text-espresso/70">
                     <p>— <span class="text-primary font-bold">{{ s.totalCheckins }}</span> people checked in here</p>
-                    <p>— Your cafe won <span class="text-sage font-bold">{{ s.totalSessions }}</span> group voting sessions</p>
+                    <p>— Your cafe won <span class="text-sage font-bold">{{ s.totalSessions }}</span> group voting
+                        sessions</p>
                     <p>— Average review rating: <span class="font-bold">{{ s.avgRating || 'No reviews yet' }}</span></p>
                 </div>
             </div>
