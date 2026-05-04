@@ -110,6 +110,15 @@ export const routes: Routes = [
     data: { showBottomNavbar: false }
   },
   {
+    path: 'admin/submissions',
+    loadComponent: () =>
+      import('./features/admin/submissions/admin-submissions.component').then(
+        (m) => m.AdminSubmissionsComponent
+      ),
+    canActivate: [authOnlyGuard, adminGuard],
+    data: { showBottomNavbar: false }
+  },
+  {
     path: 'cafe/add',
     loadComponent: () =>
       import('./features/cafe/add/add-cafe.component').then(

@@ -71,6 +71,22 @@
                 <span class="material-symbols-outlined text-off-white/60">admin_panel_settings</span>
             </div>
         </a>
+        <a routerLink="/admin/submissions"
+            class="flex items-center justify-between bg-espresso text-off-white border-4 border-espresso zine-shadow px-5 py-4 zine-click-active rotate-[0.5deg]">
+            <div>
+                <p class="font-zine font-black italic uppercase tracking-wider text-sm">Admin Submissions</p>
+                <p class="font-marker text-xs text-off-white/60 mt-0.5">Review new spot suggestions</p>
+            </div>
+            <div class="flex items-center gap-2">
+                @if (pendingSubmissionsCount() > 0) {
+                <span
+                    class="min-w-[22px] h-[22px] px-1.5 bg-primary text-espresso rounded-full font-zine font-black text-xs flex items-center justify-center border-2 border-off-white">
+                    {{ pendingSubmissionsCount() }}
+                </span>
+                }
+                <span class="material-symbols-outlined text-off-white/60">storefront</span>
+            </div>
+        </a>
         }
 
         <!-- Stats Row -->

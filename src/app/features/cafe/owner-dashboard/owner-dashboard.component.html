@@ -27,6 +27,7 @@
         @for (tab of [
             {id: 'overview', icon: 'edit', label: 'Info'},
             {id: 'reviews', icon: 'rate_review', label: 'Reviews'},
+            {id: 'menu', icon: 'restaurant_menu', label: 'Menu'},
             {id: 'deals', icon: 'local_offer', label: 'Deals'},
             {id: 'traffic', icon: 'bar_chart', label: 'Traffic'}
         ]; track tab.id) {
@@ -285,6 +286,81 @@
                 }
             </div>
             }
+        </div>
+        }
+
+        <!-- ── MENU TAB ── -->
+        @if (activeTab() === 'menu') {
+        <div class="p-5 space-y-5">
+            <div class="flex items-center justify-between">
+                <h2 class="inline-block bg-primary text-espresso px-4 py-1 font-zine font-black italic uppercase tracking-widest -rotate-1 border-2 border-espresso zine-shadow-sm">
+                    Menu
+                </h2>
+                <span class="font-marker text-[10px] text-espresso/40 uppercase">{{ menuItems().length }} items</span>
+            </div>
+
+            <datalist id="owner-menu-categories">
+                @for (cat of menuCategorySuggestions; track cat) {
+                <option [value]="cat"></option>
+                }
+            </datalist>
+
+            <div class="space-y-3">
+                @for (item of menuItems(); track $index; let i = $index) {
+                <div class="relative bg-off-white border-2 border-espresso zine-shadow-sm p-3 space-y-2">
+                    <div class="flex gap-3">
+                        @if (menuItemPreviews()[i]) {
+                        <div class="relative w-20 h-20 shrink-0 border-2 border-espresso overflow-hidden">
+                            <img [src]="menuItemPreviews()[i]" [alt]="item.name" class="w-full h-full object-cover" />
+                            <button type="button" (click)="removeMenuItemPhoto(i)"
+                                class="absolute top-0.5 right-0.5 w-5 h-5 bg-espresso text-off-white border border-off-white flex items-center justify-center">
+                                <span class="material-symbols-outlined text-[12px]">close</span>
+                            </button>
+                        </div>
+                        } @else {
+                        <label class="w-20 h-20 shrink-0 border-2 border-dashed border-espresso/40 bg-latte/50 flex flex-col items-center justify-center cursor-pointer hover:bg-latte">
+                            <span class="material-symbols-outlined text-espresso/40 text-xl">add_a_photo</span>
+                            <span class="font-marker text-[9px] text-espresso/40 uppercase mt-0.5">Photo</span>
+                            <input type="file" accept="image/*" class="hidden" (change)="onMenuItemPhotoSelected(i, $event)" />
+                        </label>
+                        }
+                        <div class="flex-1 min-w-0 space-y-2">
+                            <input type="text" [value]="item.name" (input)="updateMenuItemField(i, 'name', $any($event.target).value)"
+                                placeholder="Item name"
+                                class="w-full bg-latte/50 border-2 border-espresso px-2 py-1.5 font-marker text-sm text-espresso placeholder:text-espresso/30 focus:outline-none focus:ring-2 focus:ring-primary" />
+                            <div class="flex gap-2">
+                                <div class="flex items-center bg-latte/50 border-2 border-espresso flex-1 min-w-0">
+                                    <span class="font-zine text-[10px] font-bold uppercase text-espresso/50 px-2">RM</span>
+                                    <input type="number" min="0" step="0.10" [value]="item.price || ''"
+                                        (input)="updateMenuItemPrice(i, $any($event.target).value)"
+                                        placeholder="0.00"
+                                        class="w-full bg-transparent py-1.5 pr-2 font-marker text-sm text-espresso placeholder:text-espresso/30 focus:outline-none" />
+                                </div>
+                                <input type="text" list="owner-menu-categories" [value]="item.category || ''"
+                                    (input)="updateMenuItemField(i, 'category', $any($event.target).value)"
+                                    placeholder="Category"
+                                    class="flex-1 min-w-0 bg-latte/50 border-2 border-espresso px-2 py-1.5 font-marker text-sm text-espresso placeholder:text-espresso/30 focus:outline-none focus:ring-2 focus:ring-primary" />
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" (click)="removeMenuItem(i)"
+                        class="w-full bg-red-100 border-2 border-espresso py-1.5 font-zine text-[10px] font-black italic uppercase zine-click-active">
+                        Remove Item
+                    </button>
+                </div>
+                }
+
+                <button type="button" (click)="addMenuItem()"
+                    class="w-full bg-latte border-2 border-dashed border-espresso/40 py-3 font-zine text-xs font-black italic uppercase zine-click-active hover:bg-off-white flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined text-base">add</span>
+                    Add Menu Item
+                </button>
+            </div>
+
+            <button (click)="saveMenu()" [disabled]="saving()"
+                class="w-full bg-espresso text-off-white border-2 border-espresso py-3 font-zine text-sm font-black italic uppercase tracking-wider zine-click-active disabled:opacity-60">
+                {{ saving() ? 'Saving...' : 'Save Menu' }}
+            </button>
         </div>
         }
 

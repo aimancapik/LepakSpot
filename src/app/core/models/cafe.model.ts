@@ -15,6 +15,14 @@ export interface DayHours {
 
 export type OperatingHours = Record<DayKey, DayHours>;
 
+export interface MenuItem {
+    name: string;
+    price: number;
+    currency?: string;
+    category?: string;
+    photoUrl?: string;
+}
+
 export interface Cafe {
     id: string;
     name: string;
@@ -34,6 +42,7 @@ export interface Cafe {
     isLateNight?: boolean;
     perks?: string[];
     secretMenu?: string[];
+    menu?: MenuItem[];
     sceneSnaps?: { url: string; tag: string }[];
     openingHours?: string;
     operatingHours?: OperatingHours;

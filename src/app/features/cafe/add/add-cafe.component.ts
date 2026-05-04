@@ -5,7 +5,7 @@ import { CafeService } from '../../../core/services/cafe.service';
 import { ToastService } from '../../../shared/components/toast/toast.service';
 import { AuthService } from '../../../core/services/auth.service';
 import {
-    CafeTag, WifiSpeed, CrowdLevel, NoiseLevel, OutletAvailability
+    CafeTag, WifiSpeed, CrowdLevel, NoiseLevel, OutletAvailability, MenuItem
 } from '../../../core/models/cafe.model';
 import { Location } from '@angular/common';
 import { SupabaseService } from '../../../core/services/supabase.service';
@@ -83,6 +83,12 @@ export class AddCafeComponent implements OnInit {
     sceneSnapPreviews = signal<string[]>([]);
     sceneSnapTags = signal<string[]>([]);
 
+    // ─── Menu items ─────────────────────────────────────────────────────
+    menuItems = signal<MenuItem[]>([]);
+    menuItemFiles = signal<(File | null)[]>([]);
+    menuItemPreviews = signal<string[]>([]);
+    readonly menuCategorySuggestions = ['Coffee', 'Tea', 'Food', 'Pastry', 'Cold Drinks', 'Dessert'];
+
     // ─── Form state ─────────────────────────────────────────────────────
     submitting = signal(false);
     submitted = signal(false);
@@ -137,6 +143,11 @@ export class AddCafeComponent implements OnInit {
                 if (cafe.sceneSnaps?.length) {
                     this.sceneSnapPreviews.set(cafe.sceneSnaps.map(s => s.url));
                     this.sceneSnapTags.set(cafe.sceneSnaps.map(s => s.tag));
+                }
+                if (cafe.menu?.length) {
+                    this.menuItems.set(cafe.menu.map(m => ({ ...m })));
+                    this.menuItemFiles.set(cafe.menu.map(() => null));
+                    this.menuItemPreviews.set(cafe.menu.map(m => m.photoUrl || ''));
                 }
             }
         }
@@ -248,6 +259,82 @@ export class AddCafeComponent implements OnInit {
         }
         this.sceneSnapPreviews.update(p => p.filter((_, i) => i !== index));
         this.sceneSnapTags.update(t => t.filter((_, i) => i !== index));
+    }
+
+    addMenuItem() {
+        this.menuItems.update(items => [...items, { name: '', price: 0, category: '' }]);
+        this.menuItemFiles.update(f => [...f, null]);
+        this.menuItemPreviews.update(p => [...p, '']);
+    }
+
+    removeMenuItem(index: number) {
+        this.menuItems.update(items => items.filter((_, i) => i !== index));
+        this.menuItemFiles.update(f => f.filter((_, i) => i !== index));
+        this.menuItemPreviews.update(p => p.filter((_, i) => i !== index));
+    }
+
+    updateMenuItemField(index: number, field: 'name' | 'category', value: string) {
+        this.menuItems.update(items => {
+            const next = [...items];
+            next[index] = { ...next[index], [field]: value };
+            return next;
+        });
+    }
+
+    updateMenuItemPrice(index: number, value: string) {
+        const num = parseFloat(value);
+        this.menuItems.update(items => {
+            const next = [...items];
+            next[index] = { ...next[index], price: isNaN(num) ? 0 : num };
+            return next;
+        });
+    }
+
+    onMenuItemPhotoSelected(index: number, event: Event) {
+        const input = event.target as HTMLInputElement;
+        const file = input.files?.[0];
+        if (!file) return;
+        try {
+            assertValidImageUpload(file);
+        } catch (error) {
+            const msg = error instanceof Error ? error.message : 'Invalid image upload.';
+            this.toastService.show(msg, 'error');
+            input.value = '';
+            return;
+        }
+        this.menuItemFiles.update(f => {
+            const next = [...f];
+            next[index] = file;
+            return next;
+        });
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            this.menuItemPreviews.update(p => {
+                const next = [...p];
+                next[index] = e.target!.result as string;
+                return next;
+            });
+        };
+        reader.readAsDataURL(file);
+        input.value = '';
+    }
+
+    removeMenuItemPhoto(index: number) {
+        this.menuItemFiles.update(f => {
+            const next = [...f];
+            next[index] = null;
+            return next;
+        });
+        this.menuItemPreviews.update(p => {
+            const next = [...p];
+            next[index] = '';
+            return next;
+        });
+        this.menuItems.update(items => {
+            const next = [...items];
+            next[index] = { ...next[index], photoUrl: undefined };
+            return next;
+        });
     }
 
     updateSceneSnapTag(index: number, event: Event) {
@@ -390,6 +477,33 @@ export class AddCafeComponent implements OnInit {
             const newSnapUrls = await this.uploadFiles(this.sceneSnapFiles());
             const newSnaps = newSnapUrls.map((url, i) => ({ url, tag: this.sceneSnapTags()[existingSnaps.length + i] || 'Spot' }));
             const sceneSnaps = [...existingSnaps, ...newSnaps];
+
+            // Menu items: per-item photo upload (new files only). Drop blank items.
+            const rawMenu = this.menuItems();
+            const menuFiles = this.menuItemFiles();
+            const menuPreviews = this.menuItemPreviews();
+            const menu: MenuItem[] = [];
+            for (let i = 0; i < rawMenu.length; i++) {
+                const item = rawMenu[i];
+                if (!item.name.trim()) continue;
+                let photoUrl = item.photoUrl;
+                const file = menuFiles[i];
+                if (file) {
+                    const [url] = await this.uploadFiles([file]);
+                    photoUrl = url || undefined;
+                } else if (menuPreviews[i] && !menuPreviews[i].startsWith('data:')) {
+                    photoUrl = menuPreviews[i];
+                } else if (!menuPreviews[i]) {
+                    photoUrl = undefined;
+                }
+                menu.push({
+                    name: item.name.trim(),
+                    price: Number.isFinite(item.price) ? item.price : 0,
+                    category: item.category?.trim() || undefined,
+                    photoUrl,
+                });
+            }
+
             this.uploadingPhotos.set(false);
 
             const mapsUrl = this.googleMapsUrl().trim();
@@ -412,6 +526,7 @@ export class AddCafeComponent implements OnInit {
                 photos: finalPhotoUrls,
                 videoUrl,
                 sceneSnaps,
+                menu,
                 googleMapsUrl: mapsUrl || undefined,
                 socialLinks: {
                     tiktok: this.tiktokUrl().trim() || undefined,

@@ -54,9 +54,12 @@ export class ProfileComponent implements OnInit, OnDestroy {
   appealSubmitting = signal(false);
   profilePhotoFailed = signal(false);
   pendingClaimsCount = signal(0);
+  pendingSubmissionsCount = signal(0);
   allBadges = ALL_BADGES;
   private visibilityHandler = () => {
-    if (document.visibilityState === 'visible') this.loadCafeClaims(false);
+    if (document.visibilityState !== 'visible') return;
+    this.loadCafeClaims(false);
+    if (this.authService.currentUser()?.isAdmin) this.loadAdminCounts();
   };
 
   userTitle = computed(() => {
@@ -136,7 +139,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
       this.cafeService.getMySubmissions().then(s => this.mySubmissions.set(s));
       this.loadCafeClaims();
       if (user.isAdmin) {
-        this.cafeService.getCafeClaims('pending').then(c => this.pendingClaimsCount.set(c.length));
+        this.loadAdminCounts();
       }
       document.addEventListener('visibilitychange', this.visibilityHandler);
       try {
@@ -155,6 +158,15 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     document.removeEventListener('visibilitychange', this.visibilityHandler);
+  }
+
+  private loadAdminCounts() {
+    this.cafeService.getCafeClaims('pending')
+      .then(c => this.pendingClaimsCount.set(c.length))
+      .catch(() => {});
+    this.cafeService.getPendingCafesCount()
+      .then(n => this.pendingSubmissionsCount.set(n))
+      .catch(() => {});
   }
 
   private loadCafeClaims(showLoading = true) {

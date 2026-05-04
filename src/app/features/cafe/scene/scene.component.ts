@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, OnDestroy, signal, viewChild, ElementRef } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal, computed, viewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { Location } from '@angular/common';
@@ -7,7 +7,7 @@ import { CafeService } from '../../../core/services/cafe.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { CheckInService } from '../../../core/services/checkin.service';
 import { ReviewService } from '../../../core/services/review.service';
-import { Cafe } from '../../../core/models/cafe.model';
+import { Cafe, MenuItem } from '../../../core/models/cafe.model';
 import { Review } from '../../../core/models/review.model';
 import { SaveToListModalComponent } from '../../../shared/components/save-to-list-modal/save-to-list-modal.component';
 import { ToastService } from '../../../shared/components/toast/toast.service';
@@ -37,6 +37,78 @@ export class SceneComponent implements OnInit, OnDestroy {
     isPresent = signal(false);
     checkingIn = signal(false);
     checkingOut = signal(false);
+    userLat = signal<number | null>(null);
+    userLng = signal<number | null>(null);
+    private watchId: number | null = null;
+
+    distanceToCafe = computed<number | null>(() => {
+        const cafe = this.cafe();
+        const lat = this.userLat();
+        const lng = this.userLng();
+        if (!cafe || lat === null || lng === null) return null;
+        return this.haversine(lat, lng, cafe.lat, cafe.lng);
+    });
+
+    tooFarToCheckIn = computed(() => {
+        const d = this.distanceToCafe();
+        return d === null || d > 50;
+    });
+
+    menuByCategory = computed<{ category: string; items: MenuItem[] }[]>(() => {
+        const items = this.cafe()?.menu ?? [];
+        if (!items.length) return [];
+        const groups = new Map<string, MenuItem[]>();
+        for (const item of items) {
+            const cat = item.category?.trim() || 'Other';
+            if (!groups.has(cat)) groups.set(cat, []);
+            groups.get(cat)!.push(item);
+        }
+        return Array.from(groups.entries()).map(([category, items]) => ({ category, items }));
+    });
+
+    formatPrice(item: MenuItem): string {
+        const currency = item.currency || 'RM';
+        if (!item.price && item.price !== 0) return '';
+        return `${currency} ${item.price.toFixed(2)}`;
+    }
+
+    menuLightboxIndex = signal<number | null>(null);
+    openMenuLightbox(globalIndex: number) {
+        this.menuLightboxIndex.set(globalIndex);
+    }
+    closeMenuLightbox() {
+        this.menuLightboxIndex.set(null);
+    }
+    menuItemsWithPhotos = computed<MenuItem[]>(() =>
+        (this.cafe()?.menu ?? []).filter(m => !!m.photoUrl)
+    );
+
+    formatDistance(): string {
+        const d = this.distanceToCafe();
+        if (d === null) return '';
+        return d < 1000 ? `${Math.round(d)}m away` : `${(d / 1000).toFixed(1)}km away`;
+    }
+
+    private haversine(lat1: number, lng1: number, lat2: number, lng2: number): number {
+        const R = 6371000;
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLng = (lng2 - lng1) * Math.PI / 180;
+        const a = Math.sin(dLat / 2) ** 2 +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
+
+    private watchUserLocation() {
+        if (!navigator.geolocation) return;
+        this.watchId = navigator.geolocation.watchPosition(
+            (pos) => {
+                this.userLat.set(pos.coords.latitude);
+                this.userLng.set(pos.coords.longitude);
+            },
+            () => { /* error ignored */ },
+            { enableHighAccuracy: true, maximumAge: 10000 }
+        );
+    }
 
     // Review state
     reviews = this.reviewService.cafeReviews;
@@ -55,6 +127,7 @@ export class SceneComponent implements OnInit, OnDestroy {
     reviewImagePreview = signal<string | null>(null);
 
     ngOnInit() {
+        this.watchUserLocation();
         const cafeId = this.route.snapshot.paramMap.get('id');
         if (cafeId) {
             this.cafeService.getCafesByIds([cafeId]).then(cafes => {
@@ -82,6 +155,7 @@ export class SceneComponent implements OnInit, OnDestroy {
 
     ngOnDestroy() {
         if (this.snapInterval) clearInterval(this.snapInterval);
+        if (this.watchId !== null) navigator.geolocation.clearWatch(this.watchId);
     }
 
     private async verifyCheckInStatus(cafeId: string) {
@@ -109,6 +183,13 @@ export class SceneComponent implements OnInit, OnDestroy {
 
     async checkIn() {
         if (!this.cafe() || this.checkingIn()) return;
+        if (this.tooFarToCheckIn()) {
+            const dist = this.formatDistance();
+            const cafeName = this.cafe()!.name;
+            const suffix = dist ? ` You're ${dist}.` : '';
+            this.toastService.show(`Make sure you're at ${cafeName} — get within 50m to check in.${suffix}`, 'error');
+            return;
+        }
         this.checkingIn.set(true);
 
         try {

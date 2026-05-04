@@ -580,6 +580,9 @@ export class CafeService {
         const user = this.authService.currentUser();
         if (!user) throw new Error('Not authenticated');
 
+        const now = new Date().toISOString();
+        const isAdmin = !!user.isAdmin;
+
         const cafe: Partial<Cafe> = {
             name: data.name || '',
             address: data.address || '',
@@ -591,8 +594,9 @@ export class CafeService {
             videoUrl: data.videoUrl,
             addedBy: user.uid,
             submittedBy: user.uid,
-            createdAt: new Date().toISOString(),
-            pendingApproval: true,
+            createdAt: now,
+            pendingApproval: !isAdmin,
+            approvedAt: isAdmin ? now : undefined,
             openingHours: data.openingHours,
             wifiSpeed: data.wifiSpeed,
             outletAvailability: data.outletAvailability,
@@ -601,6 +605,7 @@ export class CafeService {
             isLateNight: data.isLateNight || false,
             perks: data.perks || [],
             secretMenu: data.secretMenu || [],
+            menu: data.menu || [],
             sceneSnaps: data.sceneSnaps || [],
             googleMapsUrl: data.googleMapsUrl,
         };
@@ -685,12 +690,20 @@ export class CafeService {
         const admin = this.assertAdmin();
         const reviewedAt = new Date().toISOString();
 
+        const cafe = await this.getCafeById(claim.cafeId);
+        const wasPending = !!cafe?.pendingApproval;
+        const cafeUpdate: Partial<Cafe> = {
+            ownerId: claim.userId,
+            claimStatus: 'claimed' as const,
+        };
+        if (wasPending) {
+            cafeUpdate.pendingApproval = false;
+            cafeUpdate.approvedAt = reviewedAt;
+        }
+
         const { error: cafeError } = await this.supabase.client
             .from('cafes')
-            .update({
-                ownerId: claim.userId,
-                claimStatus: 'claimed' as const,
-            })
+            .update(cafeUpdate)
             .eq('id', claim.cafeId);
         if (cafeError) throw cafeError;
 
@@ -705,8 +718,53 @@ export class CafeService {
         if (claimError) throw claimError;
 
         this.nearbyCafes.update(cafes =>
-            cafes.map(c => c.id === claim.cafeId ? { ...c, ownerId: claim.userId, claimStatus: 'claimed' } : c)
+            cafes.map(c => c.id === claim.cafeId ? { ...c, ...cafeUpdate } : c)
         );
+    }
+
+    async getPendingCafes(): Promise<Cafe[]> {
+        this.assertAdmin();
+        const { data, error } = await this.supabase.client
+            .from('cafes')
+            .select('*')
+            .eq('pendingApproval', true)
+            .order('createdAt', { ascending: false });
+        if (error) throw error;
+        return (data || []) as Cafe[];
+    }
+
+    async getPendingCafesCount(): Promise<number> {
+        this.assertAdmin();
+        const { count, error } = await this.supabase.client
+            .from('cafes')
+            .select('id', { count: 'exact', head: true })
+            .eq('pendingApproval', true);
+        if (error) throw error;
+        return count || 0;
+    }
+
+    async approveCafe(cafeId: string): Promise<void> {
+        this.assertAdmin();
+        const approvedAt = new Date().toISOString();
+        const { error } = await this.supabase.client
+            .from('cafes')
+            .update({ pendingApproval: false, approvedAt })
+            .eq('id', cafeId);
+        if (error) throw error;
+        this.nearbyCafes.update(cafes =>
+            cafes.map(c => c.id === cafeId ? { ...c, pendingApproval: false, approvedAt } : c)
+        );
+    }
+
+    async rejectCafe(cafeId: string): Promise<void> {
+        this.assertAdmin();
+        const { error } = await this.supabase.client
+            .from('cafes')
+            .delete()
+            .eq('id', cafeId)
+            .eq('pendingApproval', true);
+        if (error) throw error;
+        this.nearbyCafes.update(cafes => cafes.filter(c => c.id !== cafeId));
     }
 
     async rejectCafeClaim(claim: CafeClaim, reason: string): Promise<void> {

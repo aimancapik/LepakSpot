@@ -7,13 +7,13 @@ import { DealService } from '../../../core/services/deal.service';
 import { ReviewService } from '../../../core/services/review.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { ToastService } from '../../../shared/components/toast/toast.service';
-import { Cafe, CafeTag, DayKey, DayHours, OperatingHours, WifiSpeed, OutletAvailability } from '../../../core/models/cafe.model';
+import { Cafe, CafeTag, DayKey, DayHours, OperatingHours, WifiSpeed, OutletAvailability, MenuItem } from '../../../core/models/cafe.model';
 import { Deal } from '../../../core/models/deal.model';
 import { Review } from '../../../core/models/review.model';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { assertValidImageUpload, assertValidVideoUpload, createUserImagePath, createUserMediaPath } from '../../../core/utils/image-upload';
 
-export type DashboardTab = 'overview' | 'reviews' | 'deals' | 'traffic';
+export type DashboardTab = 'overview' | 'reviews' | 'menu' | 'deals' | 'traffic';
 
 @Component({
     selector: 'app-owner-dashboard',
@@ -71,6 +71,10 @@ export class OwnerDashboardComponent implements OnInit {
     sceneSnapFiles = signal<File[]>([]);
     sceneSnapPreviews = signal<string[]>([]);
     sceneSnapTags = signal<string[]>([]);
+    menuItems = signal<MenuItem[]>([]);
+    menuItemFiles = signal<(File | null)[]>([]);
+    menuItemPreviews = signal<string[]>([]);
+    readonly menuCategorySuggestions = ['Coffee', 'Tea', 'Food', 'Pastry', 'Cold Drinks', 'Dessert'];
 
     // Deal form
     showDealForm = signal(false);
@@ -131,6 +135,127 @@ export class OwnerDashboardComponent implements OnInit {
         this.videoPreview.set(cafe.videoUrl || '');
         this.sceneSnapPreviews.set((cafe.sceneSnaps || []).map(s => s.url));
         this.sceneSnapTags.set((cafe.sceneSnaps || []).map(s => s.tag));
+        this.menuItems.set((cafe.menu || []).map(m => ({ ...m })));
+        this.menuItemFiles.set((cafe.menu || []).map(() => null));
+        this.menuItemPreviews.set((cafe.menu || []).map(m => m.photoUrl || ''));
+    }
+
+    addMenuItem() {
+        this.menuItems.update(items => [...items, { name: '', price: 0, category: '' }]);
+        this.menuItemFiles.update(f => [...f, null]);
+        this.menuItemPreviews.update(p => [...p, '']);
+    }
+
+    removeMenuItem(index: number) {
+        this.menuItems.update(items => items.filter((_, i) => i !== index));
+        this.menuItemFiles.update(f => f.filter((_, i) => i !== index));
+        this.menuItemPreviews.update(p => p.filter((_, i) => i !== index));
+    }
+
+    updateMenuItemField(index: number, field: 'name' | 'category', value: string) {
+        this.menuItems.update(items => {
+            const next = [...items];
+            next[index] = { ...next[index], [field]: value };
+            return next;
+        });
+    }
+
+    updateMenuItemPrice(index: number, value: string) {
+        const num = parseFloat(value);
+        this.menuItems.update(items => {
+            const next = [...items];
+            next[index] = { ...next[index], price: isNaN(num) ? 0 : num };
+            return next;
+        });
+    }
+
+    onMenuItemPhotoSelected(index: number, event: Event) {
+        const input = event.target as HTMLInputElement;
+        const file = input.files?.[0];
+        if (!file) return;
+        try {
+            assertValidImageUpload(file);
+        } catch (error) {
+            const msg = error instanceof Error ? error.message : 'Invalid image upload.';
+            this.toastService.show(msg, 'error');
+            input.value = '';
+            return;
+        }
+        this.menuItemFiles.update(f => {
+            const next = [...f];
+            next[index] = file;
+            return next;
+        });
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            this.menuItemPreviews.update(p => {
+                const next = [...p];
+                next[index] = e.target!.result as string;
+                return next;
+            });
+        };
+        reader.readAsDataURL(file);
+        input.value = '';
+    }
+
+    removeMenuItemPhoto(index: number) {
+        this.menuItemFiles.update(f => {
+            const next = [...f];
+            next[index] = null;
+            return next;
+        });
+        this.menuItemPreviews.update(p => {
+            const next = [...p];
+            next[index] = '';
+            return next;
+        });
+        this.menuItems.update(items => {
+            const next = [...items];
+            next[index] = { ...next[index], photoUrl: undefined };
+            return next;
+        });
+    }
+
+    async saveMenu() {
+        const cafe = this.cafe();
+        if (!cafe) return;
+        this.saving.set(true);
+        try {
+            const rawMenu = this.menuItems();
+            const menuFiles = this.menuItemFiles();
+            const menuPreviews = this.menuItemPreviews();
+            const menu: MenuItem[] = [];
+            for (let i = 0; i < rawMenu.length; i++) {
+                const item = rawMenu[i];
+                if (!item.name.trim()) continue;
+                let photoUrl = item.photoUrl;
+                const file = menuFiles[i];
+                if (file) {
+                    const [url] = await this.uploadFiles([file]);
+                    photoUrl = url || undefined;
+                } else if (menuPreviews[i] && !menuPreviews[i].startsWith('data:')) {
+                    photoUrl = menuPreviews[i];
+                } else if (!menuPreviews[i]) {
+                    photoUrl = undefined;
+                }
+                menu.push({
+                    name: item.name.trim(),
+                    price: Number.isFinite(item.price) ? item.price : 0,
+                    category: item.category?.trim() || undefined,
+                    photoUrl,
+                });
+            }
+            await this.cafeService.updateCafeAsOwner(cafe.id, { menu });
+            this.menuItems.set(menu.map(m => ({ ...m })));
+            this.menuItemFiles.set(menu.map(() => null));
+            this.menuItemPreviews.set(menu.map(m => m.photoUrl || ''));
+            this.cafe.update(c => c ? { ...c, menu } : c);
+            this.toastService.show('Menu updated!', 'success');
+        } catch {
+            this.toastService.show('Save failed. Try again.', 'error');
+        } finally {
+            this.saving.set(false);
+        }
     }
 
     toggleEditTag(tag: CafeTag) {

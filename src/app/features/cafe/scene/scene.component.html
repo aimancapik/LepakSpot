@@ -42,7 +42,7 @@
                 CHECKED IN TODAY
             </button>
             } @else {
-            <!-- Not checked in — show Check In -->
+            <!-- Not checked in — show Check In (still clickable when far; toast explains) -->
             <button (click)="checkIn()" [disabled]="checkingIn()"
                 class="flex-1 min-w-[120px] bg-white text-espresso px-4 py-2 rounded-full zine-border shadow-[4px_4px_0_var(--color-primary)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex justify-center items-center gap-2 group disabled:opacity-50 disabled:shadow-none disabled:translate-y-1 disabled:translate-x-1">
                 <span class="material-symbols-outlined text-lg transition-transform group-hover:scale-125">
@@ -119,6 +119,73 @@
                     }
                 </div>
                 }
+            </div>
+        </div>
+        }
+
+        <!-- ─── MENU ────────────────────────────────────────────── -->
+        @if ((cafe()!.menu?.length ?? 0) > 0) {
+        <div class="relative -mt-2" appFadeUp [delay]="0.22">
+            <div class="flex items-center gap-3 px-2 mb-4">
+                <h3 class="bg-espresso text-off-white px-3 py-1 font-zine font-bold italic uppercase tracking-widest -rotate-2">
+                    MENU
+                </h3>
+                <div class="h-0.5 flex-1 bg-espresso/10"></div>
+            </div>
+
+            <div class="space-y-5">
+                @for (group of menuByCategory(); track group.category) {
+                <div>
+                    <h4 class="font-marker text-primary text-sm uppercase tracking-wider mb-2 px-1">
+                        {{ group.category }}
+                    </h4>
+                    <div class="grid grid-cols-2 gap-3">
+                        @for (item of group.items; track $index) {
+                        <div class="bg-off-white zine-border zine-shadow-sm overflow-hidden flex flex-col">
+                            @if (item.photoUrl) {
+                            <button type="button"
+                                (click)="openMenuLightbox(menuItemsWithPhotos().indexOf(item))"
+                                class="block aspect-square overflow-hidden bg-latte cursor-zoom-in">
+                                <img [src]="item.photoUrl" [alt]="item.name"
+                                    class="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+                            </button>
+                            }
+                            <div class="p-2.5 flex-1 flex flex-col justify-between gap-1">
+                                <p class="font-zine font-black italic uppercase text-espresso text-xs leading-tight break-words">
+                                    {{ item.name }}
+                                </p>
+                                @if (item.price || item.price === 0) {
+                                <p class="font-marker text-primary text-sm">{{ formatPrice(item) }}</p>
+                                }
+                            </div>
+                        </div>
+                        }
+                    </div>
+                </div>
+                }
+            </div>
+        </div>
+        }
+
+        <!-- Menu lightbox -->
+        @if (menuLightboxIndex() !== null && menuItemsWithPhotos().length > 0) {
+        <div class="fixed inset-0 z-50 bg-espresso/95 flex items-center justify-center p-6"
+            (click)="closeMenuLightbox()" (keyup.escape)="closeMenuLightbox()" tabindex="0" role="button">
+            <button type="button" (click)="closeMenuLightbox()"
+                class="absolute top-6 right-6 size-11 bg-off-white border-2 border-espresso flex items-center justify-center zine-shadow-sm">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+            <div class="max-w-md w-full" (click)="$event.stopPropagation()" (keyup)="$event.stopPropagation()" tabindex="-1" role="presentation">
+                <img [src]="menuItemsWithPhotos()[menuLightboxIndex()!].photoUrl" [alt]="menuItemsWithPhotos()[menuLightboxIndex()!].name"
+                    class="w-full max-h-[70vh] object-contain border-4 border-off-white" />
+                <div class="bg-off-white border-x-4 border-b-4 border-off-white p-4 text-center">
+                    <p class="font-zine font-black italic uppercase text-espresso text-base">
+                        {{ menuItemsWithPhotos()[menuLightboxIndex()!].name }}
+                    </p>
+                    <p class="font-marker text-primary text-lg mt-1">
+                        {{ formatPrice(menuItemsWithPhotos()[menuLightboxIndex()!]) }}
+                    </p>
+                </div>
             </div>
         </div>
         }

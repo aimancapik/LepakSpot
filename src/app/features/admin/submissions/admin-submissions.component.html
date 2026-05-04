@@ -1,0 +1,105 @@
+<div class="relative min-h-screen max-w-md mx-auto bg-latte overflow-x-hidden border-x-4 border-espresso font-display text-espresso pb-12">
+    <header class="p-6 pt-10 sticky top-0 z-50 bg-[#F5E6D3]/95 backdrop-blur-md border-b-4 border-espresso">
+        <div class="flex items-center gap-4">
+            <button (click)="goBack()"
+                class="size-11 bg-off-white flex items-center justify-center border-2 border-espresso zine-shadow-sm zine-click-active shrink-0">
+                <span class="material-symbols-outlined">arrow_back</span>
+            </button>
+            <div class="min-w-0">
+                <p class="font-zine text-[10px] uppercase tracking-widest text-espresso/50 font-bold">Admin</p>
+                <h1 class="font-zine text-3xl font-black italic uppercase leading-none" appFadeUp>Submissions</h1>
+            </div>
+        </div>
+    </header>
+
+    <main class="px-5 py-6 space-y-5">
+        @if (loading()) {
+        <div class="space-y-3">
+            @for (i of [1,2,3]; track i) {
+            <div class="bg-off-white zine-border p-5 opacity-50 animate-pulse">
+                <div class="h-5 bg-espresso/20 rounded w-2/3 mb-4"></div>
+                <div class="h-3 bg-espresso/10 rounded w-full mb-2"></div>
+                <div class="h-3 bg-espresso/10 rounded w-1/2"></div>
+            </div>
+            }
+        </div>
+        } @else if (cafes().length === 0) {
+        <div class="bg-off-white zine-border zine-shadow p-8 text-center">
+            <span class="material-symbols-outlined text-5xl text-espresso/40 mb-2">storefront</span>
+            <p class="font-marker text-lg">No pending submissions.</p>
+        </div>
+        } @else {
+        <div class="space-y-5">
+            @for (cafe of cafes(); track cafe.id; let i = $index) {
+            <article class="bg-off-white zine-border zine-shadow overflow-hidden" [appFadeUp]="i" [delay]="0.05">
+                @if (cafe.photos?.length) {
+                <div class="aspect-video bg-latte border-b-2 border-espresso overflow-hidden">
+                    <img [src]="cafe.photos[0]" [alt]="cafe.name" class="w-full h-full object-cover" />
+                </div>
+                }
+                <div class="p-5 space-y-4">
+                    <div>
+                        <h2 class="font-zine text-xl font-black italic uppercase leading-tight break-words">
+                            {{ cafe.name }}
+                        </h2>
+                        <p class="font-marker text-[11px] text-espresso/60 mt-1 break-words">{{ cafe.address }}</p>
+                        <p class="font-marker text-[10px] text-espresso/50 uppercase mt-1">
+                            Submitted {{ cafe.createdAt | date:'d MMM yyyy, h:mm a' }}
+                        </p>
+                    </div>
+
+                    @if (cafe.tags?.length) {
+                    <div class="flex flex-wrap gap-1.5">
+                        @for (tag of cafe.tags; track tag) {
+                        <span class="border-2 border-espresso/30 bg-[#FAFAF7] px-2 py-1 font-zine text-[10px] font-bold uppercase">{{ tag }}</span>
+                        }
+                    </div>
+                    }
+
+                    <div class="grid grid-cols-2 gap-2">
+                        @if (cafe.openingHours) {
+                        <div class="bg-[#FAFAF7] border-2 border-espresso/20 p-2 min-w-0">
+                            <p class="font-zine text-[9px] font-bold uppercase text-espresso/40 mb-0.5">Hours</p>
+                            <p class="font-zine text-xs font-bold truncate" [title]="cafe.openingHours">{{ cafe.openingHours }}</p>
+                        </div>
+                        }
+                        @if (cafe.wifiSpeed) {
+                        <div class="bg-[#FAFAF7] border-2 border-espresso/20 p-2 min-w-0">
+                            <p class="font-zine text-[9px] font-bold uppercase text-espresso/40 mb-0.5">WiFi</p>
+                            <p class="font-zine text-xs font-bold">{{ cafe.wifiSpeed }}</p>
+                        </div>
+                        }
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <a [routerLink]="['/cafe', cafe.id]"
+                            class="inline-flex items-center justify-center gap-1 bg-[#FAFAF7] border-2 border-espresso px-3 py-3 font-zine text-xs font-bold uppercase zine-click-active">
+                            <span class="material-symbols-outlined text-sm">visibility</span>
+                            Preview
+                        </a>
+                        @if (cafe.googleMapsUrl) {
+                        <a [href]="cafe.googleMapsUrl" target="_blank" rel="noopener noreferrer"
+                            class="inline-flex items-center justify-center gap-1 bg-[#FAFAF7] border-2 border-espresso px-3 py-3 font-zine text-xs font-bold uppercase zine-click-active">
+                            <span class="material-symbols-outlined text-sm">map</span>
+                            Map
+                        </a>
+                        }
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 pt-2 border-t-2 border-espresso/10">
+                        <button (click)="reject(cafe)" [disabled]="!!reviewingId()"
+                            class="bg-red-100 border-2 border-espresso py-3 font-zine text-xs font-black italic uppercase zine-click-active disabled:opacity-60">
+                            Reject
+                        </button>
+                        <button (click)="approve(cafe)" [disabled]="!!reviewingId()"
+                            class="bg-sage border-2 border-espresso py-3 font-zine text-xs font-black italic uppercase zine-click-active disabled:opacity-60">
+                            {{ reviewingId() === cafe.id ? 'Working...' : 'Approve' }}
+                        </button>
+                    </div>
+                </div>
+            </article>
+            }
+        </div>
+        }
+    </main>
+</div>
